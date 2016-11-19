@@ -34,8 +34,8 @@ class LinuxPsxView(common.LinProcessFilter):
     ]
 
     __args = [
-        dict(name="method", choices=METHODS, type="ChoiceArray",
-             default=METHODS, help="Method to list processes.",
+        dict(name="method", choices=list(METHODS), type="ChoiceArray",
+             default=list(METHODS), help="Method to list processes.",
              override=True),
     ]
 

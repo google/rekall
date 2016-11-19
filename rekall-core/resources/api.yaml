@@ -1,0 +1,3431 @@
+- plugin: AFF4Acquire
+  name: aff4acquire
+  description: |-
+    Copy the physical address space to an AFF4 file.
+
+
+    NOTE: This plugin does not require a working profile - unless the user also
+    wants to copy the pagefile or mapped files. In that case we must analyze the
+    live memory to gather the required files.
+  args:
+    destination:
+      type: String
+      help: 'The destination file to create. '
+      positional: true
+    destination_url:
+      type: String
+      help: 'The destination AFF4 URL to create. '
+    compression:
+      type: String
+      default: snappy
+      choices:
+      - snappy
+      - stored
+      - zlib
+      help: The compression to use.
+    append:
+      type: Boolean
+      default: false
+      help: Append to the current volume.
+    also_memory:
+      type: Boolean
+      default: auto
+      help: >-
+        Also acquire physical memory. If not specified we acquire physical memory
+        only when no other operation is specified.
+    also_mapped_files:
+      type: Boolean
+      help: Also get mapped or opened files (requires a profile)
+    also_pagefile:
+      type: Boolean
+      help: Also get the pagefile/swap partition (requires a profile)
+    files:
+      type: ArrayStringParser
+      help: Also acquire files matching the following globs.
+    max_file_size:
+      type: IntParser
+      default: 104857600
+      help: Maximum file size to acquire.
+  active_modes: []
+- plugin: AFF4Dump
+  name: aff4dump
+  description: |
+    Dump the entire resolver contents for an AFF4 volume.
+  active_modes: []
+- plugin: AFF4Export
+  name: aff4export
+  description: |
+    Exports all the streams in an AFF4 Volume.
+  args:
+    regex:
+      type: RegEx
+      default: .
+      help: Regex of filenames to dump.
+    volume:
+      type: String
+      help: Volume to list.
+      positional: true
+      required: true
+  active_modes: []
+- plugin: AFF4Ls
+  name: aff4ls
+  description: |
+    List the content of an AFF4 file.
+  args:
+    long:
+      type: Boolean
+      help: Include additional information about each stream.
+    regex:
+      type: RegEx
+      default: .
+      help: Regex of filenames to dump.
+    volume:
+      type: String
+      help: Volume to list.
+      positional: true
+      required: true
+  active_modes: []
+- plugin: APIGenerator
+  name: api
+  description: |
+    Generate the plugin API document.
+  args:
+    output_file:
+      type: String
+      help: If specified we write the API into this file in YAML.
+  active_modes: []
+- plugin: APIPslist
+  name: pslist
+  description: |
+    A live pslist plugin using the APIs.
+  active_modes:
+  - mode_live_api
+- plugin: APISetProcessContext
+  name: cc
+  description: |
+    A cc plugin for setting process context to live mode.
+  active_modes:
+  - mode_live_api
+- plugin: AgentControllerExplainFlows
+  name: explain_flow
+  description: |
+    Explain all the parameters a flow may take.
+  args:
+    flow:
+      type: Choices
+      choices:
+      - CollectFlow
+      - ListProcessesFlow
+      - FileFinderFlow
+      - YaraScan
+      - ListDirectory
+      - Artifact
+      - Hunt
+      help: The flow to explain
+      positional: true
+      required: true
+    verbosity:
+      type: IntParser
+      default: 0
+      help: If non zero show all fields.
+    recursive:
+      type: Bool
+      help: Show recursively nested fields.
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: AgentControllerExportCollections
+  name: export
+  description: |
+    Exports all collections from the hunt or flow.
+  args:
+    flow_id:
+      type: String
+      help: The flow or hunt ID we should export.
+      positional: true
+      required: true
+    dumpdir:
+      type: String
+      help: The output directory we use export to.
+      positional: true
+      required: true
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: AgentControllerFetch
+  name: fetch
+  description: |2+
+
+  args:
+    path:
+      type: String
+      help: The path to fetch.
+      positional: true
+      required: true
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: AgentControllerRunFlow
+  name: launch_flow
+  description: |2+
+
+  args:
+    flow:
+      type: Choices
+      choices:
+      - CollectFlow
+      - ListProcessesFlow
+      - FileFinderFlow
+      - YaraScan
+      - ListDirectory
+      - Artifact
+      - Hunt
+      help: The flow to launch
+      positional: true
+      required: true
+    args:
+      type: Any
+      default: {}
+      help: >-
+        Arguments to the flow (use explain_flow to see valid args).This may also be
+        a JSON encoded string
+      positional: true
+    queue:
+      type: String
+      help: Which queue to schedule the hunt on.
+    condition:
+      type: String
+      help: An EFilter query to evaluate if the flow should be run.
+    canned_condition:
+      type: Choices
+      choices:
+        OS_LINUX: any from agent_info() where key=='system' and value=='Linux'
+        OS_OSX: any from agent_info() where key=='system' and value=='Darwin'
+        OS_WINDOWS: any from agent_info() where key=='system' and value=='Windows'
+      help: Canned conditions for the hunt.
+    live:
+      type: Choices
+      default: API
+      choices:
+      - API
+      - Memory
+      help: Live mode to use
+    quota:
+      type: IntParser
+      default: 3600
+      help: Total number of CPU seconds allowed for this flow.
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: AgentControllerRunHunt
+  name: launch_hunt
+  description: |-
+    Launch a hunt on many clients at once.
+
+    Rekall does not treat hunts as different or special entities - a hunt is
+    just a flow which targets multiple systems. However, for users it is
+    sometimes helpful to think in terms of a "hunt". This plugin makes it easier
+    to launch the hunt.
+  args:
+    queue:
+      type: String
+      default: All
+      help: Which queue to schedule the hunt on.
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: AgentControllerShowFile
+  name: view
+  description: |
+    Display information about a file.
+  args:
+    path:
+      type: String
+      help: A path to the object to display.
+      positional: true
+      required: true
+    query:
+      type: String
+      help: If this is a collection, issue this query
+    limit:
+      type: String
+      help: Limit result to this many rows.
+    mode:
+      type: Choices
+      choices:
+      - text
+      - hex
+      help: Mode for dumping files
+    encoding:
+      type: String
+      default: ascii
+      help: Possible encodings we try for text mode detection.
+    offset:
+      type: IntParser
+      default: 0
+      help: An offset to hexdump.
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: AgentControllerShowFlows
+  name: show_flows
+  description: |2+
+
+  args:
+    limit:
+      type: IntParser
+      default: 20
+      help: Total results to display
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: AgentControllerShowHunts
+  name: show_hunts
+  description: |2+
+
+  args:
+    queue:
+      type: String
+      default: All
+      help: The hunt queue.
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: AgentControllerStoreLs
+  name: bucket_ls
+  description: |
+    Show files within the storage bucket.
+  args:
+    path:
+      type: String
+      help: A path to the object to display.
+      positional: true
+    limit:
+      type: IntParser
+      default: 100
+      help: Total results to display
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: AgentInfo
+  name: agent_info
+  description: |-
+    Just emit information about the agent.
+
+    The output format is essentially key value pairs. This is useful for efilter
+    queries.
+  active_modes:
+  - mode_agent
+- plugin: AgentServerInitializeGCS
+  name: agent_server_initialize_gcs
+  description: |
+    Initialize the agent server to work in Google Cloud Storage.
+  args:
+    bucket:
+      type: String
+      help: The bucket name for the GCS deployment.
+      required: true
+    service_account_path:
+      type: String
+      help: Path to the service account (JSON) credentials
+      required: true
+  active_modes: []
+- plugin: AgentServerInitializeLocalHTTP
+  name: agent_server_initialize_http
+  description: |
+    Initialize the agent server to work in Google Cloud Storage.
+  args:
+    base_url:
+      type: String
+      help: The publicly accessible URL of the frontend.
+    bind_port:
+      type: IntParser
+      default: 8000
+      help: Port to bind to
+    bind_address:
+      type: String
+      default: 127.0.0.1
+      help: Address to bind to
+  active_modes: []
+- plugin: AgentWorker
+  name: worker
+  description: |2+
+
+  args:
+    batches:
+      type: ChoiceArray
+      default:
+      - Startup
+      - FlowStatus
+      - HuntStatus
+      choices:
+      - Startup
+      - FlowStatus
+      - HuntStatus
+      help: One or more batch jobs to run.
+    loop:
+      type: IntParser
+      default: 0
+      help: If specified we loop forever and sleep that many seconds between loops.
+  active_modes:
+  - mode_agent
+- plugin: AnalyzeStruct
+  name: analyze_struct
+  description: |
+    A plugin to analyze a memory location.
+  args:
+    offset:
+      type: SymbolAddress
+      help: A virtual address to analyze.
+      positional: true
+      required: true
+    search:
+      type: IntParser
+      default: 256
+      help: How far back to search for pool tag.
+    size:
+      type: IntParser
+      default: 256
+      help: How many elements to identify.
+  active_modes:
+  - mode_windows_memory
+- plugin: Arp
+  name: arp
+  description: |
+    print the ARP table.
+  active_modes:
+  - mode_linux_memory
+- plugin: ArtifactsCollector
+  name: artifact_collector
+  description: |
+    Collects artifacts.
+  args:
+    artifacts:
+      type: ArrayStringParser
+      help: A list of artifact names to collect.
+      positional: true
+      required: true
+    artifact_files:
+      type: ArrayStringParser
+      help: A list of additional yaml files to load which contain artifact definitions.
+    definitions:
+      type: ArrayStringParser
+      help: An inline artifact definition in yaml format.
+    create_timeline:
+      type: Bool
+      default: false
+      help: Also generate a timeline file.
+    copy_files:
+      type: Bool
+      default: false
+      help: Copy files into the output.
+    writer:
+      type: Choices
+      choices:
+      - Zip
+      - Directory
+      help: Writer for artifact results.
+    output_path:
+      type: String
+      help: Path suitable for dumping files.
+  active_modes: []
+- plugin: ArtifactsList
+  name: artifact_list
+  description: |
+    List details about all known artifacts.
+  args:
+    regex:
+      type: RegEx
+      default: .
+      help: Filter the artifact name.
+    supported_os:
+      type: ArrayStringParser
+      help: >-
+        If specified show for these OSs, otherwise autodetect based on the current
+        image.
+    labels:
+      type: ArrayStringParser
+      help: Filter by these labels.
+    all:
+      type: Bool
+      help: Show all artifacts.
+  active_modes: []
+- plugin: ArtifactsView
+  name: artifact_view
+  description: |2+
+
+  args:
+    artifacts:
+      type: ArrayStringParser
+      help: A list of artifacts to display
+      positional: true
+  active_modes: []
+- plugin: AtomScan
+  name: atomscan
+  description: |
+    Pool scanner for _RTL_ATOM_TABLE
+  args:
+    sort_by:
+      type: String
+      default: offset
+      choices:
+      - atom
+      - refcount
+      - offset
+      help: Sort by [offset | atom | refcount]
+  active_modes:
+  - mode_windows_memory
+- plugin: Atoms
+  name: atoms
+  description: |-
+    Print session and window station atom tables.
+
+    From:
+    http://msdn.microsoft.com/en-us/library/windows/desktop/ms649053.aspx
+
+    An atom table is a system-defined table that stores strings and
+    corresponding identifiers. An application places a string in an atom table
+    and receives a 16-bit integer, called an atom, that can be used to access
+    the string. A string that has been placed in an atom table is called an atom
+    name.
+
+    The global atom table is available to all applications. When an application
+    places a string in the global atom table, the system generates an atom that
+    is unique throughout the system. Any application that has the atom can
+    obtain the string it identifies by querying the global atom table.
+
+    (The global atom tables are only global within each session).
+  active_modes:
+  - mode_windows_memory
+- plugin: Banner
+  name: banner
+  description: |
+    Prints the Linux banner information.
+  active_modes:
+  - mode_linux_memory
+- plugin: BashHistory
+  name: bash
+  description: |-
+    Scan the bash process for history.
+
+    Based on original algorithm by Andrew Case.
+  args:
+    scan_entire_address_space:
+      type: Boolean
+      help: Scan the entire process address space, not only the heap.
+    proc_regex:
+      type: RegEx
+      default: ^bash$
+      help: The processes we should examine.
+  active_modes:
+  - mode_linux_memory
+- plugin: BuildIndex
+  name: build_index
+  description: >-
+    Generate a profile index file based on an index specification.
+
+
+    The index specification is currently a yaml file with the following
+
+    structure:
+
+
+    ```
+
+    base_symbol: (string) # OPTIONAL Compute ALL offsets as relative to this
+        symbol. This includes MaxOffset and MinOffset.
+    symbols: (array of dicts) # A list of symbols to index.
+      -
+        name: (string) # Symbol name
+        data: (string) # Data that should be at the symbol's offset
+        shift: (int) # OPTIONAL Adjust symbol offset by this number
+    ```
+
+
+    ## Example:
+
+
+    ```
+
+    path: win32k.sys
+
+    symbols:
+      -
+        # The name of the symbol we test for.
+        name: "??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@"
+
+        # The data we expect to find at that offset.
+        data: "47005500490046006f006e0074002e00480065006900670068007400"
+
+      -
+        name: "wcschr"
+        shift: -1
+        data: "90"
+    ```
+
+
+    The result is an index profile. This has an $INDEX section which is a dict,
+
+    with keys being the profile name, and values being a list of (offset, match)
+
+    tuples. For example:
+
+
+    ```
+
+    {
+     "$INDEX": {
+      "tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202": [[1184600,
+    "495053656344656c657465496e626f756e644f7574626f756e64536150616972"]],
+      "tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02": [[1190376,
+    "495053656344656c657465496e626f756e644f7574626f756e64536150616972"]],
+      "tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172": [[1194296,
+    "495053656344656c657465496e626f756e644f7574626f756e64536150616972"]],
+    ...
+
+     "$METADATA": {
+      "ProfileClass": "Index",
+      "Type": "Profile"
+      "MaxOffset": 546567
+      "MinOffset": 0
+      }
+     }
+    ```
+  active_modes: []
+- plugin: BuildProfileLocally
+  name: build_local_profile
+  description: |-
+    Download and builds a profile locally in one step.
+
+    We store the profile in the first repository in the profile_path which must
+    be writable. Usually this is a caching repository so the profile goes in the
+    local cache.
+  active_modes: []
+- plugin: CallbackScan
+  name: callback_scan
+  description: |-
+    Print system-wide notification routines by scanning for them.
+
+    Note this plugin is quite inefficient - consider using the callbacks plugin
+    instead.
+  active_modes:
+  - mode_windows_memory
+- plugin: Callbacks
+  name: callbacks
+  description: |-
+    Enumerate callback routines.
+
+    This plugin just enumerates installed callback routines from various
+    sources. It does not scan for them.
+
+    This plugin is loosely based on the original Volatility plugin of the same
+    name but much expanded using new information.
+
+    Reference:
+    <http://www.codemachine.com/notes.html>
+  active_modes:
+  - mode_windows_memory
+- plugin: CertDump
+  name: simple_certdump
+  description: |
+    Dump certs found by cert scan.
+  active_modes: []
+- plugin: CertScan
+  name: simple_certscan
+  description: |
+    Dump RSA private and public SSL keys from the physical address space.
+  active_modes: []
+- plugin: CertYaraScan
+  name: certscan
+  description: |
+    Scan certificates in windows memory regions.
+  args:
+    yara_file:
+      type: String
+      help: ''
+      hidden: true
+    yara_expression:
+      type: String
+      default: |2
+
+        rule x509 {
+          strings: $a = {30 82 ?? ?? 30 82 ?? ??} condition: $a
+        }
+        rule pkcs {
+          strings: $a = {30 82 ?? ?? 02 01 00} condition: $a
+        }
+      help: ''
+      hidden: true
+    hits:
+      type: IntParser
+      default: 1000000
+      help: Total number of hits to report.
+  active_modes:
+  - mode_windows_memory
+- plugin: CheckAFInfo
+  name: check_afinfo
+  description: |
+    Verifies the operation function pointers of network protocols.
+  active_modes:
+  - mode_linux_memory
+- plugin: CheckCreds
+  name: check_creds
+  description: |
+    Checks if any processes are sharing credential structures
+  active_modes:
+  - mode_linux_memory
+- plugin: CheckIdt
+  name: check_idt
+  description: |
+    Checks if the IDT has been altered
+  active_modes:
+  - mode_linux_memory
+- plugin: CheckModules
+  name: check_modules
+  description: |-
+    Compares module list to sysfs info, if available.
+
+    Sysfs contains a kset objects for a number of kernel objects (kobjects). One
+    of the ksets is the "module_kset" which holds references to all loaded
+    kernel modules.
+
+    Each struct module object holds within it a kobj struct for reference
+    counting. This object is referenced both from the struct module and the
+    sysfs kset.
+
+    This plugin traverses the kset and resolves the kobj back to its containing
+    object (which is the struct module itself). We then compare the struct
+    module with the list of known modules (which is obtained by traversing the
+    module's list member). So if a module were to simply unlink itself from the
+    list, it would still be found by its reference from sysfs.
+  active_modes:
+  - mode_linux_memory
+- plugin: CheckPEHooks
+  name: check_pehooks
+  description: |
+    Checks a pe file mapped into memory for hooks.
+  args:
+    image_base:
+      type: SymbolAddress
+      default: 0
+      help: The base address of the pe image in memory.
+      positional: true
+    type:
+      type: Choice
+      default: all
+      choices:
+      - all
+      - iat
+      - inline
+      - eat
+      help: Type of hook to display.
+    thorough:
+      type: Boolean
+      default: false
+      help: >-
+        By default we take some optimization. This flags forces thorough but slower
+        checks.
+  active_modes:
+  - mode_windows_memory
+- plugin: CheckProcFops
+  name: check_proc_fops
+  description: |
+    Checks the proc filesystem for hooked f_ops.
+  args:
+    all:
+      type: Boolean
+      help: Specify to see all the fops, even if they are known.
+  active_modes:
+  - mode_linux_memory
+- plugin: CheckSyscall
+  name: check_syscall
+  description: |
+    Checks if the system call table has been altered.
+  active_modes:
+  - mode_linux_memory
+- plugin: CheckTTY
+  name: check_ttys
+  description: |-
+    Checks tty devices for hooks.
+
+    Some malware insert a hook into the ops struct of the tty driver. This
+    plugin enumerates all tty_struct objects and checks if their ops handlers
+    have been subverted.
+  active_modes:
+  - mode_linux_memory
+- plugin: CheckTaskFops
+  name: check_task_fops
+  description: |
+    Check open files in tasks for f_ops modifications.
+  active_modes:
+  - mode_linux_memory
+- plugin: CheckTrapTable
+  name: check_trap_table
+  description: |
+    Checks the traps table for hooks.
+  active_modes:
+  - mode_darwin_memory
+- plugin: Clipboard
+  name: clipboard
+  description: |
+    Extract the contents of the windows clipboard
+  active_modes:
+  - mode_windows_memory
+- plugin: CmdScan
+  name: cmdscan
+  description: |
+    Extract command history by scanning for _COMMAND_HISTORY
+  args:
+    max_history:
+      type: IntParser
+      default: 50
+      help: >-
+        Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize
+        for default.
+  active_modes:
+  - mode_windows_memory
+- plugin: Collect
+  name: collect
+  description: |-
+    Collect instances of struct of type 'type_name'.
+
+    This plugin will find all other plugins that produce 'type_name' and merge
+    all their output. For example, running collect 'proc' will give you a
+    rudimentary psxview.
+
+    This plugin is mostly used by other plugins, like netstat and psxview.
+  args:
+    type_name:
+      type: String
+      help: The type (struct) to collect.
+      positional: true
+      required: true
+  active_modes: []
+- plugin: ConnScan
+  name: connscan
+  description: |
+    Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
+  active_modes:
+  - mode_windows_memory
+  - mode_xp
+- plugin: Connections
+  name: connections
+  description: |-
+    Print list of open connections [Windows XP Only]
+    ---------------------------------------------
+
+    This module enumerates the active connections from tcpip.sys.
+
+    Note that if you are using a hibernated image this might not work
+    because Windows closes all sockets before hibernating. You might
+    find it more effective to do conscan instead.
+
+    Active TCP connections are found in a hash table. The Hash table is given by
+    the _TCBTable symbol. The size of the hash table is found in the
+    _MaxHashTableSize variable.
+  active_modes:
+  - mode_windows_memory
+  - mode_xp
+- plugin: ConsoleScan
+  name: consolescan
+  description: |
+    Extract command history by scanning for _CONSOLE_INFORMATION
+  args:
+    history_buffers:
+      type: IntParser
+      default: 4
+      help: >-
+        Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize
+        for default.
+  active_modes:
+  - mode_windows_memory
+- plugin: Consoles
+  name: consoles
+  description: |
+    Enumerate command consoles.
+  active_modes:
+  - mode_windows_memory
+- plugin: ControllerAddressResolver
+  name: address_resolver
+  description: |2+
+
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: ConvertProfile
+  name: convert_profile
+  description: |-
+    Convert a profile from another program to the Rekall format.
+
+    The Rekall profile format is optimized for loading at runtime. This plugin
+    produces a Rekall profile from a variety of sources, including:
+
+    - Linux debug compiled kernel module (see tool/linux/README)
+    - OSX Dwarfdump outputs.
+  args:
+    profile_class:
+      type: String
+      help: >-
+        The name of the profile implementation to specify. If not specified, we autodetect.
+    converter:
+      type: String
+      help: The name of the converter to use. If not specified autoguess.
+    source:
+      type: String
+      help: Filename of profile to read.
+      positional: true
+      required: true
+    out_file:
+      type: String
+      help: Path for output file.
+      positional: true
+      required: true
+  active_modes: []
+- plugin: CpuInfo
+  name: cpuinfo
+  description: |
+    Prints information about each active processor.
+  active_modes:
+  - mode_linux_memory
+- plugin: DLLDump
+  name: dlldump
+  description: |
+    Dump DLLs from a process address space
+  args:
+    regex:
+      type: RegEx
+      default: .
+      help: A Regular expression for selecting the dlls to dump.
+  active_modes:
+  - mode_windows_memory
+- plugin: DT
+  name: dt
+  description: |-
+    Print a struct or other symbol.
+
+    Really just a convenience function for instantiating the object and printing
+    all its members.
+  args:
+    target:
+      type: String
+      help: Name of a struct definition.
+      positional: true
+      required: true
+    offset:
+      type: IntParser
+      default: 0
+      help: Name of a struct definition.
+    address_space:
+      type: AddressSpace
+      help: The address space to use.
+    member_offset:
+      type: IntParser
+      help: If specified we only show the member at this offset.
+  active_modes: []
+- plugin: DTBScan
+  name: dtbscan
+  description: |-
+    Scans the physical memory for DTB values.
+
+    This plugin can compare the DTBs found against the list of known processes
+    to find hidden processes.
+  args:
+    limit:
+      type: IntParser
+      default: 18446744073709551616
+      help: Stop scanning after this many mb.
+  active_modes:
+  - mode_windows_memory
+- plugin: DarwinAddressResolver
+  name: address_resolver
+  description: |
+    A Darwin specific address resolver plugin.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinAllProcCollector
+  name: allproc
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinArp
+  name: arp
+  description: |
+    Show information about arp tables.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinBootParameters
+  name: boot_cmdline
+  description: |
+    Prints the kernel command line.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinCheckSysCalls
+  name: check_syscalls
+  description: |
+    Checks the syscall table.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinDMSG
+  name: dmesg
+  description: |
+    Print the kernel debug messages.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinDeadFileprocCollector
+  name: dead_fileprocs
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinDeadProcessCollector
+  name: dead_procs
+  description: |
+    Lists dead processes using the proc allocation zone.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinDumpCompressedPages
+  name: dumpcompressedmemory
+  description: |
+    Dumps all compressed pages.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinDumpZone
+  name: dump_zone
+  description: |
+    Dumps an allocation zone's contents.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinFindDTB
+  name: find_dtb
+  description: |-
+    Tries to find the DTB address for the Darwin/XNU kernel.
+
+    As the XNU kernel developed over the years, the best way of deriving this
+    information changed. This class now offers multiple methods of finding the
+    DTB. Calling find_dtb should automatically select the best method for the
+    job, based on the profile. It will also attempt to fall back on less ideal
+    ways of getting the DTB if the best way fails.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinFindKASLR
+  name: find_kaslr
+  description: |-
+    A scanner for KASLR slide values in the Darwin kernel.
+
+    The scanner works by looking up a known data structure and comparing
+    its actual location to its expected location. Verification is a similar
+    process, using a second constant. This takes advantage of the fact that both
+    data structures are in a region of kernel memory that maps to the physical
+    memory in a predictable way (see ID_MAP_VTOP).
+
+    Human-readable output includes values of the kernel version string (which is
+    used for validation) for manual review, in case there are false positives.
+  active_modes:
+  - mode_darwin_memory
+  - mode_darwin_mountain_lion_plus
+- plugin: DarwinHandles
+  name: handles
+  description: |-
+    Walks open files of each proc and collects the fileproc.
+
+    This is the same algorithm as lsof, but aimed at just collecting the
+    fileprocs, without doing anything with them, or sorting.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinIPFilters
+  name: ip_filters
+  description: |
+    Check IP Filters for hooks.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinIfnetCollector
+  name: ifconfig
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinLsmod
+  name: lsmod
+  description: |
+    Lists all kernel modules.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinLsof
+  name: lsof
+  description: |-
+    Walks open files of each proc in order and prints PID, FD and the handle.
+
+    Each process has an array of pointers to fileproc structs - the offset into
+    the array is the file descriptor and each fileproc struct represents a
+    handle on some resource. A type field in the fileproc determines the type
+    of the resource pointed to from the fileproc (e.g. vnode, socket, pipe...).
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinMachineInfo
+  name: machine_info
+  description: |
+    Show information about this machine.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinMaps
+  name: maps
+  description: |
+    Display the process maps.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinMemDump
+  name: memdump
+  description: |
+    Dumps the memory map for darwin tasks.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinMemMap
+  name: memmap
+  description: |
+    Prints the memory map for darwin tasks.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinMount
+  name: mount
+  description: |
+    Show mount points.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinNetstat
+  name: netstat
+  description: |-
+    Prints all open sockets we know about, from any source.
+
+    Netstat will display even connections that lsof doesn't know about, because
+    they were either recovered from an allocation zone, or found through a
+    secondary mechanism (like system call handler cache).
+
+    On the other hand, netstat doesn't know the file descriptor or, really, the
+    process that owns the connection (although it does know the PID of the last
+    process to access the socket.)
+
+    Netstat will also tell you, in the style of psxview, if a socket was only
+    found using some of the methods available.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinNotifiers
+  name: notifiers
+  description: |
+    Detects hooks in I/O Kit IONotify objects.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinPSAUX
+  name: psaux
+  description: |
+    List processes with their commandline.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinPas2Vas
+  name: pas2vas
+  description: |
+    Resolves a physical address to a virtual addrress in a process.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinPgrpHashCollector
+  name: pgrphash
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinPhysicalMap
+  name: phys_map
+  description: |
+    Prints the EFI boot physical memory map.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinPidHashProcessCollector
+  name: pidhash
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinPsTree
+  name: pstree
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinPslist
+  name: pslist
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinPsxView
+  name: psxview
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinRoute
+  name: route
+  description: |
+    Show routing table.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinSessionZoneCollector
+  name: dead_sessions
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinSessions
+  name: sessions
+  description: |
+    Finds sessions by walking their global hashtable.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinSetProcessContext
+  name: cc
+  description: |
+    A cc plugin for windows.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinSigScan
+  name: sigscan
+  description: |
+    Runs a signature scans against physical, kernel or process memory.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinSocketZoneCollector
+  name: dead_sockets
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinSocketsFromHandles
+  name: open_sockets
+  description: |
+    Looks up handles that point to a socket and collects the socket.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinSysctl
+  name: sysctl
+  description: >-
+    Dumps the sysctl database.
+
+
+    On OSX the kernel is configured through the sysctl mechanism. This is
+
+    analogous to /proc or /sysfs on Linux. The configuration space is broken
+
+    into MIBs - or hierarchical namespace.
+
+
+    https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man8/sysctl.8.html
+
+
+    For example:
+
+
+    net.inet.ip.subnets_are_local
+
+    net.inet.ip.ttl
+
+    net.inet.ip.use_route_genid
+
+
+    This is implemented via a singly linked list of sysctl_oid structs. The
+
+    structs can be on the following types:
+
+
+    - CTLTYPE_INT     means this MIB will handle an int.
+
+    - CTLTYPE_STRING  means this MIB will handle a string.
+
+    - CTLTYPE_QUAD    means this MIB will handle a long long int.
+
+    - CTLTYPE_NODE means this is a node which handles a sublevel of MIBs. It is
+      actually a pointer to a new sysctl_oid_list which handles the sublevel.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinTTYZoneCollector
+  name: dead_ttys
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinTaskProcessCollector
+  name: tasks
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinTerminals
+  name: terminals
+  description: |
+    Lists open ttys.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinUnpListCollector
+  name: unp_sockets
+  description: |
+    Walks the global list of sockets in uipc_usrreq.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinVADMap
+  name: vadmap
+  description: |-
+    Inspect each page in the VAD and report its status.
+
+    This allows us to see the address translation status of each page in the
+    VAD.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinVadDump
+  name: vaddump
+  description: |
+    Dump the VMA memory for a process.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinVtoP
+  name: vtop
+  description: |
+    Describe virtual to physical translation on darwin platforms.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinYaraScan
+  name: yarascan
+  description: |
+    Scan using yara signatures.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinZoneCollector
+  name: zones
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: DarwinZoneVnodeCollector
+  name: dead_vnodes
+  description: |-
+    A mixin for plugins which require a valid kernel address space.
+
+    Args:
+      dtb: A potential dtb to be used.
+  active_modes:
+  - mode_darwin_memory
+- plugin: Describe
+  name: describe
+  description: |
+    Describe the output of a plugin.
+  args:
+    plugin_name:
+      type: String
+      help: A plugin or plugin name to describe.
+      positional: true
+      required: true
+    max_depth:
+      type: IntParser
+      default: 0
+      help: The maximum depth to follow mappings.
+      positional: true
+  active_modes: []
+- plugin: DeviceTree
+  name: devicetree
+  description: |
+    Show device tree.
+  active_modes:
+  - mode_windows_memory
+- plugin: Disassemble
+  name: dis
+  description: |
+    Disassemble the given offset.
+  args:
+    offset:
+      type: SymbolAddress
+      help: >-
+        An offset to disassemble. This can also be the name of a symbol with an optional
+        offset. For example: tcpip!TcpCovetNetBufferList.
+      positional: true
+    address_space:
+      type: AddressSpace
+      help: The address space to use.
+    length:
+      type: IntParser
+      help: The number of instructions (lines) to disassemble.
+    end:
+      type: IntParser
+      help: The end address to disassemble up to.
+    mode:
+      type: Choices
+      choices:
+      - I386
+      - AMD64
+      - MIPS
+      help: Disassemble Mode (AMD64 or I386). Defaults to 'auto'.
+    branch:
+      type: Boolean
+      default: false
+      help: If set we follow all branches to cover all code.
+    canonical:
+      type: Boolean
+      default: false
+      help: If set emit canonical instructions. These can be used to develop signatures.
+  active_modes: []
+- plugin: DriverIrp
+  name: driverirp
+  description: |
+    Driver IRP hook detection
+  args:
+    regex:
+      type: RegEx
+      help: Analyze drivers matching REGEX
+  active_modes:
+  - mode_windows_memory
+- plugin: DriverScan
+  name: driverscan
+  description: |
+    Scan for driver objects _DRIVER_OBJECT
+  active_modes:
+  - mode_windows_memory
+- plugin: Dump
+  name: dump
+  description: |-
+    Hexdump an object or memory location.
+
+    You can use this plugin repeateadely to keep dumping more data using the
+     "p _" (print last result) operation:
+
+    In [2]: dump 0x814b13b0, address_space="K"
+    ------> dump(0x814b13b0, address_space="K")
+    Offset                         Hex                              Data
+    ---------- ------------------------------------------------ ----------------
+    0x814b13b0 03 00 1b 00 00 00 00 00 b8 13 4b 81 b8 13 4b 81  ..........K...K.
+
+    Out[3]: <rekall.plugins.core.Dump at 0x2967510>
+
+    In [4]: p _
+    ------> p(_)
+    Offset                         Hex                              Data
+    ---------- ------------------------------------------------ ----------------
+    0x814b1440 70 39 00 00 54 1b 01 00 18 0a 00 00 32 59 00 00  p9..T.......2Y..
+    0x814b1450 6c 3c 01 00 81 0a 00 00 18 0a 00 00 00 b0 0f 06  l<..............
+    0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00 00 00 00  ..?.dw....!.....
+  args:
+    offset:
+      type: SymbolAddress
+      default: 0
+      help: An offset to hexdump.
+      positional: true
+    address_space:
+      type: AddressSpace
+      help: The address space to use.
+      positional: true
+    data:
+      type: String
+      help: Dump this string instead.
+    length:
+      type: IntParser
+      help: Maximum length to dump.
+    width:
+      type: IntParser
+      help: Number of bytes per row
+    rows:
+      type: IntParser
+      help: Number of bytes per row
+  active_modes: []
+- plugin: DumpFiles
+  name: dumpfiles
+  description: |-
+    Dump files from memory.
+
+    The interface is loosely based on the Volatility plugin of the same name,
+    although the implementation is quite different.
+  args:
+    file_objects:
+      type: ArrayIntParser
+      help: Kernel addresses of _FILE_OBJECT structs.
+  active_modes:
+  - mode_windows_memory
+- plugin: DwarfParser
+  name: dwarfparser
+  description: |
+    Parse the dwarf file and dump a vtype structure from it.
+  args:
+    dwarf_filename:
+      type: String
+      help: The filename of the PDB file.
+      positional: true
+      required: true
+    profile_class:
+      type: String
+      default: Linux64
+      help: 'The name of the profile implementation. '
+  active_modes: []
+- plugin: EATHooks
+  name: hooks_eat
+  description: |
+    Detect EAT hooks in process and kernel memory
+  active_modes:
+  - mode_windows_memory
+- plugin: EWFAcquire
+  name: ewfacquire
+  description: |
+    Copy the physical address space to an EWF file.
+  args:
+    destination:
+      type: String
+      help: >-
+        The destination file to create. If not specified we write output.E01 in current
+        directory.
+      positional: true
+  active_modes: []
+- plugin: EnumerateVacbs
+  name: vacbs
+  description: |
+    Enumerate all blocks cached in the cache manager.
+  active_modes:
+  - mode_windows_memory
+- plugin: EvtLogs
+  name: evtlogs
+  description: |
+    Extract Windows Event Logs (XP/2003 only)
+  active_modes:
+  - mode_windows_memory
+  - mode_xp
+- plugin: Explain
+  name: explain
+  description: |-
+    Prints various information about a query.
+
+    Explains how a query was parsed and how it will be interpreted. It also
+    runs a full type inferencer, to attempt to determine the output of the
+    query once it's executed.
+
+    The Explain plugin can analyse a strict superset of expressions that
+    are valid in the Search plugin. It supports:
+
+     - Any search query that can be passed to Search.
+     - Expressions asking about types and members of profile types
+       (like structs).
+  active_modes: []
+- plugin: FLS
+  name: fls
+  description: |2+
+
+  active_modes:
+  - mode_ntfs
+- plugin: FStat
+  name: fstat
+  description: |
+    Print information by filename.
+  active_modes:
+  - mode_ntfs
+- plugin: FetchPDB
+  name: fetch_pdb
+  description: |
+    Fetch the PDB file for an executable from the Microsoft PDB server.
+  args:
+    pdb_filename:
+      type: String
+      help: The filename of the executable to get the PDB file for.
+      positional: true
+      required: true
+    guid:
+      type: String
+      help: >-
+        The GUID of the pdb file. If provided, the pdb filename must be provided in
+        the --pdb_filename parameter.
+      positional: true
+  active_modes: []
+- plugin: FileScan
+  name: filescan
+  description: |
+    Scan Physical memory for _FILE_OBJECT pool allocations
+  active_modes:
+  - mode_windows_memory
+- plugin: FileYaraScanner
+  name: file_yara
+  description: |
+    Yara scanner which operates on files.
+  args:
+    paths:
+      type: Array
+      help: Paths to scan.
+      positional: true
+  active_modes:
+  - mode_live
+- plugin: FindPlugins
+  name: which_plugin
+  description: |
+    Find which plugin(s) are available to produce the desired output.
+  args:
+    type_name:
+      type: String
+      help: >-
+        The name of the type we're looking for. E.g.: 'proc' will find psxview, pslist,
+        etc.
+      positional: true
+      required: true
+    producers_only:
+      type: Boolean
+      help: >-
+        Only include producers: plugins that output only this struct and have no side
+        effects.
+  active_modes: []
+- plugin: FindReferenceAlloc
+  name: show_referrer_alloc
+  description: |
+    Show allocations that refer to an address.
+  args:
+    address:
+      type: IntParser
+      help: The address to display
+      positional: true
+      required: true
+  active_modes:
+  - mode_windows_memory
+- plugin: Gahti
+  name: gahti
+  description: |
+    Dump the USER handle type information.
+  active_modes:
+  - mode_windows_memory
+- plugin: GetSIDs
+  name: tokens
+  description: |
+    Print the SIDs owning each process token.
+  active_modes:
+  - mode_windows_memory
+- plugin: GetServiceSids
+  name: getservicesids
+  description: |
+    Get the names of services in the Registry and return Calculated SID
+  active_modes:
+  - mode_windows_memory
+- plugin: Grep
+  name: grep
+  description: |
+    Search an address space for keywords.
+  args:
+    keyword:
+      type: ArrayString
+      help: The binary strings to find.
+      positional: true
+    offset:
+      type: IntParser
+      default: 0
+      help: Start searching from this offset.
+    address_space:
+      type: AddressSpace
+      help: Name of the address_space to search.
+    context:
+      type: IntParser
+      default: 20
+      help: Context to print around the hit.
+    limit:
+      type: String
+      default: 18446744073709551616
+      help: The length of data to search.
+  active_modes: []
+- plugin: GuessGUID
+  name: guess_guid
+  description: |
+    Try to guess the exact version of a kernel module by using an index.
+  args:
+    module:
+      type: String
+      help: The name of the module to guess.
+      positional: true
+    minimal_match:
+      type: IntParser
+      default: 1
+      help: >-
+        The minimal number of comparison points to be considered. Sometimes not all
+        comparison points can be used since they may not be mapped.
+  active_modes:
+  - mode_windows_memory
+- plugin: Handles
+  name: handles
+  description: |
+    Print list of open handles for each process
+  args:
+    object_types:
+      type: ArrayStringParser
+      help: Types of objects to show.
+    named_only:
+      type: Boolean
+      help: Output only handles with a name .
+  active_modes:
+  - mode_windows_memory
+- plugin: HiveDump
+  name: hivedump
+  description: |
+    Prints out a hive
+  active_modes:
+  - mode_windows_memory
+- plugin: Hives
+  name: hives
+  description: |
+    List all the registry hives on the system.
+  active_modes:
+  - mode_windows_memory
+- plugin: Hostname
+  name: hostname
+  description: |-
+    A mixin for those plugins requiring a physical address space.
+
+    Args:
+      physical_address_space: The physical address space to use. If not
+        specified we use the following options:
+
+        1) session.physical_address_space,
+
+        2) Guess using the load_as() plugin,
+
+        3) Use session.kernel_address_space.base.
+  active_modes:
+  - mode_linux_memory
+- plugin: IATHooks
+  name: hooks_iat
+  description: |
+    Detect IAT/EAT hooks in process and kernel memory
+  active_modes:
+  - mode_windows_memory
+- plugin: IDump
+  name: idump
+  description: |
+    Dump a part of an MFT file.
+  args:
+    mft:
+      type: IntParser
+      default: 5
+      help: MFT entry to dump.
+      positional: true
+      required: true
+    type:
+      type: IntParser
+      default: 128
+      help: Attribute type to dump.
+      positional: true
+    id:
+      type: IntParser
+      help: Id of attribute to dump.
+      positional: true
+  active_modes:
+  - mode_ntfs
+- plugin: IExport
+  name: iexport
+  description: |-
+    Extracts files from NTFS.
+
+    For each specified MFT entry, dump the file to the specified dump
+    directory. The filename is taken as the longest filename of this MFT entry.
+  active_modes:
+  - mode_ntfs
+- plugin: ILS
+  name: ils
+  description: |
+    List files in an NTFS image.
+  active_modes:
+  - mode_ntfs
+- plugin: IOmem
+  name: iomem
+  description: |
+    mimics /proc/iomem.
+  active_modes:
+  - mode_linux_memory
+- plugin: IRDump
+  name: hexdump_file
+  description: |
+    Hexdump files from disk.
+  args:
+    start:
+      type: IntParser
+      default: 0
+      help: An offset to hexdump.
+    length:
+      type: IntParser
+      default: 100
+      help: Maximum length to dump.
+    width:
+      type: IntParser
+      default: 24
+      help: Number of bytes per row
+    rows:
+      type: IntParser
+      default: 4
+      help: Number of bytes per row
+  active_modes:
+  - mode_live
+- plugin: IRFind
+  name: find
+  description: |
+    List files recursively from a root path.
+  args:
+    root:
+      type: String
+      help: The root directory to start search from.
+      positional: true
+  active_modes:
+  - mode_live
+- plugin: IRGlob
+  name: glob
+  description: |-
+    Search for files by filename glob.
+
+    This code roughly based on the Glob flow in GRR.
+  args:
+    globs:
+      type: ArrayString
+      help: List of globs to return.
+      positional: true
+    root:
+      type: String
+      help: Root directory to glob from.
+    case_insensitive:
+      type: Bool
+      default: true
+      help: Globs will be case insensitive.
+    path_sep:
+      type: String
+      help: Path separator character (/ or \)
+    filesystem:
+      type: Choices
+      default: API
+      choices:
+      - API
+      help: The virtual filesystem implementation to glob in.
+  active_modes:
+  - mode_live
+- plugin: IRHash
+  name: hash
+  description: |2+
+
+  args:
+    paths:
+      type: Array
+      help: Paths to hash.
+      positional: true
+    hash:
+      type: ChoiceArray
+      default:
+      - sha1
+      choices:
+      - md5
+      - sha1
+      - sha256
+      help: One or more hashes to calculate.
+  active_modes:
+  - mode_live
+- plugin: IRMaps
+  name: maps
+  description: |
+    Examine the process memory maps.
+  args:
+    regex:
+      type: RegEx
+      help: A regular expression to filter VAD filenames.
+    offset:
+      type: SymbolAddress
+      help: Only print the vad corresponding to this offset.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: With high verbosity print more information on each region.
+  active_modes:
+  - mode_live_api
+- plugin: IRStat
+  name: stat
+  description: |2+
+
+  args:
+    paths:
+      type: Array
+      help: Paths to hash.
+      positional: true
+  active_modes:
+  - mode_live
+- plugin: IStat
+  name: istat
+  description: |
+    Print information related to an MFT entry.
+  active_modes:
+  - mode_ntfs
+- plugin: Ifconfig
+  name: ifconfig
+  description: |
+    Gathers active interfaces.
+  active_modes:
+  - mode_linux_memory
+- plugin: ImageCopy
+  name: imagecopy
+  description: |
+    Copies a physical address space out as a raw DD image
+  active_modes: []
+- plugin: ImageInfo
+  name: imageinfo
+  description: |
+    List overview information about this image.
+  active_modes:
+  - mode_windows_memory
+- plugin: ImpScan
+  name: impscan
+  description: |
+    Scan for calls to imported functions.
+  active_modes:
+  - mode_windows_memory
+- plugin: Info
+  name: info
+  description: |
+    Print information about various subsystems.
+  active_modes: []
+- plugin: InlineHooks
+  name: hooks_inline
+  description: |
+    Detect API hooks in process and kernel memory
+  active_modes:
+  - mode_windows_memory
+- plugin: InspectFlow
+  name: inspect_flow
+  description: |2+
+
+  args:
+    flow_id:
+      type: String
+      help: The flow to examine
+      positional: true
+      required: true
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: InspectHeap
+  name: inspect_heap
+  description: |-
+    Inspect the process heap.
+
+    This prints a lot of interesting facts about the process heap. It is also
+    the foundation to many other plugins which find things in the process heaps.
+
+    NOTE: Currently we only support Windows 7 64 bit.
+  args:
+    free:
+      type: Boolean
+      help: Also show freed chunks.
+    heaps:
+      type: ArrayIntParser
+      help: Only show these heaps (default show all)
+  active_modes:
+  - mode_amd64
+  - mode_windows_memory
+- plugin: InspectHunt
+  name: inspect_hunt
+  description: |2+
+
+  args:
+    limit:
+      type: IntParser
+      default: 20
+      help: Limit of rows to display
+    graph_clients:
+      type: Bool
+      help: Also plot a graph of client participation.
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: InteractiveShell
+  name: shell
+  description: |
+    An interactive shell for Rekall.
+  active_modes: []
+- plugin: JSONParser
+  name: json_render
+  description: |-
+    Renders a json rendering file, as produced by the JsonRenderer.
+
+    The output of any plugin can be stored to a JSON file using:
+
+    rekall -f img.dd --format json plugin_name --output test.json
+
+    Then it can be rendered again using:
+
+    rekall json_render test.json
+
+    This plugin implements the proper decoding of the JSON encoded output.
+  args:
+    file:
+      type: String
+      help: The filename to parse.
+      positional: true
+      required: true
+  active_modes: []
+- plugin: KDBGScan
+  name: kdbgscan
+  description: |-
+    Scan for possible _KDDEBUGGER_DATA64 structures.
+
+    The scanner is detailed here:
+    http://moyix.blogspot.com/2008/04/finding-kernel-global-variables-in.html
+
+    The relevant structures are detailed here:
+    http://doxygen.reactos.org/d3/ddf/include_2psdk_2wdbgexts_8h_source.html
+
+    We can see that _KDDEBUGGER_DATA64.Header is:
+
+    typedef struct _DBGKD_DEBUG_DATA_HEADER64 {
+        LIST_ENTRY64    List;
+        ULONG           OwnerTag;
+        ULONG           Size;
+    }
+
+    We essentially search for an owner tag of "KDBG", then overlay the
+    _KDDEBUGGER_DATA64 struct on it. We test for validity by reflecting
+    through the Header.List member.
+  args:
+    full_scan:
+      type: Boolean
+      help: Scan the full address space.
+  active_modes:
+  - mode_windows_memory
+- plugin: KPCR
+  name: kpcr
+  description: |
+    A plugin to print all KPCR blocks.
+  active_modes:
+  - mode_windows_memory
+- plugin: LdrModules
+  name: ldrmodules
+  description: |
+    Detect unlinked DLLs
+  active_modes:
+  - mode_windows_memory
+- plugin: LinMemDump
+  name: memdump
+  description: |
+    Dump the addressable memory for a process.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinMemMap
+  name: memmap
+  description: |
+    Dumps the memory map for linux tasks.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinPSTree
+  name: pstree
+  description: |-
+    Shows the parent/child relationship between processes.
+
+    This plugin prints a parent/child relationship tree by walking the
+    task_struct.children and task_struct.sibling members.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinPas2Vas
+  name: pas2vas
+  description: |
+    Resolves a physical address to a virtual addrress in a process.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinVadDump
+  name: vaddump
+  description: |
+    Dump the VMA memory for a process.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinVtoP
+  name: vtop
+  description: |
+    Describe virtual to physical translation on Linux platforms.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinYaraScan
+  name: yarascan
+  description: |
+    Scan using yara signatures.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinuxAPIAddressResolver
+  name: address_resolver
+  description: |
+    A Linux specific address resolver plugin.
+  active_modes:
+  - mode_live_api
+- plugin: LinuxAddressResolver
+  name: address_resolver
+  description: |
+    A Linux specific address resolver plugin.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinuxDmesg
+  name: dmesg
+  description: |
+    Gathers dmesg buffer.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinuxFindDTB
+  name: find_dtb
+  description: |-
+    A scanner for DTB values. Handles both 32 and 64 bits.
+
+    The plugin also autodetects when the guest is running as a XEN
+    ParaVirtualized guest and returns a compatible address space.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinuxPsList
+  name: pslist
+  description: |-
+    Gathers active tasks by walking the task_struct->task list.
+
+    It does not display the swapper process. If the DTB column is blank, the
+    item is likely a kernel thread.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinuxPsxView
+  name: psxview
+  description: |
+    Find hidden processes comparing various process listings.
+  args:
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      - PidHashTable
+      choices:
+      - InitTask
+      - PidHashTable
+      help: Method to list processes.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinuxSetProcessContext
+  name: cc
+  description: |
+    A cc plugin for windows.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinuxSigScan
+  name: sigscan
+  description: |
+    Runs a signature scans against physical, kernel or process memory.
+  active_modes:
+  - mode_linux_memory
+- plugin: LinuxVADMap
+  name: vadmap
+  description: |-
+    Inspect each page in the VAD and report its status.
+
+    This allows us to see the address translation status of each page in the
+    VAD.
+  active_modes:
+  - mode_linux_memory
+- plugin: Lister
+  name: l
+  description: |
+    A plugin to list objects.
+  active_modes: []
+- plugin: Live
+  name: live
+  description: |
+    Launch a Rekall shell for live analysis on the current system.
+  args:
+    mode:
+      type: Choices
+      default: Memory
+      choices:
+      - API
+      - Memory
+      help: Mode for live analysis.
+  active_modes: []
+- plugin: LoadAddressSpace
+  name: load_as
+  description: |
+    Load address spaces into the session if its not already loaded.
+  active_modes: []
+- plugin: LoadPlugins
+  name: load_plugin
+  description: |-
+    Load user provided plugins.
+
+    This probably is only useful after the interactive shell started since you
+    can already use the --plugin command line option.
+  active_modes: []
+- plugin: LoadWindowsProfile
+  name: load_profile
+  description: |-
+    Loads the profile into the session.
+
+    If the profile does not exist in the repositories, fetch and build it from
+    the symbol server. This plugin allows the user to change resolution of
+    selected binaries by forcing the fetching of symbol files from the symbol
+    server interactively.
+  args:
+    module_name:
+      type: String
+      help: The name of the module (without the .pdb extensilon).
+      positional: true
+      required: true
+    guid:
+      type: String
+      help: The guid of the module.
+  active_modes:
+  - mode_windows_memory
+- plugin: Lookup
+  name: lookup
+  description: |-
+    Lookup a global in the profile.
+
+    This plugin lets the user ask for a specific global constant in the
+    active profile.
+  args:
+    constant:
+      type: String
+      help: The constant to look up in the profile.
+      positional: true
+      required: true
+    target:
+      type: String
+      help: The type of the constant.
+      positional: true
+    target_args:
+      type: String
+      help: The target args
+      positional: true
+  active_modes: []
+- plugin: Lsmod
+  name: lsmod
+  description: |
+    Gathers loaded kernel modules.
+  active_modes:
+  - mode_linux_memory
+- plugin: LsmodSections
+  name: lsmod_sections
+  description: |
+    Display all the ELF sections of kernel modules.
+  active_modes:
+  - mode_linux_memory
+- plugin: Lsmod_parameters
+  name: lsmod_parameters
+  description: |
+    Display parameters for all kernel modules.
+  active_modes:
+  - mode_linux_memory
+- plugin: Lsof
+  name: lsof
+  description: |
+    Lists open files.
+  active_modes:
+  - mode_linux_memory
+- plugin: Malfind
+  name: malfind
+  description: |
+    Find hidden and injected code
+  active_modes:
+  - mode_windows_memory
+- plugin: ManageRepository
+  name: manage_repo
+  description: |
+    Manages the profile repository.
+  args:
+    executable:
+      type: String
+      help: The path to the rekall binary. This is used for spawning multiple processes.
+    processes:
+      type: IntParser
+      default: 1
+      help: Number of concurrent workers.
+    path_to_repository:
+      type: String
+      default: .
+      help: The path to the profile repository
+    force_build_index:
+      type: Boolean
+      default: false
+      help: Forces building the index.
+    build_target:
+      type: StringParser
+      help: A single target to build.
+      positional: true
+    builder_args:
+      type: ArrayStringParser
+      help: Optional args for the builder.
+      positional: true
+  active_modes: []
+- plugin: Mcat
+  name: mcat
+  description: |-
+    Returns the contents available in memory for a given file.
+
+    Ranges of the file that are not present in memory are returned blank.
+  active_modes:
+  - mode_linux_memory
+- plugin: MemoryTranslation
+  name: inspect_vaddr
+  description: |
+    Inspect the mapping of a virtual address.
+  args:
+    address:
+      type: SymbolAddress
+      help: Virtual address to inspect.
+      positional: true
+      required: true
+  active_modes: []
+- plugin: Mfind
+  name: mfind
+  description: |
+    Finds a file by name in memory.
+  args:
+    path:
+      type: String
+      default: /
+      help: Path to the file.
+      positional: true
+    device:
+      type: String
+      help: Name of the device to match.
+  active_modes:
+  - mode_linux_memory
+- plugin: MftDump
+  name: mftdump
+  description: |
+    Enumerate MFT entries from the cache manager.
+  active_modes:
+  - mode_windows_memory
+- plugin: Mimikatz
+  name: mimikatz
+  description: |
+    Extract and decrypt passwords from the LSA Security Service.
+  active_modes:
+  - mode_windows_memory
+- plugin: Mls
+  name: mls
+  description: |
+    Lists the files in a mounted filesystem.
+  args:
+    recursive:
+      type: Boolean
+      help: Recursive listing
+    unallocated:
+      type: Boolean
+      help: Show files that have no inode information.
+  active_modes:
+  - mode_linux_memory
+- plugin: ModDump
+  name: moddump
+  description: |
+    Dump kernel drivers from kernel space.
+  active_modes:
+  - mode_windows_memory
+- plugin: ModScan
+  name: modscan
+  description: |
+    Scan Physical memory for _LDR_DATA_TABLE_ENTRY objects.
+  active_modes:
+  - mode_windows_memory
+- plugin: ModVersions
+  name: version_modules
+  description: |
+    Try to determine the versions for all kernel drivers.
+  active_modes:
+  - mode_windows_memory
+- plugin: Moddump
+  name: moddump
+  description: |
+    Dumps loaded kernel modules.
+  args:
+    dump_dir:
+      type: String
+      help: Dump directory.
+      required: true
+    regexp:
+      type: RegEx
+      help: Regexp on the module name.
+  active_modes:
+  - mode_linux_memory
+- plugin: Modules
+  name: modules
+  description: |
+    Print list of loaded kernel modules.
+  args:
+    name_regex:
+      type: RegEx
+      help: Filter module names by this regex.
+  active_modes:
+  - mode_windows_memory
+- plugin: Mount
+  name: mount
+  description: |
+    Lists the mount points.
+  active_modes:
+  - mode_linux_memory
+- plugin: MutantScan
+  name: mutantscan
+  description: |
+    Scan for mutant objects _KMUTANT
+  active_modes:
+  - mode_windows_memory
+- plugin: Netstat
+  name: netstat
+  description: |
+    Print the active network connections.
+  active_modes:
+  - mode_linux_memory
+- plugin: NotifierChainPlugin
+  name: notifier_chains
+  description: |
+    Outputs and verifies kernel notifier chains.
+  active_modes:
+  - mode_linux_memory
+- plugin: 'Null'
+  name: 'null'
+  description: |-
+    This plugin does absolutely nothing.
+
+    It is used to measure startup overheads.
+  active_modes: []
+- plugin: ObjectTree
+  name: object_tree
+  description: |-
+    Visualize the kernel object tree.
+
+    Ref:
+    http://msdn.microsoft.com/en-us/library/windows/hardware/ff557762(v=vs.85).aspx
+  args:
+    type_regex:
+      type: RegEx
+      default: .
+      help: Filter the type of objects shown.
+  active_modes:
+  - mode_windows_memory
+- plugin: Objects
+  name: object_types
+  description: |
+    Displays all object Types on the system.
+  active_modes:
+  - mode_windows_memory
+- plugin: PEAddressResolver
+  name: address_resolver
+  description: |
+    A simple address resolver for PE files.
+  active_modes: []
+- plugin: PEDump
+  name: pedump
+  description: |
+    Dump a PE binary from memory.
+  args:
+    image_base:
+      type: SymbolAddress
+      help: The address of the image base (dos header).
+      positional: true
+    out_file:
+      type: String
+      help: The file name to write.
+    address_space:
+      type: AddressSpace
+      help: The address space to use.
+    out_fd:
+      type: String
+      help: A file like object to write the output.
+  active_modes:
+  - mode_windows_memory
+- plugin: PEInfo
+  name: peinfo
+  description: |
+    Print information about a PE binary.
+  args:
+    image_base:
+      type: SymbolAddress
+      help: The base of the image.
+      positional: true
+    executable:
+      type: String
+      help: If provided we create an address space from this file.
+      positional: true
+    address_space:
+      type: String
+      help: The address space to use.
+  active_modes: []
+- plugin: PFNInfo
+  name: pfn
+  description: |
+    Prints information about an address from the PFN database.
+  args:
+    pfn:
+      type: IntParser
+      help: The PFN to examine.
+      positional: true
+      required: true
+  active_modes:
+  - mode_windows_memory
+- plugin: PSAux
+  name: psaux
+  description: |
+    Gathers processes along with full command line and start time.
+  active_modes:
+  - mode_linux_memory
+- plugin: PSScan
+  name: psscan
+  description: |-
+    Scan Physical memory for _EPROCESS pool allocations.
+
+    Status flags:
+      E: A known _EPROCESS address from pslist.
+      P: A known pid from pslist.
+  active_modes:
+  - mode_windows_memory
+- plugin: PSTree
+  name: pstree
+  description: |
+    Print process list as a tree
+  active_modes:
+  - mode_windows_memory
+- plugin: PacketQueues
+  name: pkt_queues
+  description: |
+    Dumps the current packet queues for all known open sockets.
+  active_modes:
+  - mode_linux_memory
+- plugin: Pagefiles
+  name: pagefiles
+  description: |
+    Report all the active pagefiles.
+  active_modes:
+  - mode_windows_memory
+- plugin: ParsePDB
+  name: parse_pdb
+  description: |
+    Parse the PDB streams.
+  args:
+    pdb_filename:
+      type: String
+      help: The filename of the PDB file.
+      positional: true
+      required: true
+    profile_class:
+      type: String
+      help: >-
+        The name of the profile implementation. Default name is derived from the pdb
+        filename.
+    output_filename:
+      type: String
+      help: 'The name of the file to store this profile. '
+    windows_version:
+      type: String
+      help: >-
+        The windows version (major.minor.revision) corresponding with this PDB. For
+        example, Windows 7 should be given as 6.1
+    concise:
+      type: Boolean
+      help: Specify this to emit less detailed information.
+  active_modes: []
+- plugin: PidHashTable
+  name: pidhashtable
+  description: |
+    List processes by enumerating the pid hash tables.
+  active_modes:
+  - mode_linux_memory
+- plugin: PoolTracker
+  name: pool_tracker
+  description: |
+    Enumerate pool tag usage statistics.
+  active_modes:
+  - mode_windows_memory
+- plugin: Pools
+  name: pools
+  description: >-
+    Prints information about system pools.
+
+
+    Ref:
+
+    http://illmatics.com/Windows%208%20Heap%20Internals.pdf
+
+    https://media.blackhat.com/bh-dc-11/Mandt/BlackHat_DC_2011_Mandt_kernelpool-wp.pdf
+
+    https://immunityinc.com/infiltrate/archives/kernelpool_infiltrate2011.pdf
+
+    http://gate.upm.ro/os/LABs/Windows_OS_Internals_Curriculum_Resource_Kit-ACADEMIC/WindowsResearchKernel-WRK/WRK-v1.2/base/ntos/ex/pool.c
+  active_modes:
+  - mode_windows_memory
+- plugin: PrintKey
+  name: printkey
+  description: |
+    Print a registry key, and its subkeys and values
+  active_modes:
+  - mode_windows_memory
+- plugin: Printer
+  name: p
+  description: |
+    A plugin to print an object.
+  active_modes: []
+- plugin: Privileges
+  name: privileges
+  description: |
+    Prints process privileges.
+  active_modes:
+  - mode_windows_memory
+- plugin: ProcExeDump
+  name: procdump
+  description: |
+    Dump a process to an executable file sample
+  args:
+    out_fd:
+      type: String
+      help: A file like object to write the output.
+  active_modes:
+  - mode_windows_memory
+- plugin: ProcInfo
+  name: procinfo
+  description: |
+    Dump detailed information about a running process.
+  active_modes:
+  - mode_windows_memory
+- plugin: ProcMaps
+  name: maps
+  description: |
+    Gathers process maps for linux.
+  active_modes:
+  - mode_linux_memory
+- plugin: ProcessYaraScanner
+  name: yarascan
+  description: |
+    Yara scan process memory using the ReadProcessMemory() API.
+  active_modes:
+  - mode_live_api
+- plugin: PtoV
+  name: ptov
+  description: |
+    Converts a physical address to a virtual address.
+  args:
+    physical_address:
+      type: IntParser
+      help: The Virtual Address to examine.
+      positional: true
+  active_modes:
+  - mode_windows_memory
+- plugin: RaisingTheRoof
+  name: raise_the_roof
+  description: |
+    A plugin that exists to break your tests and make you cry.
+  active_modes: []
+- plugin: Raw2Dump
+  name: raw2dmp
+  description: |-
+    Convert the physical address space to a crash dump.
+
+    The Windows debugger (Windbg) works only with memory dumps stored
+    in the proprietary 'crashdump' file format. This file format
+    contains the following features:
+
+    1) Physical memory ranges are stored in a sparse way - there is a
+       'Runs' table which specifies the mapping between the physical
+       offset and the file offset of each page. This allows the format
+       to omit unmapped regions (unlike raw format which must pad them
+       with zero to maintain alignment).
+
+    2) The crash dump header contains metadata about the
+       image. Specifically, the header contain a copy of the Kernel
+       Debugger Data Block (AKA the KDBG). This data is used to
+       bootstrap the windows debugger by providing critical initial
+       hints to the debugger.
+
+    Since the KDBG block is created at system boot and never used
+    (until the crash dump is written) it is trivial for malware to
+    overwrite it - making it really hard for responders since windbg
+    will not be able to read the file. In later versions of windows,
+    the kdbg is also obfuscated (See the function "nt!KdCopyDataBlock"
+    which decrypts it.).
+
+    Rekall itself does not use the KDBG block any more, although older
+    memory forensic tools still do use it. Rekall instead relies on
+    accurate debugging symbols to locate critical kernel data
+    structures, reducing the level of trust we place on the image
+    itself (so Rekall is more resilient to manipulation).
+
+    In order to ensure that the windows debugger is able to read the
+    produced crash dump, we recreate the kernel debugger block from
+    the symbol information we already have.
+
+    NOTE: The crashdump file format can be deduced by:
+
+    dis 'nt!IoFillDumpHeader'
+
+    This is the reference for this plugin.
+  args:
+    destination:
+      type: String
+      help: The destination path to write the crash dump.
+      positional: true
+      required: true
+    rebuild:
+      type: Boolean
+      help: Rebuild the KDBG data block.
+  active_modes:
+  - mode_windows_memory
+- plugin: RegDump
+  name: regdump
+  description: |
+    Dump all registry hives from memory into a dump directory.
+  active_modes:
+  - mode_windows_memory
+- plugin: RekallAgent
+  name: agent
+  description: |
+    The Rekall DFIR Agent.
+  active_modes:
+  - mode_agent
+- plugin: RekallAgentController
+  name: agent_controller
+  description: |
+    Main entry point for running the agent controller.
+  active_modes:
+  - mode_agent
+- plugin: RekallAgentControllerClientContext
+  name: cc
+  description: |-
+    A plugin which changes the client context.
+
+    Having a client context set avoids the need to specify it each time.
+  args:
+    client_id:
+      type: String
+      help: Client id to switch to.
+      positional: true
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: RekallAgentHTTPServer
+  name: http_server
+  description: |
+    A plugin to create a front end server.
+  active_modes:
+  - mode_agent
+- plugin: RekallBovineExperience3000
+  name: moo
+  description: |-
+    Renders Bessy the cow and some beer.
+
+    This is a text renderer stress-test. It uses multiple features at the
+    same time:
+
+    - Multiple coloring rules per line (this was a doozy).
+    - Two columns with colors next to each other.
+    - Text with its own newlines isn't rewrapped.
+    - It still wraps if it overflows the cell.
+    - Bovine readiness and international spirit.
+  active_modes: []
+- plugin: Run
+  name: run
+  description: |-
+    A plugin which runs its argument (using eval).
+
+    Note: This plugin is only defined and available when using the main entry
+    point. It is not available when Rekall is used as a library since it allows
+    arbitrary code execution.
+  active_modes: []
+- plugin: Search
+  name: search
+  description: |-
+    Searches and recombines output of other plugins.
+
+    Search allows you to use the EFILTER search engine to filter, transform
+    and combine output of most Rekall plugins. The most common use for this
+    is running IOCs.
+
+    Some examples that work right now:
+    ==================================
+
+    # Find the process with pid 1:
+    search("select * pslist() where proc.pid == 1")
+
+    # Sort lsof output by file descriptor:
+    search("sort(lsof(), fd)") # or:
+    search("select * from lsof() order by fd)")
+
+    # Filter and sort through lsof in one step:
+    search("select * from lsof() where proc.pid == 1 order by fd)
+
+    # Is there any proc with PID 1, that has a TCPv6 connection and isn't a
+    # dead process?
+    search("(any lsof where (proc.pid == 1 and fileproc.human_type == 'TCPv6'))
+             and not (any dead_procs where (proc.pid == 1))")
+
+    # Note: "ANY" is just a short hand for "SELECT ANY FROM" which does what
+    # it sounds like, and returns True or False depending on whether the
+    # query has any results.
+  args:
+    silent:
+      type: Boolean
+      default: false
+      help: Queries should fail silently.
+  active_modes: []
+- plugin: SearchClients
+  name: show_clients
+  description: |2+
+
+  args:
+    client_id:
+      type: String
+      help: Exact match on client id
+      positional: true
+    hostname:
+      type: String
+      help: Partial match on hostname
+    limit:
+      type: IntParser
+      default: 20
+      help: Number of rows to show.
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: Services
+  name: services
+  description: |
+    Enumerate all services.
+  active_modes:
+  - mode_windows_memory
+- plugin: SessionDelete
+  name: sdel
+  description: |
+    Delete a session.
+  active_modes: []
+- plugin: SessionList
+  name: slist
+  description: |
+    List the sessions available.
+  active_modes: []
+- plugin: SessionMod
+  name: smod
+  description: |-
+    Modifies parameters of the current analysis session.
+
+    Any session parameters can be set here. For example:
+
+    smod colors="no", paging_limit=10, pager="less"
+  active_modes: []
+- plugin: SessionNew
+  name: snew
+  description: |
+    Creates a new session by cloning the current one.
+  active_modes: []
+- plugin: SessionSwitch
+  name: sswitch
+  description: |
+    Changes the current session to the session with session_id.
+  active_modes: []
+- plugin: Sessions
+  name: sessions
+  description: |-
+    List details on _MM_SESSION_SPACE (user logon sessions).
+
+    Windows uses sessions in order to separate processes. Sessions are used to
+    separate the address spaces of windows processes.
+
+    Note that this plugin traverses the ProcessList member of the session object
+    to list the processes - yet another list _EPROCESS objects are on.
+  active_modes:
+  - mode_windows_memory
+- plugin: SetPartitionContext
+  name: cc
+  description: |-
+    A mixin for those plugins requiring a physical address space.
+
+    Args:
+      physical_address_space: The physical address space to use. If not
+        specified we use the following options:
+
+        1) session.physical_address_space,
+
+        2) Guess using the load_as() plugin,
+
+        3) Use session.kernel_address_space.base.
+  args:
+    partition_number:
+      type: IntParser
+      help: The partition to switch to.
+      positional: true
+  active_modes:
+  - mode_tsk
+- plugin: ShimCacheMem
+  name: shimcachemem
+  description: |
+    Extract the Application Compatibility Shim Cache from kernel memory.
+  active_modes:
+  - mode_windows_memory
+- plugin: ShowAllocation
+  name: show_allocation
+  description: |
+    Show the allocation containing the address.
+  args:
+    address:
+      type: ArrayIntParser
+      help: The address to display
+      positional: true
+    preamble:
+      type: IntParser
+      default: 32
+      help: How many bytes prior to the address to display.
+    length:
+      type: IntParser
+      default: 800
+      help: How many bytes after the address to display.
+  active_modes:
+  - mode_windows_memory
+- plugin: SimpleYaraScan
+  name: simple_yarascan
+  description: |-
+    A Simple plugin which only yarascans the physical Address Space.
+
+    This plugin should not trigger profile autodetection and therefore should be
+    usable on any file at all.
+  args:
+    start:
+      type: IntParser
+      default: 0
+      help: Start searching from this offset.
+    limit:
+      type: IntParser
+      default: 18446744073709551616
+      help: The length of data to search.
+  active_modes: []
+- plugin: Sockets
+  name: sockets
+  description: |-
+    Print list of open sockets. [Windows xp only]
+    ---------------------------------------------
+
+    This module enumerates the active sockets from tcpip.sys
+
+    Note that if you are using a hibernated image this might not work
+    because Windows closes all sockets before hibernating.
+
+    _ADDRESS_OBJECT are arranged in a hash table found by the _AddrObjTable
+    symbol. The hash table has a size found by the _AddrObjTableSize symbol.
+  active_modes:
+  - mode_windows_memory
+  - mode_xp
+- plugin: SvcScan
+  name: svcscan
+  description: |
+    Scan for Windows services
+  active_modes:
+  - mode_windows_memory
+- plugin: SymLinkScan
+  name: symlinkscan
+  description: |
+    Scan for symbolic link objects
+  active_modes:
+  - mode_windows_memory
+- plugin: TSKFls
+  name: fls
+  description: |-
+    A mixin for those plugins requiring a physical address space.
+
+    Args:
+      physical_address_space: The physical address space to use. If not
+        specified we use the following options:
+
+        1) session.physical_address_space,
+
+        2) Guess using the load_as() plugin,
+
+        3) Use session.kernel_address_space.base.
+  args:
+    dir_path:
+      type: String
+      default: /
+      help: Directory path to print content of
+      positional: true
+  active_modes:
+  - mode_tsk
+- plugin: ThrdScan
+  name: thrdscan
+  description: |
+    Scan physical memory for _ETHREAD objects
+  active_modes:
+  - mode_windows_memory
+- plugin: Threads
+  name: threads
+  description: |
+    Enumerate threads.
+  active_modes:
+  - mode_windows_memory
+- plugin: Timers
+  name: timers
+  description: |-
+    Print kernel timers and associated module DPCs.
+
+    Ref:
+    http://computer.forensikblog.de/en/2011/10/timers-and-times.html
+  active_modes:
+  - mode_windows_memory
+- plugin: TskMmls
+  name: mmls
+  description: |-
+    A mixin for those plugins requiring a physical address space.
+
+    Args:
+      physical_address_space: The physical address space to use. If not
+        specified we use the following options:
+
+        1) session.physical_address_space,
+
+        2) Guess using the load_as() plugin,
+
+        3) Use session.kernel_address_space.base.
+  active_modes:
+  - mode_tsk
+- plugin: UnloadedModules
+  name: unloaded_modules
+  description: >-
+    Print a list of recently unloaded modules.
+
+
+    Ref:
+
+    http://volatility-labs.blogspot.de/2013/05/movp-ii-22-unloaded-windows-kernel_22.html
+  active_modes:
+  - mode_windows_memory
+- plugin: UserAssist
+  name: userassist
+  description: |
+    Print userassist registry keys and information
+  active_modes:
+  - mode_windows_memory
+- plugin: UserHandles
+  name: userhandles
+  description: |
+    Dump the USER handle tables
+  args:
+    type:
+      type: RegEx
+      default: .
+      help: Filter handle type by this Regular Expression.
+    free:
+      type: Boolean
+      help: Also include free handles.
+  active_modes:
+  - mode_windows_memory
+- plugin: Users
+  name: users
+  description: |-
+    Enumerate all users of this system.
+
+    Ref:
+    samparse.pl from RegRipper.
+
+    # copyright 2012 Quantum Analytics Research, LLC
+    # Author: H. Carvey, keydet89@yahoo.com
+  active_modes:
+  - mode_windows_memory
+- plugin: VAD
+  name: vad
+  description: |-
+    Concise dump of the VAD.
+
+    Similar to windbg's !vad.
+  args:
+    regex:
+      type: RegEx
+      help: A regular expression to filter VAD filenames.
+    offset:
+      type: IntParser
+      help: Only print the vad corresponding to this offset.
+  active_modes:
+  - mode_windows_memory
+- plugin: VADDump
+  name: vaddump
+  description: |
+    Dumps out the vad sections to a file
+  active_modes:
+  - mode_windows_memory
+- plugin: VADMap
+  name: vadmap
+  description: |-
+    Inspect each page in the VAD and report its status.
+
+    This allows us to see the address translation status of each page in the
+    VAD.
+  active_modes:
+  - mode_windows_memory
+- plugin: VFSLs
+  name: vfs_ls
+  description: |2+
+
+  args:
+    path:
+      type: String
+      default: /
+      help: The path to list.
+      positional: true
+    refresh:
+      type: Bool
+      help: If set we issue a new flow request to the client and wait until it completes.
+    recursive:
+      type: Bool
+      help: Recurse into subdirs.
+  active_modes:
+  - mode_agent
+  - mode_controller
+- plugin: VersionScan
+  name: version_scan
+  description: |
+    Scan the physical address space for RSDS versions.
+  args:
+    name_regex:
+      type: RegEx
+      default: .
+      help: Filter module names by this regex.
+    scan_filename:
+      type: String
+      help: Optional file to scan. If not specified we scan the physical address space.
+      positional: true
+  active_modes: []
+- plugin: VmScan
+  name: vmscan
+  description: |-
+    Scan the physical memory attempting to find hypervisors.
+
+    Once EPT values are found, you can use them to inspect virtual machines
+    with any of the rekall modules by using the --ept parameter and
+    specifying the guest virtual machine profile.
+
+    Supports the detection of the following virtualization techonlogies:
+      * Intel VT-X with EPT. Microarchitectures:
+        + Westmere
+        + Nehalem
+        + Sandybridge
+        + Ivy Bridge
+        + Haswell
+
+      * Intel VT-X without EPT (unsupported page translation in rekall).
+        + Penryn
+
+    For the specific processor models that support EPT, please check:
+    http://ark.intel.com/products/virtualizationtechnology.
+  args:
+    quick:
+      type: Boolean
+      help: Perform quick VM detection.
+    no_nested:
+      type: Boolean
+      help: Don't do nested VM detection.
+    offset:
+      type: IntParser
+      default: 0
+      help: Offset in the physical image to start the scan.
+    show_all:
+      type: Boolean
+      default: false
+      help: Also show VMs that failed validation.
+    image_is_guest:
+      type: Boolean
+      default: false
+      help: The image is for a guest VM, not the host.
+    no_validation:
+      type: Boolean
+      default: false
+      help: '[DEBUG SETTING] Disable validation of VMs.'
+  active_modes: []
+- plugin: VtoP
+  name: vtop
+  description: |
+    Prints information about the virtual to physical translation.
+  active_modes:
+  - mode_windows_memory
+- plugin: Win32kAutodetect
+  name: win32k_autodetect
+  description: |
+    Automatically detect win32k struct layout.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinDNSCache
+  name: dns_cache
+  description: |
+    Dump the windows DNS resolver cache.
+  args:
+    hashtable:
+      type: String
+      help: Optionally provide the hashtable
+    no_index:
+      type: Boolean
+      help: Should we not use the index
+  active_modes:
+  - mode_amd64
+  - mode_vista_plus
+  - mode_windows_memory
+- plugin: WinDesktops
+  name: desktops
+  description: |
+    Print information on each desktop.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinDllList
+  name: dlllist
+  description: |
+    Prints a list of dll modules mapped into each process.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinEventHooks
+  name: eventhooks
+  description: |
+    Print details on windows event hooks
+  active_modes:
+  - mode_windows_memory
+- plugin: WinFindDTB
+  name: find_dtb
+  description: |-
+    A plugin to search for the Directory Table Base for windows systems.
+
+    There are a number of ways to find the DTB:
+
+    - Scanner method: Scans the image for a known kernel process, and read the
+      DTB from its Process Environment Block (PEB).
+
+    - Get the DTB from the KPCR structure.
+
+    - Note that the kernel is mapped into every process's address space (with
+      the exception of session space which might be different) so using any
+      process's DTB from the same session will work to read kernel data
+      structures. If this plugin fails, try psscan to find potential DTBs.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinMemDump
+  name: memdump
+  description: |
+    Dump windows processes.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinMemMap
+  name: memmap
+  description: |
+    Calculates the memory regions mapped by a process.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinMessageHooks
+  name: messagehooks
+  description: |
+    List desktop and thread window message hooks.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinNetscan
+  name: netscan
+  description: |
+    Scan a Vista, 2008 or Windows 7 image for connections and sockets
+  active_modes:
+  - mode_windows_memory
+- plugin: WinNetstat
+  name: netstat
+  description: |
+    Enumerate image for connections and sockets
+  active_modes:
+  - mode_windows_memory
+- plugin: WinPas2Vas
+  name: pas2vas
+  description: |
+    Resolves a physical address to a virtual addrress in a process.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinPhysicalMap
+  name: phys_map
+  description: |
+    Prints the boot physical memory map.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinPhysicalYaraScanner
+  name: yarascan_physical
+  description: |-
+    An experimental yara scanner over the physical address space.
+
+    Yara does not provide a streaming interface, which means that when we scan
+    for yara rules we can only ever match strings within the same buffer. This
+    is a problem for physical address space scanning because each page (although
+    it might appear to be contiguous) usually comes from a different
+    process/mapped file.
+
+    Therefore we need a more intelligent way to apply yara signatures on the
+    physical address space:
+
+    1. The original set of yara rules is converted into a single rule with all
+    the strings from all the rules in it. The rule has a condition "any of them"
+    which will match any string appearing in the scanned buffer.
+
+    2. This rule is then applied over the physical address space.
+
+    3. For each hit we derive a context and add the hit to the context.
+
+    4. Finally we test all the rules within the same context with the original
+    rule set.
+  args:
+    hits:
+      type: IntParser
+      default: 10
+      help: Quit after finding this many hits.
+    yara_expression:
+      type: String
+      help: If provided we scan for this yara expression specified in the yara DSL.
+    yara_ast:
+      type: String
+      help: If provided we scan for this yara expression specified in the yara JSON
+        AST.
+    start:
+      type: IntParser
+      default: 0
+      help: Start searching from this offset.
+    limit:
+      type: IntParser
+      default: 18446744073709551616
+      help: The length of data to search.
+    context:
+      type: IntParser
+      default: 64
+      help: Context to print after the hit.
+    pre_context:
+      type: IntParser
+      default: 0
+      help: Context to print before the hit.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinPsList
+  name: pslist
+  description: |
+    List processes for windows.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinRammap
+  name: rammap
+  description: |
+    Scan all physical memory and report page owners.
+  args:
+    start:
+      type: IntParser
+      default: 0
+      help: Physical memory address to start displaying.
+      positional: true
+    end:
+      type: IntParser
+      help: Physical memory address to end displaying.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinSSDT
+  name: ssdt
+  description: |
+    Enumerate the SSDT.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinSigScan
+  name: sigscan
+  description: |
+    Runs a signature scans against physical, kernel or process memory.
+  active_modes:
+  - mode_windows_memory
+- plugin: WinVirtualMap
+  name: virt_map
+  description: >-
+    Prints the Windows Kernel Virtual Address Map.
+
+
+    On 32 bit windows, the kernel virtual address space can be managed
+
+    dynamically. This plugin shows each region and what it is used for.
+
+
+    Note that on 64 bit windows the address space is large enough to not worry
+
+    about it. In that case, the offsets and regions are hard coded.
+
+
+    http://www.woodmann.com/forum/entry.php?219-Using-nt!_MiSystemVaType-to-navigate-dynamic-kernel-address-space-in-Windows7
+  active_modes:
+  - mode_windows_memory
+- plugin: WinYaraScan
+  name: yarascan
+  description: |
+    Scan using yara signatures.
+  active_modes:
+  - mode_windows_memory
+- plugin: WindowsAddressResolver
+  name: address_resolver
+  description: |
+    A windows specific address resolver plugin.
+  active_modes:
+  - mode_windows_memory
+- plugin: WindowsPsxView
+  name: psxview
+  description: |
+    Find hidden processes with various process listings
+  args:
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      - PSScan
+      - Thrdproc
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      - PSScan
+      - Thrdproc
+      help: Method to list processes.
+  active_modes:
+  - mode_windows_memory
+- plugin: WindowsSetProcessContext
+  name: cc
+  description: |
+    A cc plugin for windows.
+  active_modes:
+  - mode_windows_memory
+- plugin: WindowsStations
+  name: windows_stations
+  description: |
+    Displays all the windows stations by following lists.
+  active_modes:
+  - mode_windows_memory
+- plugin: WindowsTimes
+  name: times
+  description: |
+    Return current time, as known to the kernel.
+  active_modes:
+  - mode_windows_memory

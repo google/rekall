@@ -2,6 +2,7 @@
 # pylint: disable=unused-import
 
 from rekall.plugins.common import address_resolver
+from rekall.plugins.common import api
 from rekall.plugins.common import bovine
 from rekall.plugins.common import efilter_plugins
 from rekall.plugins.common import inspection

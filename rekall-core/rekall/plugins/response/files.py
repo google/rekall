@@ -260,7 +260,7 @@ class IRGlob(common.AbstractIRCommandPlugin):
              help="Globs will be case insensitive."),
         dict(name="path_sep",
              help="Path separator character (/ or \\)"),
-        dict(name="filesystem", choices=common.FILE_SPEC_DISPATCHER,
+        dict(name="filesystem", choices=list(common.FILE_SPEC_DISPATCHER),
              type="Choices", default="API",
              help="The virtual filesystem implementation to glob in.")
     ]

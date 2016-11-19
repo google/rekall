@@ -828,6 +828,9 @@ class JITIteratorCallable(object):
     def __str__(self):
         return str(list(self))
 
+    def __call__(self):
+        return list(self)
+
 
 class JITIterator(JITIteratorCallable):
     def __init__(self, baseclass):

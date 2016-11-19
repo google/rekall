@@ -85,11 +85,29 @@ def unicode_representer(_, data):
     return yaml.ScalarNode(
         u'tag:yaml.org,2002:str', data, style='')
 
+def represent_orderedyamldict(dumper, data):
+    value = []
+
+    for item_key, item_value in data.items():
+        node_key = dumper.represent_data(item_key)
+        if type(item_value) not in [
+                str, unicode, list, dict, OrderedYamlDict, bool, long, int]:
+            import pdb; pdb.set_trace()
+        node_value = dumper.represent_data(item_value)
+
+        value.append((node_key, node_value))
+
+    return yaml.nodes.MappingNode(u'tag:yaml.org,2002:map', value)
+
+
 PrettyPrinterDumper.add_representer(
     unicode, unicode_representer)
 
 PrettyPrinterDumper.add_representer(
     str, unicode_representer)
+
+PrettyPrinterDumper.add_representer(
+    OrderedYamlDict, represent_orderedyamldict)
 
 
 def safe_dump(data, **kwargs):
