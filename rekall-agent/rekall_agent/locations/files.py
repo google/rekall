@@ -26,7 +26,6 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 A location is an object which handles file transfer to a specific place.
 """
-import string
 import os
 import filelock
 from rekall_agent import location
@@ -38,132 +37,104 @@ class FileLocation(location.Location):
     Note that this does not work remotely and so it is mostly useful for tests.
     """
     schema = [
-        dict(name="path",
-             doc="The file path on the local filesystem."),
+        dict(name="path_prefix",
+             doc="The path prefix to enforce."),
+
+        dict(name="path_template", default="",
+             doc="The path template to expand."),
     ]
 
     MAX_FILE_SIZE = 100 * 1024 * 1024
     BUFFSIZE = 1 * 1024 * 1024
 
-    @property
-    def full_path(self):
-        """Expand the provided path using the agent state."""
-        state = self._session.GetParameter("AgentState")
-        result = []
-        for pre, var, _, _ in string.Formatter().parse(self.path):
-            result.append(pre)
-            if var is not None:
-                expansion = state.GetMember(var)
-                # We may only expand a FileLocation into another FileLocation.
-                if not isinstance(expansion, self.__class__):
-                    raise TypeError(
-                        "Unable to expand value of type %s into %s" % (
-                            type(expansion), self.__class__))
+    def expand_path(self, subpath="", **kwargs):
+        """Expand the complete path using the client's config."""
+        kwargs["client_id"] = self._config.client.writeback.client_id
+        kwargs["nonce"] = self._config.client.nonce
+        kwargs["subpath"] = subpath
 
-                result.append(expansion.full_path)
+        return self.path_template.format(**kwargs)
 
-        return "".join(result)
+    def to_path(self, **kwargs):
+        # We really want the expansion to be a subdir of the path
+        # prefix - even if it has a drive on windows.
+        expansion = self.expand_path(**kwargs)
+        _, expansion = os.path.splitdrive(expansion)
+        expansion = expansion.lstrip(os.path.sep)
+        if not expansion:
+            return self.path_prefix
 
-    def to_path(self):
-        return self.path
+        return os.path.join(self.path_prefix, expansion)
 
-    def _ensure_dir_exists(self):
+    def _ensure_dir_exists(self, path):
         """Create intermediate directories to the ultimate path."""
-        dirname = os.path.dirname(self.path)
+        dirname = os.path.dirname(path)
         try:
             os.makedirs(dirname)
         except (OSError, IOError):
             pass
 
-    def read_file(self):
+    def read_file(self, **kwargs):
         # Assume that the file is not too large.
         try:
-            return open(self.full_path).read(
+            return open(self.to_path(**kwargs)).read(
                 self._session.GetParameter("max_file_size", self.MAX_FILE_SIZE))
         except (IOError, OSError):
             pass
 
-    def write_file(self, data):
-        self._ensure_dir_exists()
+    def write_file(self, data, **kwargs):
+        path = self.to_path(**kwargs)
+        self._ensure_dir_exists(path)
 
-        with open(self.full_path, "wb") as fd:
+        with open(path, "wb") as fd:
             fd.write(data)
 
-    def read_modify_write_local_file(self, modification_cb, *args):
-        self._ensure_dir_exists()
-        lock = filelock.FileLock(self.to_path() + ".lock")
+    def read_modify_write_local_file(self, modification_cb, *args, **kwargs):
+        path = self.to_path(**kwargs)
+        self._ensure_dir_exists(path)
         try:
+            lock = filelock.FileLock(path + ".lock")
             with lock.acquire():
-                modification_cb(self.to_path(), *args)
+                modification_cb(path, *args)
         except OSError:
-            modification_cb(self.to_path(), *args)
+            modification_cb(path, *args)
 
-    def upload_local_file(self, local_filename, completion_routine=None,
-                          delete=True):
-        status = location.Status()
-        try:
-            if completion_routine is None:
-                completion_routine = lambda x: x
+    def upload_local_file(self, local_filename, delete=True, **kwargs):
+        path = self.to_path(**kwargs)
+        # Only copy the files if they are not the same.
+        if local_filename != path:
+            self._ensure_dir_exists(path)
 
-            # Only copy the files if they are not the same.
-            if local_filename != self.full_path:
-                self._ensure_dir_exists()
+            with open(local_filename, "rb") as infd:
+                with open(path, "wb") as outfd:
+                    while 1:
+                        data = infd.read(self.BUFFSIZE)
+                        if not data:
+                            break
 
-                with open(local_filename, "rb") as infd:
-                    with open(self.full_path, "wb") as outfd:
-                        while 1:
-                            data = infd.read(self.BUFFSIZE)
-                            if not data:
-                                break
+                        outfd.write(data)
 
-                            outfd.write(data)
+            # Remove the local copy if the caller does not care about it any
+            # more.
+            if delete:
+                self._session.logging.debug("Removing local file %s",
+                                        local_filename)
+                os.unlink(local_filename)
 
-                # Remove the local copy if the caller does not care about it any
-                # more.
-                if delete:
-                    self._session.logging.debug("Removing local file %s",
-                                            local_filename)
-                    os.unlink(local_filename)
+    def upload_file_object(self, infd, **kwargs):
+        path = self.to_path(**kwargs)
+        self._ensure_dir_exists(path)
 
-        except Exception as e:
-            status = location.Status(500, unicode(e))
+        with open(path, "wb") as outfd:
+            while 1:
+                data = infd.read(self.BUFFSIZE)
+                if not data:
+                    break
 
-        # Done - report status.
-        completion_routine(status)
+                outfd.write(data)
 
-    def upload_file_object(self, infd, completion_routine=None, subpath=None):
-        status = location.Status()
-        try:
-            if completion_routine is None:
-                completion_routine = lambda x: x
+        self._session.logging.warn("Uploaded %s", path)
 
-            full_path = self.full_path
-            if subpath:
-                full_path = os.path.join(full_path, subpath.lstrip(os.path.sep))
-
-            dirname = os.path.dirname(full_path)
-            try:
-                os.makedirs(dirname)
-            except (OSError, IOError):
-                pass
-
-            with open(full_path, "wb") as outfd:
-                while 1:
-                    data = infd.read(self.BUFFSIZE)
-                    if not data:
-                        break
-
-                    outfd.write(data)
-
-            self._session.logging.warn("Uploaded %s", full_path)
-
-        except Exception as e:
-            self._session.logging.warn("Unable to write %s: %s", full_path, e)
-            status = location.Status(500, unicode(e))
-
-        # Done - report status.
-        completion_routine(status)
-
-    def get_local_filename(self):
+    def get_local_filename(self, **kwargs):
         # We are already present locally.
-        return self.full_path
+        return self.to_path(**kwargs)

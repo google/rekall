@@ -82,7 +82,6 @@ class TSKListDirectoryAction(files.ListDirectoryAction):
 
         dict(name="inode",
              doc="Alternatively an inode may be given."),
-
     ]
 
     # We ignore these filenames because they are special TSK virtual files.
@@ -106,7 +105,7 @@ class TSKListDirectoryAction(files.ListDirectoryAction):
             return self._fs_info.open_dir(
                 path=os.path.relpath(self.path, self._mntpoint))
 
-    def _process_dirent(self, dirent, dirname=None, stack=None, depth=0):
+    def _process_dirent(self, dirent, dirname=None, stack=None, depth=1):
         if stack is None:
             stack = []
 
@@ -143,7 +142,7 @@ class TSKListDirectoryAction(files.ListDirectoryAction):
 
                     yield result
 
-                    if self.recursive:
+                    if depth < self.depth:
                         # We already did this directory.
                         if result["st_ino"] in stack:
                             continue

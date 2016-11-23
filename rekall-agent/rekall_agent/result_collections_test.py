@@ -34,7 +34,7 @@ class TestResultCollection(testlib.RekallBaseUnitTestCase):
     def setUp(self):
         self.session = self.MakeUserSession()
 
-    def testCollectionAction(self):
+    def _make_collection(self):
         # The path where we want the collection to finally reside.
         final_path = os.path.join(self.temp_directory, "test.sqlite")
 
@@ -44,36 +44,38 @@ class TestResultCollection(testlib.RekallBaseUnitTestCase):
             # Store the file locally.
             location=files.FileLocation.from_keywords(
                 session=self.session,
-                path=final_path),
+                path_prefix=final_path),
             tables=[dict(name="default",
                          columns=[dict(name="c1", type="int"),
                                   dict(name="c2", type="unicode"),
                                   dict(name="c3", type="float")])],
         )
 
-        # This should create a temporary file.
-        collection.open(mode="w")
+        return collection, final_path
 
-        self.assertFalse(os.access(final_path, os.R_OK))
-        self.assertTrue(os.access(collection._filename, os.R_OK))
+    def testCollectionAction(self):
+        collection, final_path = self._make_collection()
 
-        # Insert some data.
-        collection.insert(c1=5, c2="foobar", c3=1.1)
-        collection.close()
+        with collection.create_temp_file():
+            self.assertFalse(os.access(final_path, os.R_OK))
+            self.assertTrue(os.access(collection._filename, os.R_OK))
+
+            # Insert some data.
+            collection.insert(c1=5, c2="foobar", c3=1.1)
 
         # Make sure the tempfile is removed and the final_path exists.
         self.assertFalse(os.access(collection._filename, os.R_OK))
         self.assertTrue(os.access(final_path, os.R_OK))
 
         # Re-open the collection for reading.
-        collection.open("r")
+        with result_collections.GenericSQLiteCollection.load_from_location(
+                collection.location, session=self.session) as read_collection:
+            # This should reuse the final_path saving a local copy.
+            self.assertEqual(read_collection._filename, final_path)
 
-        # This should reuse the final_path saving a local copy.
-        self.assertEqual(collection._filename, final_path)
-
-        # Query the collection.
-        self.assertEqual([tuple(x) for x in collection.query()],
-                         [(5, "foobar", 1.1)])
+            # Query the collection.
+            self.assertEqual([tuple(x) for x in read_collection.query()],
+                             [(5, "foobar", 1.1)])
 
 
 if __name__ == "__main__":

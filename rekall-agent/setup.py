@@ -69,7 +69,6 @@ class CleanCommand(Command):
 
         os.system('rm -rf ./build ./dist')
 
-
 commands = {}
 commands["clean"] = CleanCommand
 
@@ -98,4 +97,5 @@ setup(
     """,
     zip_safe=False,
     install_requires=install_requires,
+    test_suite="nose2.collector.collector",
 )

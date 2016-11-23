@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Test the cloud locations for contacting Google Cloud Storage."""
+import os
 import StringIO
 import shutil
 import tempfile
@@ -15,6 +16,9 @@ from rekall_agent.config import agent
 from rekall_agent.locations import http
 from rekall_agent.servers import http as http_server
 
+global VERBOSITY
+VERBOSITY = os.environ.get("REKALL_TEST_VERBOSE")
+
 
 class TestHTTPServer(testlib.RekallBaseUnitTestCase):
     """Test the HTTP based Location objects.
@@ -27,7 +31,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
     def setUpClass(cls):
         """Bring up the HTTP server locally for tests."""
         cls._session = rekall_session.InteractiveSession(
-            logging_level=10)
+            logging_level=10 if VERBOSITY else 0)
         port = portpicker.PickUnusedPort()
         cls.tempdir = tempfile.mkdtemp()
         cls.config = agent.Configuration.from_keywords(
@@ -61,8 +65,9 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
     def setUp(self):
         super(TestHTTPServer, self).setUp()
         self.session = self._session
-        with self.session:
-            self.session.SetParameter("logging_level", 10)
+        if VERBOSITY:
+            with self.session:
+                self.session.SetParameter("logging_level", 10)
 
         # Unique string to write to the bucket.
         self.string = str(time.time())

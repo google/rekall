@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test the cloud locations for contacting Google Cloud Storage."""
 import argparse
+import os
 import StringIO
 import time
 
@@ -12,17 +13,24 @@ parser = argparse.ArgumentParser(description='Rekall Agent Cloud test')
 parser.add_argument('--config', nargs="?", help='configuration file.')
 parser.add_argument('--verbose', action="store_true")
 
+global VERBOSITY
+global CONFIG_FILE
 
+CONFIG_FILE = os.environ.get("REKALL_TEST_CLOUD_CONFIG")
+VERBOSITY = os.environ.get("REKALL_TEST_VERBOSE")
+
+
+@testlib.disable_if(lambda: CONFIG_FILE)
 class TestGCS(testlib.RekallBaseUnitTestCase):
     """Test the GCS based Location objects."""
 
     def setUp(self):
         super(TestGCS, self).setUp()
         with self.session:
-            if args.verbose:
+            if VERBOSITY:
                 self.session.SetParameter("logging_level", 10)
 
-            self.session.SetParameter("agent_configuration", args.config)
+            self.session.SetParameter("agent_configuration", CONFIG_FILE)
         self.config = self.session.GetParameter("agent_config_obj")
 
         # Unique string to write to the bucket.
@@ -220,19 +228,24 @@ class TestGCS(testlib.RekallBaseUnitTestCase):
                 fd.write("hello world")
 
         a = cloud.GCSOAuth2BasedLocation(session=self.session)
-        a.bucket = "rekall-temp"
+        a.bucket = self.config.server.bucket
         a.path = "test.txt"
         a.read_modify_write_local_file(modify)
 
 
 if __name__ == "__main__":
     args, unknown_args = parser.parse_known_args()
-    if not args.config:
+    if args.verbose:
+        VERBOSITY = 10
+
+    if args.config:
+        CONFIG_FILE = args.config
+
+    else:
         print """
 This test requires a valid GCS configuration.
 
 You can make one with the agent_server_initialize_gcs plugin.
 """
 
-    else:
-        testlib.main(argv=["test"] + unknown_args)
+    testlib.main(argv=["test"] + unknown_args)

@@ -1,8 +1,10 @@
 import os
+import StringIO
 
 from rekall import testlib
 from rekall_agent.config import agent
 from rekall_agent.locations import files
+from rekall_agent.policies import files as policy_files
 
 
 class TestFileLocation(testlib.RekallBaseUnitTestCase):
@@ -13,14 +15,14 @@ class TestFileLocation(testlib.RekallBaseUnitTestCase):
     def setUp(self):
         self.session = self.MakeUserSession()
         # Create a new agent state.
-        agent_state = agent.ClientConfiguration(session=self.session)
+        self.config = agent.Configuration.from_keywords(
+            session=self.session,
+            server=policy_files.FileBasedServerPolicy.from_keywords(
+                session=self.session,
+                root_path=self.temp_directory)
+        )
 
-        # The base of the agent state is inside the temp directory.
-        agent_state.base_location = files.FileLocation.from_keywords(
-            session=self.session, path=self.temp_directory)
-
-        self.session.SetCache("AgentState", agent_state)
-
+        self.session.SetCache("agent_config_obj", self.config)
 
     def test_read_file(self):
         self.test_path = os.path.join(self.temp_directory, "test.txt")
@@ -32,11 +34,16 @@ class TestFileLocation(testlib.RekallBaseUnitTestCase):
         # The location is defined in terms of the base of the installation.
         location_obj = files.FileLocation.from_keywords(
             session=self.session,
-            path="{base_location}/test.txt")
+            path_prefix=self.temp_directory,
+            path_template="{basename}.txt")
 
         # Ensure that the path is properly expanded.
-        self.assertEqual(location_obj.full_path, self.test_path)
-        self.assertEqual(self.string1, location_obj.read_file())
+        self.assertEqual(location_obj.to_path(basename="test"),
+                         self.test_path)
+
+        # Check that template expansion works.
+        self.assertEqual(
+            self.string1, location_obj.read_file(basename="test"))
 
     def test_write_file(self):
         self.test_path = os.path.join(self.temp_directory, "test2.txt")
@@ -44,9 +51,10 @@ class TestFileLocation(testlib.RekallBaseUnitTestCase):
         # The location is defined in terms of the base of the installation.
         location_obj = files.FileLocation.from_keywords(
             session=self.session,
-            path="{base_location}/test2.txt")
+            path_prefix=self.temp_directory,
+            path_template="{base}.txt")
 
-        location_obj.write_file(self.string1)
+        location_obj.write_file(self.string1, base="test2")
 
         self.assertEqual(open(self.test_path, "rb").read(), self.string1)
 
@@ -60,19 +68,26 @@ class TestFileLocation(testlib.RekallBaseUnitTestCase):
         # The location is defined in terms of the base of the installation.
         location_obj = files.FileLocation.from_keywords(
             session=self.session,
-            path="{base_location}/test2.txt")
+            path_prefix=self.temp_directory,
+            path_template="{base}.txt")
 
-        self.status = None
-        def completion(status):
-            self.status = status
-
-        location_obj.upload_local_file(self.test_path, completion)
-
-        # Ensure that the completion routine is called with success.
-        self.assertEqual(self.status.code, 200)
+        location_obj.upload_local_file(self.test_path, base="test")
 
         # Make sure that the new location contains the correct data.
-        self.assertEqual(location_obj.read_file(), self.string1)
+        self.assertEqual(location_obj.read_file(base="test"), self.string1)
+
+    def test_upload_file_object(self):
+        # The location is defined in terms of the base of the installation.
+        location_obj = files.FileLocation.from_keywords(
+            session=self.session,
+            path_prefix=self.temp_directory,
+            path_template="{base}.txt")
+
+        location_obj.upload_file_object(
+            StringIO.StringIO(self.string1), base="test")
+
+        # Make sure that the new location contains the correct data.
+        self.assertEqual(location_obj.read_file(base="test"), self.string1)
 
 
 if __name__ == "__main__":

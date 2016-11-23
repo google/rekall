@@ -1,7 +1,19 @@
+import subprocess
+
+from rekall import testlib as rekall_testlib
 from rekall_agent import testlib
 from rekall_agent.client_actions import osquery
 
+def check_if_osquery_installed():
+    """Only enable this test if osqueryi is installed."""
+    try:
+        subprocess.check_call(["osqueryi", "--version"])
+        return True
+    except (IOError, OSError):
+        return False
 
+
+@rekall_testlib.disable_if(check_if_osquery_installed)
 class TestOSQuery(testlib.ClientAcionTest):
 
     def testOSQuery(self):

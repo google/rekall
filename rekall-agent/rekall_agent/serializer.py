@@ -513,7 +513,20 @@ class SerializedObject(object):
     def HasMember(self, name):
         return name in self._data
 
+    def GetMultiName(self, names):
+        item = self
+        for name in names:
+            item = item.GetMember(name)
+
+            if item is None:
+                break
+
+        return item
+
     def GetMember(self, name, get_default=True):
+        if "." in name:
+            return self.GetMultiName(name.split("."))
+
         result = self._data.get(name)
         if result is None and get_default:
             default = self._descriptors[name].get_default(

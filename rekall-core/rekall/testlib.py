@@ -423,5 +423,27 @@ class HashChecker(SimpleTestCase):
     def testCase(self):
         self.assertEqual(self.baseline['hashes'], self.current['hashes'])
 
+class disable_if(object):
+    """Disable a test if the condition is true."""
+    def __init__(self, conditional):
+        self.conditional = conditional
+        self.original_run = None
+
+    def __call__(self, cls):
+        self.original_run = cls.run
+
+        def run(instance, *args, **kwargs):
+            condition = self.conditional
+            if callable(condition):
+                condition = condition()
+
+            # If the condition is true we skip the run method.
+            if condition:
+                return self.original_run(instance, *args, **kwargs)
+
+        # Wrap the run method with a skipper.
+        cls.run = run
+        return cls
+
 
 main = unittest.main

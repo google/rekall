@@ -31,7 +31,6 @@ import StringIO
 import os
 import tempfile
 import time
-import urllib
 from wsgiref import handlers
 
 import requests

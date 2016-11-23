@@ -77,7 +77,7 @@ class TestCollectClientAction(testlib.RekallBaseUnitTestCase):
             # Store the file locally.
             location=files.FileLocation.from_keywords(
                 session=self.session,
-                path=final_path),
+                path_prefix=final_path),
             tables=[dict(name="default",
                          columns=[dict(name="c1", type="int"),
                                   dict(name="c2", type="unicode"),
@@ -96,7 +96,7 @@ class TestCollectClientAction(testlib.RekallBaseUnitTestCase):
         collections = list(request.run())
 
         self.assertEqual(len(collections), 1)
-        self.assertEqual(collections[0].location.path, final_path)
+        self.assertEqual(collections[0].location.path_prefix, final_path)
 
         # Now check that the collection is complete with direct SQL.
         conn = sqlite3.connect(final_path)

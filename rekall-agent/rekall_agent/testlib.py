@@ -42,7 +42,8 @@ class ClientAcionTest(testlib.RekallBaseUnitTestCase):
     def get_test_location(self, name):
         return files.FileLocation.from_keywords(
             session=self.session,
-            path=os.path.join(self.temp_directory, name))
+            path_prefix=self.temp_directory,
+            path_template=name)
 
     def dump_test_collection(self, name, table="default"):
         path = os.path.join(self.temp_directory, name)

@@ -29,8 +29,7 @@ class TestTSK(testlib.ClientAcionTest):
     def testTSKRecursive(self):
         action = tsk.TSKListDirectoryAction(session=self.session)
         action.path = "/mnt/a"
-        action.recursive = True
-        action.depth = 1
+        action.depth = 2
         action.vfs_location = self.get_test_location("test")
         self.assert_baseline("testTSKRecursive", list(action.collect()))
 
