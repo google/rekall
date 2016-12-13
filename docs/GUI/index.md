@@ -23,7 +23,7 @@ to automatically open the directory.
 
 ```sh
 $ mkdir /tmp/my_worksheet/
-$ rekal webconsole --browser /tmp/my_worksheet/
+$ rekal webconsole --browser --worksheet /tmp/my_worksheet/
 ```
 
 This will start the server on a random port (the server is bound to the loopback
