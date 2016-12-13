@@ -6,7 +6,7 @@ author: Michael Cohen <scudette@gmail.com>
 ---
 
 NOTE: This document refers to the legacy pmem acquisition tools
-(pre-2.0). Please check out the new [pmem 2 series](pmem.html) of acquisition
+(pre-2.0). Please check out the new [pmem 2 series](http://www.rekall-forensic.com/docs/Tools) of acquisition
 tools.
 
 Memory acquisition is the first step in memory analysis. Before any analysis can
