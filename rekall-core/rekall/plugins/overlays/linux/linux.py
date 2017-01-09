@@ -63,9 +63,12 @@ linux_overlay = {
         'dtb': lambda x: x.obj_vm.vtop(x.mm.pgd.v()),
 
         'comm': [None, ['UnicodeString', dict(length=16)]],
-        'uid': lambda x: x.m("uid") or x.cred.uid,
-        'gid': lambda x: x.m("gid") or x.cred.gid,
-        'euid': lambda x: x.m("euid") or x.cred.euid,
+        'uid': lambda x: x.multi_m(
+            "uid", "cred.uid.val", "cred.uid"),
+        'gid': lambda x: x.multi_m(
+            "gid", "cred.gid.val", "cred.gid"),
+        'euid': lambda x: x.multi_m(
+            "euid", "cred.euid.val", "cred.euid"),
         }],
 
     'module' : [None, {
@@ -495,6 +498,8 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
     }],
 
     "inode": [None, {
+        "i_uid": lambda x: x.multi_m("i_uid.val", "i_uid"),
+        "i_gid": lambda x: x.multi_m("i_gid.val", "i_gid"),
         "i_mode": [None, ["InodePermission", dict(
             target="unsigned int",
             )]],
@@ -946,7 +951,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
         os="linux",
         type="Kernel")
 
-    image_base = 0
+    image_base = None
 
     @classmethod
     def Initialize(cls, profile):
@@ -997,7 +1002,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
             basic.ProfileLP64.Initialize(profile)
 
     def GetImageBase(self):
-        if not self.image_base:
+        if self.image_base is None:
             self.image_base = obj.Pointer.integer_to_address(
                 self.session.GetParameter("kernel_slide", 0))
         return self.image_base

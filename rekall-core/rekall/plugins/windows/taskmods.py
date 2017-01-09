@@ -152,7 +152,8 @@ class Threads(common.WinProcessFilter):
                                win32_start=thread.Win32StartAddress,
                                win32_start_symb=utils.FormattedAddress(
                                    self.session.address_resolver,
-                                   thread.Win32StartAddress))
+                                   thread.Win32StartAddress,
+                                   ))
 
 
 class WinMemDump(memmap.MemDumpMixin, common.WinProcessFilter):

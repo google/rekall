@@ -41,10 +41,10 @@ class KAllSyms(object):
     KALLSYMS_FILE = "/proc/kallsyms"
 
     # The regular expression to parse the kallsyms file.
-    KALLSYMS_REGEXP = ("(?P<offset>[0-9a-fA-F]+) "
-                       "(?P<type>[a-zA-Z]) "
-                       "(?P<symbol>[^ ]+)"
-                       "(\t(?P<module>[^ ]+))?$")
+    KALLSYMS_REGEXP = (r"(?P<offset>[0-9a-fA-F]+) "
+                       r"(?P<type>[a-zA-Z]) "
+                       r"(?P<symbol>[^ \t]+)"
+                       r"(\t(?P<module>[^ ]+))?$")
 
     def __init__(self, session):
         self.session = session
@@ -410,7 +410,7 @@ class LinuxKASLR(AbstractLinuxParameterHook):
         # Try to get the kernel slide if kallsyms is available.
         for offset, symbol, type, module in KAllSyms(
                 self.session).ObtainSymbols():
-            if not module and type in ["r", "R"]:
+            if not module and type in ["t", "T"]:
                 offset_from_profile = self.session.profile.get_constant(
                     symbol)
 

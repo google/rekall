@@ -235,7 +235,6 @@ class ShimCacheMem(common.AbstractWindowsCommandPlugin):
 
     def collect_from_avl_table(self, avl_table):
         seen = set()
-
         for node in avl_table.BalancedRoot.traverse_children():
             entry = node.payload("SHIM_CACHE_ENTRY")
             if entry.obj_offset in seen:
@@ -289,9 +288,6 @@ class ShimCacheMem(common.AbstractWindowsCommandPlugin):
                 "LastModified",
                 "ListEntryDetail.LastModified"
             )
-
-            if last_modified == 0 or last_modified == None:
-                continue
 
             yield dict(Shim=entry,
                        last_mod=last_modified,
