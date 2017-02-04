@@ -92,7 +92,7 @@ class Live(plugin.TypedProfileCommand,
 
     def load_driver(self):
         """Unpack and load the driver."""
-        tarfile_handle = tarfile.open(self.plugin_args.driver_path)
+        tarfile_handle = tarfile.open(self.driver_path)
 
         # Try to extract the resource into a tempdir.
         with utils.TempDirectory() as tmp_name:
@@ -144,7 +144,7 @@ class Live(plugin.TypedProfileCommand,
                                       self.plugin_args.mode)
 
     def unload_driver(self):
-        tarfile_handle = tarfile.open(self.plugin_args.driver_path)
+        tarfile_handle = tarfile.open(self.driver_path)
 
         for member_name in tarfile_handle.getnames():
             if not member_name.endswith(".kext"):
