@@ -68,7 +68,6 @@ install_requires = [
     "sortedcontainers == 1.4.4",
     "pytsk3 == 20160721",
     "ipaddr==2.1.11",
-    "SPARQLWrapper~=1.6.4",
 
     # Version 2.5.0 is broken with pyinstaller.
     # https://github.com/pyinstaller/pyinstaller/issues/1848
