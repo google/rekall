@@ -48,8 +48,8 @@ class Lsmod(common.LinuxPlugin):
     def collect(self):
         for module in self.get_module_list():
             yield (module.obj_offset,
-                   module.module_core.deref(),
-                   module.init_size + module.core_size,
+                   module.base,
+                   module.size,
                    module.name)
 
 
@@ -187,8 +187,8 @@ class Moddump(common.LinuxPlugin):
     ]
 
     def dump_module(self, module):
-        module_start = int(module.module_core)
-        return module.obj_vm.read(module_start, module.core_size)
+        module_start = int(module.base)
+        return module.obj_vm.read(module_start, module.size)
 
     def render(self, renderer):
         lsmod_plugin = self.session.plugins.lsmod(session=self.session)
@@ -201,7 +201,7 @@ class Moddump(common.LinuxPlugin):
                     continue
 
             file_name = "{0}.{1:#x}.lkm".format(module.name,
-                                                module.module_core)
+                                                module.base)
             with renderer.open(directory=self.plugin_args.dump_dir,
                                filename=file_name,
                                mode="wb") as mod_file:
@@ -209,4 +209,4 @@ class Moddump(common.LinuxPlugin):
                 mod_data = self.dump_module(module)
                 mod_file.write(mod_data)
                 renderer.format("Wrote {0} bytes to {1}\n",
-                                module.core_size, file_name)
+                                module.size, file_name)

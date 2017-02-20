@@ -74,9 +74,14 @@ linux_overlay = {
     'module' : [None, {
         'name': lambda x: utils.SmartUnicode(
             x.m("name").cast('UnicodeString', length=60)),
-        'base': lambda x: x.module_core.v(),
-        'size': lambda x: x.core_size,
-        'end': lambda x: x.base + x.core_size,
+        'base': lambda x: x.multi_m(
+            "module_core",
+            "core_layout.base",
+        ).v(),
+        'size': lambda x: x.multi_m(
+            "core_size",
+            "core_layout.size"),
+        'end': lambda x: x.base + x.size,
         'kp': [None, ['Pointer', dict(
             target='Array',
             target_args=dict(

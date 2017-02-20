@@ -139,6 +139,7 @@ class Mount(common.LinuxPlugin):
                 path_struct.mnt = vfsmount
                 path = vfs.Linux3VFS(self.session.profile).prepend_path(
                     path_struct, init_task.fs.root)
+
                 yield vfs.MountPoint(device=devname,
                                      mount_path=path,
                                      superblock=sb,

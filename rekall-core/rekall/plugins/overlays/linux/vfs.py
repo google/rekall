@@ -23,6 +23,7 @@ linux versions. The code is basically copied from the kernel sources of the
 relevant versions.
 """
 import posixpath
+import re
 import math
 
 from rekall import obj
@@ -291,7 +292,7 @@ class FileName(object):
 
         # This is the normal condition for files.
         else:
-            return self.__unicode__()
+            return re.sub("/+", "/", self.__unicode__())
 
     def __unicode__(self):
         if self.deleted:
