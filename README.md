@@ -35,7 +35,7 @@ New python executable in /tmp/MyEnv/bin/python
 Installing setuptools, pip...done.
 $ source /tmp/MyEnv/bin/activate
 $ pip install --upgrade setuptools pip wheel
-$ pip install rekall-agent
+$ pip install rekall-agent rekall
 ```
 
 For windows, Rekall is also available as a self contained installer
