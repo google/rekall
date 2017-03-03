@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuReleases"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Releases
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuReleases">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.2 Dammastock.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Rekall User Manual</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developer Documentation.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">Rekall GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/MemoryAnalysis.html">Memory Analysis Course</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">The Pmem Memory acquisition suite.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/References/Papers/DFRWS2016EU.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid container">
+<div class="row-fluid">
+  <div class="col-md-2 navigator">
+    
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
+ <a href="/docs/References/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> References
+ </a>
+
+ <a href='/docs/References/Papers/index.html' class="btn btn-default btn-lg btn-block">
+   Papers
+ </a>
+ 
+<a href="DFRWS2016EU.pdf" class="btn btn-default">Download</a>
+
+ <p>
+
+<ul class='nav nav-pills nav-stacked'>
+    <li class='active'>
+      <a href='/docs/References/Papers/DFRWS2016EU.html' class="category-link">
+        Automatic Profile Generation For Live Linux Memory Analysis
+      </a>
+    </li>
+    
+    <li class=''>
+      <a href='/docs/References/Papers/DFRWS2013.html' class="category-link">
+        DFRWS 2013: Anti-Forensic Resilient Memory Acquisition, Johannes Stuettgen and Michael Cohen.
+      </a>
+    </li>
+    
+    <li class=''>
+      <a href='/docs/References/Papers/DFRWS2014EU.html' class="category-link">
+        DFRWS 2014EU: Robust Linux Memory Acquisition with Minimal Target Impact, Johannes Stuettgen and Michael Cohen
+      </a>
+    </li>
+    
+    <li class=''>
+      <a href='/docs/References/Papers/DFRWS2015EU2.html' class="category-link">
+        DFRWS 2015EU: Acquisition and Analysis of Compromised Firmware Using Memory Forensics. Johannes Stüttgen, Stefan Voemel and Michael Denzel.
+      </a>
+    </li>
+    
+    <li class=''>
+      <a href='/docs/References/Papers/DFRWS2015EU.html' class="category-link">
+        DFRWS 2015EU: Characterization of the Windows Kernel version variability for accurate Memory analysis. Michael Cohen.
+      </a>
+    </li>
+    
+    <li class=''>
+      <a href='/docs/References/Papers/SFCS2015.html' class="category-link">
+        IEEE ISCC 2015: Forensic Analysis of Windows User space Applications through Heap allocations.
+      </a>
+    </li>
+    
+    <li class=''>
+      <a href='/docs/References/Papers/DIIN_673.html' class="category-link">
+        Scanning memory with Yara
+      </a>
+    </li>
+    </ul>
+</ul>
+
+  </div>
+  <div class="col-md-8" >
+    
+    <embed src="DFRWS2016EU.pdf" width="100%" type="application/pdf" class="embedded_doc">
+    </embed>
+  </div>
+  <div class="col-md-2 sidebar navigator">
+    
+  </div>
+</div>
+</div>
+<script>
+  $(window).resize(function(){
+    var height = $(window).height() - 10;
+    $('embed').height(height);
+    $('.navigator').height($(window).height());
+  });
+
+  $(window).resize();
+</script>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+   $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
+  </script>
+  </div>
+ </body>
+</html>
+

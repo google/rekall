@@ -334,7 +334,6 @@ def embedded(page=None):
 <div class="row-fluid">
   <div class="col-md-2 navigator">
     {page.navigator}
-    <a href="{page.download}" class="btn btn-default">Download</a>
   </div>
   <div class="col-md-8" >
     {page.content}
@@ -383,22 +382,11 @@ def _MakeNavigatorForPlugin(plugin_path, location=None,
 
     args = dict(prev_url=os.path.dirname(plugin_path),
                 plugin_name=os.path.basename(plugin_path),
-                plugin_url=plugin_path)
+                plugin_url=plugin_path,
+                download="",
+                nav="")
 
     args["prev"] = os.path.basename(args["prev_url"])
-
-    result = u"""
-<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
- <a href="{prev_url}/index.html" class="btn btn-default btn-lg btn-block">
-  <span class="glyphicon glyphicon-arrow-left"></span> {prev}
- </a>
-
- <a href='{plugin_url}/index.html' class="btn btn-default btn-lg btn-block">
-   {plugin_name}
- </a>
- <p>
-
-""".format(**args)
 
     directories, files = _list_subpages(plugin_path)
     nav_result = ""
@@ -414,6 +402,11 @@ def _MakeNavigatorForPlugin(plugin_path, location=None,
     for page in sorted(files, key=lambda x: x.title):
         if location == page.url:
             classes = u"active"
+            if page.download:
+              args["download"] = """
+<a href="{page.download}" class="btn btn-default">Download</a>
+""".format(page=page)
+
         else:
             classes = u""
 
@@ -421,9 +414,25 @@ def _MakeNavigatorForPlugin(plugin_path, location=None,
                                            classes=classes)
 
     if nav_result:
-        result += u"<ul class='nav nav-pills nav-stacked'>%s</ul>" % nav_result
+        args["nav"] = (
+            u"<ul class='nav nav-pills nav-stacked'>%s</ul>" % nav_result)
 
-    result += "</ul>"
+
+    result = u"""
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
+ <a href="{prev_url}/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> {prev}
+ </a>
+
+ <a href='{plugin_url}/index.html' class="btn btn-default btn-lg btn-block">
+   {plugin_name}
+ </a>
+ {download}
+ <p>
+
+{nav}
+</ul>
+""".format(**args)
 
     return result
 
