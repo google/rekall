@@ -159,8 +159,6 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
 
     def CollectFileObject(self):
         """Collect all known file objects."""
-        self.file_objects = set()
-        self.vacb_by_cache_map = {}
 
         # Collect known file objects for selected processes.
         for task in self.filter_processes():
@@ -244,6 +242,10 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                     f_length=0x1000, filename="")
 
     def collect(self):
+        
+        self.file_objects = set()
+        self.vacb_by_cache_map = {}
+        
         renderer = self.session.GetRenderer()
         if not self.plugin_args.file_objects:
             self.CollectFileObject()
