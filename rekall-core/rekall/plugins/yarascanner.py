@@ -42,6 +42,7 @@ class YaraScanMixin(object):
     table_header = [
         dict(name="Owner", width=20),
         dict(name="Rule", width=10),
+        dict(name="Match", hidden=True),
         dict(name="Offset", style="address"),
         dict(name="hexdump", hex_width=16, width=67),
         dict(name="run", hidden=True),
@@ -123,13 +124,13 @@ class YaraScanMixin(object):
             for match in self.rules.match(data=buffer_as.data):
                 for buffer_offset, name, value in match.strings:
                     hit_offset = buffer_offset + buffer_as.base_offset
-                    yield match.rule, hit_offset
+                    yield match, hit_offset
 
     def collect(self):
         """Render output."""
         count = 0
         for run in self.generate_memory_ranges():
-            for rule, address in self.generate_hits(run):
+            for match, address in self.generate_hits(run):
                 count += 1
                 if count >= self.plugin_args.hits:
                     break
@@ -144,7 +145,8 @@ class YaraScanMixin(object):
 
                 yield dict(
                     Owner=run.data.get("task") or run.data.get("type"),
-                    Rule=rule,
+                    Match=match,
+                    Rule=match.rule,
                     Offset=address,
                     hexdump=utils.HexDumpedString(
                         run.address_space.read(
@@ -176,6 +178,7 @@ class SimpleYaraScan(YaraScanMixin, plugin.TypedProfileCommand,
 
     table_header = [
         dict(name="Rule", width=10),
+        dict(name="Match", hidden=True),
         dict(name="Offset", style="address"),
         dict(name="hexdump", hex_width=16, width=67),
     ]
@@ -203,6 +206,7 @@ class SimpleYaraScan(YaraScanMixin, plugin.TypedProfileCommand,
                         break
 
                     yield dict(
+                        Match=match,
                         Rule=match.rule,
                         Offset=hit_offset,
                         hexdump=utils.HexDumpedString(
