@@ -22,8 +22,8 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 from rekall import obj
 from rekall import scan
-from rekall import utils
 from rekall.plugins.darwin import common
+from rekall_lib import utils
 
 
 class DarwinFindSysent(common.AbstractDarwinParameterHook):

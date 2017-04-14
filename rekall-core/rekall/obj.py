@@ -43,9 +43,9 @@ import copy
 import traceback
 
 from rekall import addrspace
-from rekall import registry
-from rekall import utils
 from rekall.ui import renderer
+from rekall_lib import registry
+from rekall_lib import utils
 
 
 class ProfileLog(object):

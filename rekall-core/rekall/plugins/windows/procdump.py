@@ -28,7 +28,7 @@ import os
 from rekall.plugins.windows import common
 from rekall.plugins import core
 from rekall import plugin
-from rekall import utils
+from rekall_lib import utils
 
 
 class PEDump(common.WindowsCommandPlugin):

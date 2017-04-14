@@ -36,8 +36,8 @@ import tempfile
 import textwrap
 
 from rekall import config
-from rekall import registry
-from rekall import utils
+from rekall_lib import registry
+from rekall_lib import utils
 
 from rekall.ui import renderer as renderer_module
 

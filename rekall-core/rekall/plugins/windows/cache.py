@@ -32,11 +32,11 @@ http://www.codemachine.com/article_kernelstruct.html
 
 __author__ = "Michael Cohen <scudette@google.com>"
 from rekall import obj
-from rekall import utils
 from rekall import testlib
 
 from rekall.plugins import core
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class EnumerateVacbs(common.WindowsCommandPlugin):
@@ -242,10 +242,10 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                     f_length=0x1000, filename="")
 
     def collect(self):
-        
+
         self.file_objects = set()
         self.vacb_by_cache_map = {}
-        
+
         renderer = self.session.GetRenderer()
         if not self.plugin_args.file_objects:
             self.CollectFileObject()

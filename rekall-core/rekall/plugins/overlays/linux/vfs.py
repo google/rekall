@@ -27,8 +27,8 @@ import re
 import math
 
 from rekall import obj
-from rekall import utils
 from rekall.plugins.overlays import basic
+from rekall_lib import utils
 
 
 class File(object):

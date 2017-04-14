@@ -27,7 +27,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 A flow will deliver a number of actions to execute.
 """
 from rekall_agent import common
-from rekall_agent import serializer
+from rekall_lib import serializer
 
 
 class Action(common.AgentConfigMixin, serializer.SerializedObject):

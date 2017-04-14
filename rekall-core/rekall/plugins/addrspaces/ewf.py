@@ -23,9 +23,7 @@
 """ This Address Space allows us to open ewf files """
 
 from rekall import addrspace
-from rekall import utils
 from rekall.plugins.tools import ewf
-
 
 
 class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,

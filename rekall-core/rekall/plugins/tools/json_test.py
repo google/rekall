@@ -24,9 +24,9 @@ import logging
 import StringIO
 
 from rekall import testlib
-from rekall import utils
 from rekall.ui import json_renderer
 from rekall.plugins.renderers import data_export
+from rekall_lib import utils
 
 
 class JsonTest(testlib.RekallBaseUnitTestCase):

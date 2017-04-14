@@ -34,10 +34,10 @@ from efilter.protocols import structured
 
 from rekall import addrspace
 from rekall import obj
-from rekall import registry
-from rekall import utils
 from rekall import plugin
 
+from rekall_lib import registry
+from rekall_lib import utils
 
 # Will be registered by OS specific implementations.
 APIProcessAddressSpace = None

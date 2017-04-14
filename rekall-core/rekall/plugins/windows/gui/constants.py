@@ -20,7 +20,7 @@
 
 import copy
 
-from rekall import utils
+from rekall_lib import utils
 
 # Windows assigns several atom IDs by default, but doesn't include
 # them in the local or global atom tables. Thus when we perform a

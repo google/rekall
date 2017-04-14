@@ -136,7 +136,6 @@ import yaml
 from rekall import config as rekall_config
 from rekall import plugin
 from rekall import session
-from rekall import utils
 from rekall import testlib
 from rekall import threadpool
 from rekall.ui import text
@@ -146,6 +145,8 @@ from rekall.ui import text
 from rekall import plugins
 from rekall import tests
 # pylint: enable=unused-import
+
+from rekall_lib import utils
 
 
 NUMBER_OF_CORES = multiprocessing.cpu_count()

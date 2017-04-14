@@ -22,7 +22,7 @@
 
 from rekall.ui import colors
 from rekall.ui import text
-from rekall import utils
+from rekall_lib import utils
 
 
 class DepthIndicator(int):

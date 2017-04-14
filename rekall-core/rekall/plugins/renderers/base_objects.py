@@ -20,10 +20,9 @@
 
 """This module implements base object renderers."""
 
-from rekall import utils
-
 from rekall.ui import renderer as renderer_module
 from rekall.ui import text
+from rekall_lib import utils
 
 
 class PluginObjectTextRenderer(text.TextObjectRenderer):

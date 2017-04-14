@@ -27,14 +27,14 @@ This flow is the workhorse of filesystem operations.
 """
 import collections
 from rekall import plugin
-from rekall import utils
 
 from rekall_agent import flow
 from rekall_agent import result_collections
-from rekall_agent import serializer
 from rekall_agent.client_actions import download
 from rekall_agent.client_actions import files
 from rekall_agent.flows import collect
+from rekall_lib import serializer
+from rekall_lib import utils
 
 
 class FileFilterCondition(serializer.SerializedObject):

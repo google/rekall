@@ -33,12 +33,12 @@ from rekall import addrspace
 from rekall import args
 from rekall import config
 from rekall import constants
-from rekall import registry
 from rekall import plugin
 from rekall import obj
 from rekall import scan
 from rekall import testlib
-from rekall import utils
+from rekall_lib import registry
+from rekall_lib import utils
 
 
 class Info(plugin.Command):

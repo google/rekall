@@ -10,7 +10,7 @@ from efilter.protocols import applicative
 from efilter.protocols import repeated
 from efilter.protocols import structured
 from efilter.transforms import solve
-from rekall import utils
+from rekall_lib import utils
 
 
 # Exported EFilter functions. These can be used within efilter

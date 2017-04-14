@@ -23,16 +23,15 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 # pylint: disable=protected-access
 import re
-import os
 
 from rekall import addrspace
 from rekall import cache
 from rekall import config
 from rekall import kb
 from rekall import obj
-from rekall import registry
 from rekall import scan
-from rekall import utils
+from rekall_lib import registry
+from rekall_lib import utils
 
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import intel

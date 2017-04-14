@@ -29,8 +29,8 @@ This file provides support for windows Windows 7 SP 0.
 from rekall import addrspace
 from rekall import kb
 from rekall import obj
-from rekall import utils
 from rekall.plugins.overlays.windows import common
+from rekall_lib import utils
 
 
 def TagOffset(x):

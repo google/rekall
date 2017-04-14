@@ -62,8 +62,8 @@ import unittest
 
 from rekall import config
 from rekall import plugin
-from rekall import registry
 from rekall import session as rekall_session
+from rekall_lib import registry
 
 
 class Tail(threading.Thread):

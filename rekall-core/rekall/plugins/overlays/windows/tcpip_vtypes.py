@@ -20,9 +20,9 @@ import socket
 
 from rekall import kb
 from rekall import obj
-from rekall import utils
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import pe_vtypes
+from rekall_lib import utils
 
 
 AF_INET = 2

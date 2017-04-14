@@ -1,8 +1,6 @@
 # Load the core modules
 # pylint: disable=unused-import
 
-from rekall import utils
-
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import arm
 from rekall.plugins.addrspaces import crash

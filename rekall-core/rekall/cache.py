@@ -6,8 +6,8 @@ import time
 from rekall import config
 from rekall import io_manager
 from rekall import obj
-from rekall import utils
 from rekall.ui import json_renderer
+from rekall_lib import utils
 
 
 config.DeclareOption(

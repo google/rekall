@@ -30,9 +30,9 @@ import struct
 from rekall import addrspace
 from rekall import config
 from rekall import obj
-from rekall import utils
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.addrspaces import standard
+from rekall_lib import utils
 
 
 config.DeclareOption("ept", group="Virtualization support",

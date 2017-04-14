@@ -31,12 +31,12 @@ import StringIO
 from rekall import kb
 from rekall import testlib
 from rekall import plugin
-from rekall import utils
 from rekall.ui import text
 from rekall.plugins import core
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.windows import common
 from rekall.plugins.windows import pagefile
+from rekall_lib import utils
 
 
 class VtoP(core.VtoPMixin, common.WinProcessFilter):

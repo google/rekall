@@ -24,9 +24,9 @@
 from rekall import obj
 from rekall import scan
 from rekall import plugin
-from rekall import utils
 
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class KDBGScanner(scan.BaseScanner):

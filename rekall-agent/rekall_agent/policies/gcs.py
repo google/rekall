@@ -55,7 +55,7 @@ Main policy:
 import pathlib
 import time
 
-from rekall import utils
+from rekall_lib import utils
 
 from rekall_agent import cache
 from rekall_agent.config import agent

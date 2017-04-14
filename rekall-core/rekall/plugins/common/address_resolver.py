@@ -23,9 +23,8 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 import re
 
 from rekall import config
-from rekall import plugin
 from rekall import obj
-from rekall import utils
+from rekall_lib import utils
 
 
 config.DeclareOption(

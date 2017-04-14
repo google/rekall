@@ -37,12 +37,13 @@ from artifacts import definitions
 from artifacts import errors
 
 from rekall import plugin
-from rekall import registry
 from rekall import obj
 from rekall import yaml_utils
 from rekall.ui import text
 from rekall.ui import json_renderer
 from rekall.plugins.response import common
+
+from rekall_lib import registry
 
 
 class ArtifactResult(object):

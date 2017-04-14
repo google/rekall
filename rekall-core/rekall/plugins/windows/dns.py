@@ -33,9 +33,9 @@ dnsrslvr.dll.
 import socket
 
 from rekall import scan
-from rekall import utils
 from rekall import obj
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 # pylint: disable=protected-access
 

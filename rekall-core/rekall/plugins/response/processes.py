@@ -3,7 +3,7 @@
 import psutil
 from efilter.protocols import structured
 
-from rekall import utils
+from rekall_lib import utils
 
 from rekall.plugins import core
 from rekall.plugins.response import common

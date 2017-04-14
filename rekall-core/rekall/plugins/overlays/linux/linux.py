@@ -27,10 +27,11 @@
 # pylint: disable=protected-access
 
 from rekall import obj
-from rekall import utils
 
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.linux import vfs
+
+from rekall_lib import utils
 
 
 linux_overlay = {

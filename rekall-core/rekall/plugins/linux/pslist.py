@@ -23,10 +23,10 @@
 @organization: Digital Forensics Solutions
 """
 
-from rekall import utils
 from rekall import testlib
 from rekall.plugins.common import memmap
 from rekall.plugins.linux import common
+from rekall_lib import utils
 
 
 class LinuxPsList(common.LinProcessFilter):

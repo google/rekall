@@ -25,8 +25,8 @@ import itertools
 
 # pylint: disable=protected-access
 from rekall import obj
-from rekall import utils
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class AnalyzeStruct(common.WindowsCommandPlugin):

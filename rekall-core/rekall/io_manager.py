@@ -47,8 +47,8 @@ import zipfile
 
 from rekall import constants
 from rekall import obj
-from rekall import registry
-from rekall import utils
+from rekall_lib import registry
+from rekall_lib import utils
 
 # The maximum size of a single data object we support. This represent the
 # maximum amount of data we are prepared to read into memory at once.

@@ -32,7 +32,7 @@ from elftools.common.py3compat import itervalues
 from elftools.dwarf.descriptions import describe_attr_value
 
 from rekall import plugin
-from rekall import utils
+from rekall_lib import utils
 
 
 

@@ -24,8 +24,8 @@
 # much simpler, since all the information we need is taken directly from the
 # profile.
 
-from rekall import utils
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class WinSSDT(common.WindowsCommandPlugin):

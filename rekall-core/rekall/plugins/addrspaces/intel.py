@@ -77,9 +77,8 @@ import struct
 from rekall import addrspace
 from rekall import config
 from rekall import obj
-from rekall import utils
 from rekall.ui import text as text_renderer
-
+from rekall_lib import utils
 
 
 config.DeclareOption(

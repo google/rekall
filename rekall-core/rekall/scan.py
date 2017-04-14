@@ -25,7 +25,7 @@ import acora
 
 from rekall import addrspace
 from rekall import constants
-from rekall import registry
+from rekall_lib import registry
 
 
 class ScannerCheck(object):

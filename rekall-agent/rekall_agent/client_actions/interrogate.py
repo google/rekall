@@ -27,9 +27,9 @@ import psutil
 from rekall_agent import action
 from rekall_agent import crypto
 from rekall_agent import result_collections
-from rekall_agent import serializer
 from rekall_agent.messages import agent
 from rekall_agent.messages import batch
+from rekall_lib import serializer
 
 
 # Time the agent was first started.

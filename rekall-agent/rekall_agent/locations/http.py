@@ -35,9 +35,9 @@ from wsgiref import handlers
 
 import requests
 from requests import adapters
-from rekall import utils
 from rekall_agent import location
-from rekall_agent import serializer
+from rekall_lib import serializer
+from rekall_lib import utils
 
 MAX_BUFF_SIZE = 10*1024*1024
 

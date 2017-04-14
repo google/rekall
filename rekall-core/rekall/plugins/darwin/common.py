@@ -27,9 +27,9 @@ __author__ = "Michael Cohen <scudette@google.com>"
 from rekall import kb
 from rekall import plugin
 from rekall import scan
-from rekall import utils
 
 from rekall.plugins import core
+from rekall_lib import utils
 
 # A few notes on XNU's (64bit) memory layout:
 #

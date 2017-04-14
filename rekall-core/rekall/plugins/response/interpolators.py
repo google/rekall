@@ -26,7 +26,7 @@ import re
 import platform
 
 from rekall import kb
-from rekall import registry
+from rekall_lib import registry
 
 
 class KnowledgeBase(object):

@@ -24,7 +24,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import time
 import psutil
 
-from rekall_agent import serializer
+from rekall_lib import serializer
 
 
 class Resources(serializer.SerializedObject):

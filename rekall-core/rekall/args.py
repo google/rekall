@@ -36,7 +36,7 @@ import zipfile
 from rekall import config
 from rekall import constants
 from rekall import plugin
-from rekall import utils
+from rekall_lib import utils
 
 
 config.DeclareOption("--plugin", default=[], type="ArrayStringParser",

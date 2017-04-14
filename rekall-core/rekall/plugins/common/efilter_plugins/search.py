@@ -40,10 +40,10 @@ from efilter.protocols import structured
 from rekall import obj
 from rekall import plugin
 from rekall import testlib
-from rekall import utils
 from rekall.plugins.overlays import basic
 from rekall.plugins.common.efilter_plugins import helpers
 from rekall.ui import identity as identity_renderer
+from rekall_lib import utils
 
 
 class TestWhichPlugin(testlib.SimpleTestCase):

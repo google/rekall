@@ -30,8 +30,8 @@ from capstone import x86_const
 from rekall import addrspace
 from rekall import plugin
 from rekall import obj
-from rekall import utils
 from rekall import testlib
+from rekall_lib import utils
 
 
 class Disassembler(object):

@@ -23,9 +23,9 @@
 
 import os
 
-from rekall import utils
 from rekall import plugin
 from rekall import testlib
+from rekall_lib import utils
 
 
 class ImageCopy(plugin.PhysicalASMixin, plugin.Command):

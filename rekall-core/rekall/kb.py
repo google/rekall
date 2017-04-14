@@ -2,7 +2,7 @@
 # collect information.
 
 from rekall import plugin
-from rekall import registry
+from rekall_lib import registry
 
 
 class ParameterHook(plugin.ModeBasedActiveMixin):

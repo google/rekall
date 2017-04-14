@@ -22,8 +22,8 @@
 
 from rekall import plugin
 from rekall import scan
-from rekall import utils
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class Modules(common.WindowsCommandPlugin):

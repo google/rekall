@@ -30,8 +30,8 @@
    Alias for all address spaces
 
 """
-from rekall import registry
-from rekall import utils
+from rekall_lib import registry
+from rekall_lib import utils
 
 
 class Zeroer(object):

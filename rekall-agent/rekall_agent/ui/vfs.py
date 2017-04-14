@@ -26,7 +26,6 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import arrow
 
 from rekall import plugin
-from rekall import utils
 from rekall.plugins.response import common as response_common
 
 from rekall_agent import common
@@ -34,6 +33,8 @@ from rekall_agent.client_actions import files
 from rekall_agent.flows import find
 from rekall_agent.ui import flows
 from rekall_agent.ui import renderers
+
+from rekall_lib import utils
 
 
 class VFSLs(flows.FlowLauncherAndWaiterMixin,

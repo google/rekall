@@ -33,9 +33,9 @@ import struct
 
 from rekall import addrspace
 from rekall import obj
-from rekall import utils
 
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 registry_overlays = {

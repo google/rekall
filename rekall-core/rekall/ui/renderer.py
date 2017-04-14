@@ -92,8 +92,8 @@ import time
 
 from rekall import config
 from rekall import constants
-from rekall import registry
-from rekall import utils
+from rekall_lib import registry
+from rekall_lib import utils
 
 
 config.DeclareOption(

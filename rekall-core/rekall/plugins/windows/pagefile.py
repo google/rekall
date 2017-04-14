@@ -42,11 +42,11 @@ import struct
 
 from rekall import addrspace
 from rekall import obj
-from rekall import utils
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.windows import address_resolver
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 # pylint: disable=protected-access
 

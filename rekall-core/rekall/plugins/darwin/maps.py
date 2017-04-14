@@ -18,10 +18,10 @@
 
 
 # pylint: disable=protected-access
-from rekall import utils
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.common import pfn
 from rekall.plugins.darwin import common
+from rekall_lib import utils
 
 
 class DarwinVADMap(pfn.VADMapMixin, common.ProcessFilterMixin,

@@ -22,10 +22,10 @@ import hashlib
 
 # pylint: disable=protected-access
 from rekall import obj
-from rekall import utils
 from rekall.plugins import core
 from rekall.plugins.overlays import basic
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class WinPhysicalMap(common.WindowsCommandPlugin):

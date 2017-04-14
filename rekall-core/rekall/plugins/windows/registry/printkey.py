@@ -28,10 +28,10 @@
 import re
 
 from rekall import addrspace
-from rekall import utils
 from rekall.plugins import core
 from rekall.plugins.windows.registry import registry
 from rekall.plugins.overlays import basic
+from rekall_lib import utils
 
 
 class PrintKey(registry.RegistryPlugin):

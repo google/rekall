@@ -29,8 +29,8 @@ import pdb
 import sys
 
 from rekall import constants
-from rekall import utils
 from rekall.ui import renderer as renderer_module
+from rekall_lib import utils
 
 
 class DecodingError(KeyError):

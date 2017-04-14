@@ -1,10 +1,10 @@
 import time
 import threading
 
-from rekall import utils
 from rekall_agent import common
-from rekall_agent import serializer
 from rekall_agent import location
+from rekall_lib import serializer
+from rekall_lib import utils
 
 
 class BatchTicket(serializer.SerializedObject):

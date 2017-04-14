@@ -19,7 +19,7 @@
 #
 
 from rekall import addrspace
-from rekall import utils
+from rekall_lib import utils
 
 from rekall.plugins import yarascanner
 from rekall.plugins.addrspaces import standard

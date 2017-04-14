@@ -29,7 +29,7 @@ import shutil
 from rekall import cache
 from rekall import plugin
 from rekall_agent import common
-from rekall_agent import serializer
+from rekall_lib import serializer
 
 
 class Cache(common.AgentConfigMixin, serializer.SerializedObject):

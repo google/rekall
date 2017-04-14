@@ -22,8 +22,8 @@ __author__ = "Michael Cohen <scudette@google.com>"
 # pylint: disable=protected-access
 
 from rekall import obj
-from rekall import utils
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 # Some pool related utility functions.

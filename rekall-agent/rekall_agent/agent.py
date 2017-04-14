@@ -44,11 +44,11 @@ results back to the server. The agent goes through the following phases:
 import time
 import traceback
 
-from rekall import utils
 from rekall_agent import common
 from rekall_agent import flow
 from rekall_agent.config import agent
 from rekall_agent.messages import agent as agent_messages
+from rekall_lib import utils
 
 
 class _LocationTracker(object):

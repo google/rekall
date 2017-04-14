@@ -39,9 +39,10 @@ import threading
 import sqlite3
 
 import arrow
-from rekall import registry
 from rekall_agent import location
-from rekall_agent import serializer
+
+from rekall_lib import registry
+from rekall_lib import serializer
 
 
 class ColumnSpec(serializer.SerializedObject):

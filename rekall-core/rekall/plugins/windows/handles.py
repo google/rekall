@@ -22,8 +22,8 @@
 # pylint: disable=protected-access
 from rekall import testlib
 
-from rekall import utils
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class Handles(common.WinProcessFilter):

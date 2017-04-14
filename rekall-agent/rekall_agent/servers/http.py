@@ -40,12 +40,12 @@ from email import utils as email_utils
 import ipaddr
 import arrow
 
-from rekall import utils
 from rekall_agent import cache
 from rekall_agent import common
 from rekall_agent import location
 from rekall_agent.config import agent
 from rekall_agent.locations import http
+from rekall_lib import utils
 
 
 class HTTPServerPolicy(agent.ServerPolicy):
@@ -178,7 +178,6 @@ class HTTPServerPolicy(agent.ServerPolicy):
         return http.HTTPLocation.New(
             session=self._session, access=["READ", "LIST"],
             path_prefix=utils.join_path(client_id, "vfs", vfs_type, path))
-
 
     def flow_metadata_collection_for_server(self, client_id):
         if not client_id:

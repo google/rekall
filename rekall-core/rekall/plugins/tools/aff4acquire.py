@@ -53,9 +53,9 @@ from pyaff4 import plugins  # pylint: disable=unused-import
 from rekall import constants
 from rekall import plugin
 from rekall import testlib
-from rekall import utils
 from rekall import yaml_utils
 from rekall.plugins import core
+from rekall_lib import utils
 
 
 class AFF4ProgressReporter(aff4.ProgressContext):

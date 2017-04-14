@@ -24,7 +24,7 @@
 # pylint: disable=protected-access
 
 from rekall import testlib
-from rekall import utils
+from rekall_lib import utils
 
 from rekall.plugins.common import memmap
 from rekall.plugins.windows import common

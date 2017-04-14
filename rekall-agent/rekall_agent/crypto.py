@@ -57,10 +57,10 @@ from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers import modes
 from cryptography.x509 import oid
 
-from rekall import utils
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays import basic
-from rekall_agent import serializer
+from rekall_lib import serializer
+from rekall_lib import utils
 
 
 class CipherError(ValueError):

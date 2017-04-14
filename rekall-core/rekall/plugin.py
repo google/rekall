@@ -28,9 +28,10 @@ import StringIO
 
 from rekall import config
 from rekall import obj
-from rekall import registry
-from rekall import utils
 from rekall.ui import text as text_renderer
+
+from rekall_lib import registry
+from rekall_lib import utils
 
 
 class Error(Exception):

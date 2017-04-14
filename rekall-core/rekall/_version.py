@@ -13,7 +13,7 @@ def raw_versions():
     return json.loads("""
 {
     "codename": "Gotthard", 
-    "version": "1.6.0", 
+    "version": "1.6.2", 
     "post": "0", 
     "rc": "0"
 }

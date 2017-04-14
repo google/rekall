@@ -22,7 +22,7 @@ __author__ = (
 
 from rekall import obj
 from rekall import plugin
-from rekall import registry
+from rekall_lib import registry
 
 from rekall.plugins.darwin import common
 

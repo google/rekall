@@ -22,8 +22,7 @@ Collectors and plugins that deal with Darwin zone allocator.
 
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall import plugin
-from rekall import utils
+from rekall_lib import utils
 
 from rekall.plugins.darwin import common
 

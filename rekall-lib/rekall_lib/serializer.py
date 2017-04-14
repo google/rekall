@@ -108,8 +108,8 @@ import yaml
 
 import arrow
 
-from rekall import registry
-from rekall import utils
+from rekall_lib import registry
+from rekall_lib import utils
 
 
 class FieldDescriptor(object):

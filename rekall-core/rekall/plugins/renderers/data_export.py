@@ -37,12 +37,13 @@ which is not relevant without access to the original image.
 import datetime
 import pytz
 
-from rekall import utils
-
 from rekall.ui import renderer
 from rekall.ui import json_renderer
 
 from rekall.plugins.renderers import json_storage
+
+from rekall_lib import utils
+
 
 
 # Copy many of the normal json object renderers.

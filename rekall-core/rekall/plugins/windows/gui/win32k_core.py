@@ -20,11 +20,11 @@
 
 # pylint: disable=protected-access
 from rekall import kb
-from rekall import utils
 from rekall import obj
 from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows.gui import constants
 from rekall.plugins.windows.gui.vtypes import xp
+from rekall_lib import utils
 
 
 win32k_overlay = {

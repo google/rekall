@@ -71,8 +71,8 @@ import arrow
 from rekall import addrspace
 from rekall import obj
 from rekall import session
-from rekall import utils
 from rekall.ui import json_renderer
+from rekall_lib import utils
 
 
 class BaseAddressSpaceObjectRenderer(json_renderer.StateBasedObjectRenderer):

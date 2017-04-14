@@ -34,7 +34,7 @@ __author__ = (
 
 import hashlib
 from rekall import obj
-from rekall import utils
+from rekall_lib import utils
 
 
 class IndexProfileLoader(obj.ProfileSectionLoader):

@@ -32,10 +32,10 @@ import yaml
 
 from rekall import io_manager
 from rekall import plugin
-from rekall import registry
 from rekall import threadpool
 from rekall import testlib
-from rekall import utils
+from rekall_lib import registry
+from rekall_lib import utils
 
 
 NUMBER_OF_CORES = multiprocessing.cpu_count()

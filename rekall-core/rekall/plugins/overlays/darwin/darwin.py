@@ -19,10 +19,10 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall import obj
-from rekall import utils
 
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.overlays import basic
+from rekall_lib import utils
 
 
 darwin_overlay = {

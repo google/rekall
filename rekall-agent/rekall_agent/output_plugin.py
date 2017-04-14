@@ -26,7 +26,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 
 from rekall_agent import result_collections
-from rekall_agent import serializer
+from rekall_lib import serializer
 
 
 class OutputPlugin(serializer.SerializedObject):

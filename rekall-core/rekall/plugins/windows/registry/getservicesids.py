@@ -25,11 +25,11 @@
 @organization: Volatile Systems
 """
 
-from rekall import utils
-from rekall.plugins.windows.registry import registry
-
 import hashlib
 import struct
+
+from rekall.plugins.windows.registry import registry
+from rekall_lib import utils
 
 
 class GetServiceSids(registry.RegistryPlugin):

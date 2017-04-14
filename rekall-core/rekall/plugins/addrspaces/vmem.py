@@ -25,9 +25,9 @@
 
 from rekall import addrspace
 from rekall import obj
-from rekall import utils
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays import basic
+from rekall_lib import utils
 
 # pylint: disable=protected-access
 

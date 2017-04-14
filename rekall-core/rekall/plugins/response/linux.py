@@ -3,7 +3,7 @@ import os
 import platform
 
 from rekall import addrspace
-from rekall import utils
+from rekall_lib import utils
 
 from rekall.plugins.common import address_resolver
 from rekall.plugins.response import common

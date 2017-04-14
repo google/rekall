@@ -24,7 +24,7 @@ import itertools
 
 from rekall import plugin
 from rekall import algo
-from rekall import utils
+from rekall_lib import utils
 
 from rekall.plugins.renderers import visual_aides
 

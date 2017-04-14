@@ -72,6 +72,8 @@ install_requires = [
     # Version 2.5.0 is broken with pyinstaller.
     # https://github.com/pyinstaller/pyinstaller/issues/1848
     "python-dateutil == 2.5.3",
+
+    "rekall-lib >= 1.61, < 1.7",
 ]
 
 if "VIRTUAL_ENV" not in os.environ:

@@ -55,10 +55,10 @@ import zlib
 from rekall import obj
 from rekall import plugin
 from rekall import testlib
-from rekall import utils
 from rekall.plugins.addrspaces import elfcore
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays import basic
+from rekall_lib import utils
 
 
 EWF_TYPES = dict(

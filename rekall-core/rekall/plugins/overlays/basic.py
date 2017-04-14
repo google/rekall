@@ -32,8 +32,8 @@ import arrow
 
 from rekall import config
 from rekall import obj
-from rekall import utils
 from rekall.plugins.overlays import native_types
+from rekall_lib import utils
 
 
 config.DeclareOption(

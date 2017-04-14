@@ -26,10 +26,10 @@ http://www.leviathansecurity.com/blog/understanding-the-windows-allocator-a-redu
 
 """
 from rekall import scan
-from rekall import utils
 
 from rekall.plugins import core
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class InspectHeap(common.WinProcessFilter):

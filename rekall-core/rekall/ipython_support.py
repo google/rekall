@@ -47,7 +47,7 @@ except ImportError:
 from rekall import constants
 from rekall import config
 from rekall import session as session_module
-from rekall import utils
+from rekall_lib import utils
 
 
 config.DeclareOption(

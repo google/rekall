@@ -31,8 +31,8 @@ import re
 import os
 
 from rekall import plugin
-from rekall import utils
 from rekall.plugins.response import common
+from rekall_lib import utils
 
 
 BUFFER_SIZE = 10 * 1024 * 1024

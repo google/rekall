@@ -31,12 +31,12 @@ except ImportError:
 from rekall import plugin
 from rekall import scan
 from rekall import testlib
-from rekall import utils
 
 from rekall.plugins import core
 from rekall.plugins import yarascanner
 from rekall.plugins.windows import common
 from rekall.plugins.overlays import basic
+from rekall_lib import utils
 
 
 class CertScanner(scan.BaseScanner):

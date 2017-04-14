@@ -23,7 +23,7 @@
 @organization: Digital Forensics Solutions
 """
 from rekall import testlib
-from rekall import utils
+from rekall_lib import utils
 from rekall.plugins import core
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.common import pfn

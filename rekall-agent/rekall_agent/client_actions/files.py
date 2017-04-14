@@ -27,14 +27,10 @@ __author__ = "Michael Cohen <scudette@google.com>"
 These client actions are designed to maintain the client's Virtual File System
 (VFS) view.
 """
-import re
-import os
 
 import psutil
 
 from rekall import kb
-from rekall import utils
-from rekall.plugins.common.efilter_plugins import helpers
 from rekall.plugins.response import common
 
 from rekall_agent import action

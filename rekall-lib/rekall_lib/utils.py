@@ -41,7 +41,7 @@ import weakref
 
 import sortedcontainers
 
-from rekall import registry
+from rekall_lib import registry
 
 
 def SmartStr(string, encoding="utf8"):

@@ -23,9 +23,10 @@
 from rekall import addrspace
 from rekall import kb
 from rekall import obj
-from rekall import utils
 from rekall.plugins.overlays.windows import common
 from rekall.plugins.overlays.windows import win7
+from rekall_lib import utils
+
 
 def TagOffset(x):
     if x.obj_profile.metadata("arch") == "AMD64":

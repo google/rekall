@@ -79,10 +79,10 @@ from rekall_agent import common
 from rekall_agent import location
 from rekall_agent import result_collections
 from rekall_agent import output_plugin
-from rekall_agent import serializer
 from rekall_agent.config import agent
 from rekall_agent.messages import batch
 from rekall_agent.messages import resources
+from rekall_lib import serializer
 
 
 class FlowStatus(batch.BatchTicket):

@@ -97,12 +97,13 @@ from rekall import addrspace
 from rekall import plugin
 from rekall import obj
 from rekall import testlib
-from rekall import utils
 
 from rekall.plugins import core
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import pe_vtypes
+
+from rekall_lib import utils
 
 
 class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,

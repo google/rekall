@@ -30,7 +30,7 @@ ENV = {"__file__": __file__}
 exec open("_version.py").read() in ENV
 VERSION = ENV["get_versions"]()
 
-rekall_description = "Rekall Incident Response Agent"
+rekall_description = "Rekall Support Libraries"
 
 def find_data_files(source):
     result = []
@@ -41,15 +41,7 @@ def find_data_files(source):
     return result
 
 install_requires = [
-    "rekall-lib",
-    "rekall-core >= 1.6.0, < 1.7",
-    "requests==2.11.1",
-    "httplib2==0.9.2",
-    "oauth2client==3.0.0",
-    "cryptography==1.4",
-    "filelock==2.0.6",
-    "pathlib==1.0.1",
-    "portpicker==1.1.1"
+    "arrow == 0.7.0",
 ]
 
 data_files = (find_data_files("test_data") +
@@ -74,11 +66,11 @@ commands = {}
 commands["clean"] = CleanCommand
 
 setup(
-    name="rekall_agent",
+    name="rekall_lib",
     version=VERSION["pep440"],
     cmdclass=commands,
     description=rekall_description,
-    long_description="The DFIR agent component of the Rekall framework.",
+    long_description="Support libraries for the Rekall framework.",
     license="GPL",
     url="https://www.rekall-forensic.com/",
     author="The Rekall team",
@@ -89,12 +81,10 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
     ],
-    package_dir={'.': 'rekall_agent'},
+    package_dir={'.': 'rekall_lib'},
     packages=find_packages('.'),
     data_files=data_files,
     entry_points="""
-      [rekall.plugins]
-      agent=rekall_agent.agent:RekallAgent
     """,
     zip_safe=False,
     install_requires=install_requires,

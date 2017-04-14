@@ -25,9 +25,9 @@ import yara
 from rekall import scan
 from rekall import testlib
 from rekall import plugin
-from rekall import utils
 
 from rekall.plugins.common import pfn
+from rekall_lib import utils
 
 
 class YaraScanMixin(object):

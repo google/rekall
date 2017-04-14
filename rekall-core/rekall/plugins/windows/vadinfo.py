@@ -34,13 +34,13 @@
 import re
 
 from rekall import scan
-from rekall import utils
 from rekall.plugins import core
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.common import pfn
 from rekall.plugins.windows import address_resolver
 from rekall.plugins.windows import common
 from rekall.plugins.windows import pagefile
+from rekall_lib import utils
 
 
 class VAD(common.WinProcessFilter):

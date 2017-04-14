@@ -27,7 +27,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 A location is an object which handles file transfer to a specific place.
 """
 from rekall_agent import common
-from rekall_agent import serializer
+from rekall_lib import serializer
 
 
 class Status(object):

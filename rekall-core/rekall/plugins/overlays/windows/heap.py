@@ -27,10 +27,10 @@ http://illmatics.com/Understanding_the_LFH.pdf
 __author__ = "Michael Cohen <scudette@google.com>"
 
 from rekall import addrspace
-from rekall import utils
 from rekall import obj
 from rekall.plugins.overlays.windows import common
 from rekall.plugins.overlays.windows import pe_vtypes
+from rekall_lib import utils
 
 
 _HEAP_Flags = dict(

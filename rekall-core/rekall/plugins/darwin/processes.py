@@ -23,7 +23,7 @@ Darwin Process collectors.
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 from rekall import plugin
-from rekall import registry
+from rekall_lib import registry
 
 from rekall.plugins import core
 from rekall.plugins.darwin import common

@@ -29,7 +29,7 @@ from rekall import addrspace
 from rekall import kb
 from rekall import plugin
 from rekall import obj
-from rekall import utils
+from rekall_lib import utils
 
 from rekall.plugins import core
 

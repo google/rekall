@@ -28,10 +28,11 @@ from rekall import addrspace
 from rekall import scan
 from rekall import kb
 from rekall import plugin
-from rekall import utils
 
 from rekall.plugins import core
 from rekall.plugins.common import scanners
+from rekall_lib import utils
+
 
 # Windows kernel pdb filenames.
 KERNEL_NAMES = set(

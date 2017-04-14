@@ -24,9 +24,9 @@
 
 import copy
 
-import rekall.obj as obj
-from rekall import utils
+from rekall import obj
 from rekall.plugins.overlays import basic
+from rekall_lib import utils
 
 
 vtypes = {

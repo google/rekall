@@ -23,14 +23,12 @@
 @contact:      jamie.levy@gmail.com
 @organization: Volatile Systems
 """
+import datetime
 
 from rekall import obj
-from rekall import utils
-
 from rekall.plugins.windows.registry import registry
+from rekall_lib import utils
 
-
-import datetime
 
 # for Windows 7 userassist info check out Didier Stevens' article
 # from Into the Boxes issue 0x0:
@@ -224,7 +222,7 @@ class UserAssist(registry.RegistryPlugin):
             outfd.write(u"{0:15} {1}\n{2:15} {3}\n".format(
                     "Focus Count:", uadata.FocusCount, "Time Focused:",
                     timestamp))
-        except AttributeError: 
+        except AttributeError:
             pass
 
         outfd.write(u"{0:15} {1}\n".format(

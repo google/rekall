@@ -26,10 +26,10 @@ from rekall import config
 from rekall import obj
 from rekall import plugin
 from rekall import testlib
-from rekall import utils
 from rekall.plugins.common import address_resolver
 from rekall.plugins.windows import common
 from rekall.plugins.overlays.windows import pe_vtypes
+from rekall_lib import utils
 
 
 config.DeclareOption(

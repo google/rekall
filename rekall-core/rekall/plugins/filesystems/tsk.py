@@ -3,7 +3,7 @@ import pytsk3
 from rekall import addrspace
 from rekall import plugin
 from rekall import obj
-from rekall import utils
+from rekall_lib import utils
 from rekall.plugins import guess_profile
 from rekall.plugins.overlays import basic
 

@@ -49,10 +49,10 @@ from cryptography.hazmat.primitives import serialization
 
 from oauth2client import service_account as service_account_module
 
-from rekall import utils
 from rekall_agent import common
 from rekall_agent import location
-from rekall_agent import serializer
+from rekall_lib import utils
+from rekall_lib import serializer
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
@@ -474,7 +474,6 @@ class GCSLocation(location.Location):
         return response.ok
 
 class GCSHeaders(serializer.SerializedObject):
-
     """Some headers that can be set."""
     schema = [
         dict(name="x-goog-resumable"),

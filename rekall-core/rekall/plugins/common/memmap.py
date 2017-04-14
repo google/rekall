@@ -22,9 +22,9 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall import plugin
-from rekall import utils
 from rekall.ui import text
 from rekall.plugins import core
+from rekall_lib import utils
 
 
 class MemmapMixIn(object):

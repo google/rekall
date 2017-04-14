@@ -35,7 +35,7 @@ from rekall_agent import common
 from rekall_agent import cache
 from rekall_agent import crypto
 from rekall_agent import location
-from rekall_agent import serializer
+from rekall_lib import serializer
 
 class RekallSession(serializer.SerializedObject):
     """A message describing a Rekall Session."""

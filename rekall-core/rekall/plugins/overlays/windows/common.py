@@ -27,10 +27,11 @@ from itertools import chain
 
 from rekall import addrspace
 from rekall import obj
-from rekall import utils
 
 from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.overlays.windows import undocumented
+
+from rekall_lib import utils
 
 
 MM_PROTECTION_ENUM = utils.EnumerationFromDefines("""

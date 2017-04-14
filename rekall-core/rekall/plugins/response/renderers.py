@@ -19,9 +19,9 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 
 
-from rekall import utils
 from rekall.ui import text
 from rekall.plugins.renderers import data_export
+from rekall_lib import utils
 
 
 class FileSpec_Text(text.TextObjectRenderer):

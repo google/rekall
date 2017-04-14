@@ -5,12 +5,12 @@ import struct
 
 from rekall import plugin
 from rekall import obj
-from rekall import utils
 from rekall import scan
 from rekall import session as session_module
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.overlays import basic
+from rekall_lib import utils
 
 
 KNOWN_REVISION_IDS = {
