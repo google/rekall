@@ -25,7 +25,7 @@ dwarf: module.c
 	$(MAKE) -C $(KHEADER) CONFIG_DEBUG_INFO=y M=$(PWD) modules
 	cp module.ko module_dwarf.ko
 
-profile: dwarf
+profile: dwarf pmem
 	zip "$(KVER).zip" module_dwarf.ko $(KSYSTEMMAP) $(KCONFIG) "pmem-$(KVER).ko"
 
 clean:
