@@ -571,6 +571,24 @@ win7_x86_dynamic_overlays = {
     ),
 }
 
+# Structures for netscan on x32 Win10
+tcpip_vtypes_win10_32 = {
+    '_ADDRINFO' : [None, {
+        'Local' : [0x0, ['pointer', ['_LOCAL_ADDRESS']]],
+        'Remote' : [0xC, ['pointer', ['_IN_ADDR']]],
+    }],
+    '_TCP_ENDPOINT': [None, { # TcpE
+        'InetAF' : [0x8, ['pointer', ['_INETAF']]],
+        'AddrInfo' : [0xC, ['pointer', ['_ADDRINFO']]],
+        'State' : [0x38, ['Enumeration', dict(
+            target='long',
+            choices=TCP_STATE_ENUM)]],
+        'LocalPort' : [0x3C, ['unsigned be short']],
+        'RemotePort' : [0x3E, ['unsigned be short']],
+        'Owner' : [0x1B0, ['pointer', ['_EPROCESS']]],
+    }],
+}
+
 # Structures for netscan on x64 Win10
 tcpip_vtypes_win10_64 = {
     '_IN_ADDR' : [None, {
@@ -604,7 +622,7 @@ tcpip_vtypes_win10_64 = {
             target='long',
             choices=TCP_STATE_ENUM)]],
         'LocalPort' : [0x70, ['unsigned be short']],
-        'RemotePort' : [0x74, ['unsigned be short']],
+        'RemotePort' : [0x72, ['unsigned be short']],
         'Owner' : [0x258, ['pointer', ['_EPROCESS']]],
         'CreateTime' : [0x268, ['WinFileTime', {}]],
     }],
@@ -781,6 +799,11 @@ class Tcpip(pe_vtypes.BasicPEProfile):
             elif version >= 6.1:
                 profile.add_overlay(tcpip_vtypes_vista)
                 profile.add_overlay(tcpip_vtypes_7)
+
+            # Windows 10
+            elif version >= 10.0:
+                profile.add_overlay(tcpip_vtypes_vista)
+                profile.add_overlay(tcpip_vtypes_win10_32)
 
         # Pool tags
         profile.add_constants(dict(UDP_END_POINT_POOLTAG="UdpA",
