@@ -354,7 +354,8 @@ class LoadAddressSpace(plugin.Command):
             arg = int(m.group(2), 0)
             if m.group(1) == "pid":
                 for task in self.session.plugins.pslist(
-                        pid=arg).filter_processes():
+                        pids=arg).filter_processes():
+                    self.session.plugins.cc().SwitchProcessContext(task)
                     return task.get_process_address_space()
                 raise AttributeError("Process pid %s not found" % arg)
 
