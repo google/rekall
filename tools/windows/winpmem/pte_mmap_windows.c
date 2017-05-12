@@ -29,14 +29,33 @@ static MDL *rogue_mdl = NULL;
 // PTEs. So we just use a static page in the driver executable.
 static void *pte_get_rogue_page(void) {
   if (page_aligned_space == NULL) {
-    rogue_mdl = IoAllocateMdl(&rogue_page, sizeof(rogue_page),
-			     FALSE, FALSE, NULL);
+    // We would ideally like to just allocate memory from non paged
+    // pool but on Windows 7, non paged pool is allocated from large
+    // pages and we wont be able to use the page in PTE remapping. So
+    // this code creates an MDL from a static buffer within the
+    // driver's data section. We must ensure that this buffer is not
+    // paged out though so we must call MmGetSystemAddressForMdlSafe
+    // to ensure the MDL is locked into memory.
+
+    // page_aligned_space is the first page aligned offset within the
+    // buffer.
+    page_aligned_space = &rogue_page[0];
+    page_aligned_space += PAGE_SIZE - ((__int64)&rogue_page[0]) % PAGE_SIZE;
+
+    // MDL is for a single page.
+    rogue_mdl = IoAllocateMdl(page_aligned_space, PAGE_SIZE,
+			      FALSE, FALSE, NULL);
     if (!rogue_mdl) {
       return NULL;
     };
 
     try {
+      // This locks the physical page into memory.
       MmProbeAndLockPages(rogue_mdl, KernelMode, IoWriteAccess);
+      page_aligned_space = MmGetSystemAddressForMdlSafe(rogue_mdl,
+							HighPagePriority |
+							MdlMappingNoExecute);
+      return page_aligned_space;
     } except(EXCEPTION_EXECUTE_HANDLER) {
       NTSTATUS ntStatus = GetExceptionCode();
 
@@ -46,10 +65,7 @@ static void *pte_get_rogue_page(void) {
       rogue_mdl = NULL;
       return NULL;
     }
-    page_aligned_space = rogue_page;
-    page_aligned_space += PAGE_SIZE - ((__int64)rogue_page) % PAGE_SIZE;
-  };
-
+  }
   return page_aligned_space;
 }
 

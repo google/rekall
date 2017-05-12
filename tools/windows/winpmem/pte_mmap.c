@@ -1,4 +1,4 @@
-// This module contains helper functions to directly edit the page tables of a
+﻿// This module contains helper functions to directly edit the page tables of a
 // process, enabling it to map physical memory independent of the operating
 // system.
 //

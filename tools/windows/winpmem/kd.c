@@ -30,7 +30,7 @@
 IMAGE_DOS_HEADER *KernelGetModuleBaseByPtr(IN void *in_section,
 					   IN void *exported_name) {
   unsigned char *p;
-  IMAGE_DOS_HEADER *dos;
+  IMAGE_DOS_HEADER *dos = NULL;
   IMAGE_NT_HEADERS *nt;
   int count = 0;
 

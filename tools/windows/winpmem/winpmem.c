@@ -260,8 +260,6 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     if (InputLen >= sizeof(u32)) {
       enum PMEM_ACQUISITION_MODE mode = *(u32 *)IoBuffer;
 
-      ext->mode = mode;
-
       switch(mode) {
       case ACQUISITION_MODE_PHYSICAL_MEMORY:
         // These are all the requirements for this method.
@@ -272,6 +270,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
         } else {
           WinDbgPrint("Using physical memory device for acquisition.\n");
           status = STATUS_SUCCESS;
+	  ext->mode = mode;
         };
         break;
 
@@ -285,6 +284,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
         } else {
           WinDbgPrint("Using MmMapIoSpace for acquisition.\n");
           status = STATUS_SUCCESS;
+	  ext->mode = mode;
         };
         break;
 
@@ -298,6 +298,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
         } else {
           WinDbgPrint("Using PTE Remapping for acquisition.\n");
           status = STATUS_SUCCESS;
+	  ext->mode = mode;
         };
         break;
 
@@ -310,6 +311,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
         } else {
           WinDbgPrint("Using PTE Remapping with PCI probe for acquisition.\n");
           status = STATUS_SUCCESS;
+	  ext->mode = mode;
         };
         break;
 
@@ -359,7 +361,7 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   WinDbgPrint("WinPMEM write support available!");
 #endif
 
-  WinDbgPrint("Copyright (c) 2014, Michael Cohen <scudette@gmail.com>\n");
+  WinDbgPrint("Copyright (c) 2017, Michael Cohen <scudette@gmail.com>\n");
 
   // Initialize import tables:
   if(PmemGetProcAddresses() != STATUS_SUCCESS) {
@@ -429,6 +431,7 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   // Disable pte mapping for 32 bit systems.
   extension->pte_mmapper = pte_mmap_windows_new();
   extension->pte_mmapper->loglevel = PTE_ERR;
+  extension->mode = ACQUISITION_MODE_PTE_MMAP;
 #else
   extension->pte_mmapper = NULL;
 #endif

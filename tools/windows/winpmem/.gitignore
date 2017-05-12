@@ -3,3 +3,8 @@ objchk*
 *.sys
 *.exe
 *.log
+Release/
+Debug/
+x64/
+*.VC.db
+.*

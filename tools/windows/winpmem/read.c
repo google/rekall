@@ -120,7 +120,8 @@ static LONG PTEMmapPartialRead(IN PDEVICE_EXTENSION extension,
   ViewBase.QuadPart = offset.QuadPart - page_offset;
 
   // Map exactly one page.
-  if(extension->pte_mmapper->remap_page(extension->pte_mmapper,
+  if(extension->pte_mmapper &&
+     extension->pte_mmapper->remap_page(extension->pte_mmapper,
 					offset.QuadPart - page_offset) ==
      PTE_SUCCESS) {
     RtlCopyMemory(buf, (char *)(extension->pte_mmapper->rogue_page.value +
