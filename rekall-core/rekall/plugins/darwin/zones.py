@@ -64,7 +64,7 @@ class AbstractZoneElementFinder(common.AbstractDarwinParameterHook):
             "(select zone from zones() where zone.name == ?).zone",
             query_parameters=[self.zone_name]).first_result
 
-        if zone is None:
+        if not zone:
             raise ValueError("Zone %r doesn't exist." % self.zone_name)
 
         results = set()
