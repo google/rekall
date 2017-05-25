@@ -53,6 +53,7 @@ Installing setuptools, pip...done.
 $ source /tmp/MyEnv/bin/activate
 $ pip install --upgrade setuptools pip wheel
 $ git clone https://github.com/google/rekall.git rekall
+$ pip install --editable rekall/rekall-lib
 $ pip install --editable rekall/rekall-core
 $ pip install --editable rekall/rekall-agent
 $ pip install --editable rekall
