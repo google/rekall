@@ -124,8 +124,15 @@ static LONG PTEMmapPartialRead(IN PDEVICE_EXTENSION extension,
      extension->pte_mmapper->remap_page(extension->pte_mmapper,
 					offset.QuadPart - page_offset) ==
      PTE_SUCCESS) {
-    RtlCopyMemory(buf, (char *)(extension->pte_mmapper->rogue_page.value +
-				page_offset), to_read);
+    char *source = extension->pte_mmapper->rogue_page.value + page_offset;
+    try {
+      // Be extra careful here to not produce a BSOD. We would rather
+      // return a page of zeros than BSOD.
+      RtlCopyMemory(buf, source, to_read);
+    } except(EXCEPTION_EXECUTE_HANDLER) {
+      WinDbgPrint("Unable to read from %p", source);
+      RtlZeroMemory(buf, to_read);
+    }
   } else {
     // Failed to map page, null fill the buffer.
     RtlZeroMemory(buf, to_read);

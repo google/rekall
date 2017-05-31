@@ -124,7 +124,7 @@ PTE_MMAP_OBJ *pte_mmap_windows_new(void) {
   PTE_MMAP_OBJ *self = NULL;
 
   // Allocate the object
-  self = ExAllocatePoolWithTag(NonPagedPool, sizeof(PTE_MMAP_OBJ),
+  self = ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(PTE_MMAP_OBJ),
 			       PMEM_POOL_TAG);
 
   if (!self) return NULL;

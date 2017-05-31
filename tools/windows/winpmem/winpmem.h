@@ -88,6 +88,7 @@ struct PmemMemoryInfo {
 
   LARGE_INTEGER KernBase;  // The base of the kernel image.
 
+
   // The following are deprecated and will not be set by the driver. It is safer
   // to get these during analysis from NtBuildNumberAddr below.
   LARGE_INTEGER KDBG;  // The address of KDBG

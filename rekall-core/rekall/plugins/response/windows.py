@@ -7,7 +7,7 @@ import win32com.client
 
 from rekall import plugin
 from rekall import obj
-from rekall import utils
+from rekall_lib import utils
 from rekall.plugins.common import address_resolver
 from rekall.plugins.response import common
 from rekall.plugins.windows import address_resolver as win_address_resolver

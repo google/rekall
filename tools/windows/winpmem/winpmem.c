@@ -167,7 +167,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
   // The old deprecated ioctrl interface for backwards
   // compatibility. Do not use for new code.
   case IOCTL_GET_INFO_DEPRECATED: {
-    char *buffer = ExAllocatePoolWithTag(PagedPool, 0x1000, PMEM_POOL_TAG);
+    char *buffer = ExAllocatePoolWithTag(NonPagedPoolNx, 0x1000, PMEM_POOL_TAG);
 
     if (buffer) {
       struct DeprecatedPmemMemoryInfo *info = (void *)IoBuffer;

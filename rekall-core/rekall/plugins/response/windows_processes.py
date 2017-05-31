@@ -4,7 +4,7 @@ import win32con
 import ctypes
 from ctypes import wintypes
 from rekall import addrspace
-from rekall import utils
+from rekall_lib import utils
 from rekall.plugins.overlays import basic
 from rekall.plugins.response import common
 from rekall.plugins.response import processes

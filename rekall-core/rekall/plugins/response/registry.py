@@ -11,7 +11,7 @@ import StringIO
 import _winreg
 
 from rekall import obj
-from rekall import utils
+from rekall_lib import utils
 from rekall.plugins.overlays import basic
 from rekall.plugins.response import common
 
