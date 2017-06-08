@@ -50,7 +50,7 @@ from cryptography.hazmat.primitives import serialization
 from oauth2client import service_account as service_account_module
 
 from rekall_agent import common
-from rekall_agent import location
+from rekall_lib.types import location
 from rekall_lib import utils
 from rekall_lib import serializer
 

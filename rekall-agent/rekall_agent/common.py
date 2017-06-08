@@ -32,6 +32,28 @@ config.DeclareOption("agent_configuration", group="Rekall Agent",
                      "specified Rekall switches to Agent mode.")
 
 
+class Interpolator(dict):
+    """A commonly used format interpolator for locations.
+
+The below supports path temple interpolations allowing various expansions to be
+    made dynamically. For example a file path template may include
+    "/path{client_id}/foo" to expand the client_id into the path.
+    """
+    def __init__(self, session, **kwargs):
+        super(Interpolator, self).__init__(**kwargs)
+        self.session = session
+        self._config = session.GetParameter("agent_config_obj")
+
+    def __getitem__(self, item):
+        return self.get(item) or getattr(self, "get_" + item)()
+
+    def get_client_id(self):
+        return self._config.client.writeback.client_id
+
+    def get_nonce(self):
+        return self._config.client.nonce
+
+
 class AgentConfigMixin(object):
 
     @property

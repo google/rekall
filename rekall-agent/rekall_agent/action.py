@@ -27,41 +27,18 @@ __author__ = "Michael Cohen <scudette@google.com>"
 A flow will deliver a number of actions to execute.
 """
 from rekall_agent import common
-from rekall_lib import serializer
+from rekall_lib.types import actions
 
 
-class Action(common.AgentConfigMixin, serializer.SerializedObject):
+class ActionImpl(common.AgentConfigMixin, actions.Action):
     """Requests a client action to run on the agent.
 
     Action implementations will extend this message.
     """
-
-    schema = [
-        dict(name="flow_id",
-             doc="Unique flow name that owns this request."),
-        dict(name="condition",
-             doc="An Efilter condition to evaluate before running."),
-        dict(name="session", type="dict",
-             doc="If provided, runs this action in a dedicated session."),
-    ]
-
     @property
     def client_id(self):
         return self._config.client.writeback.client_id
 
-    def is_active(self):
-        """Returns true is this action is active."""
-        if self.condition:
-            try:
-                if not list(self._session.plugins.search(self.condition)):
-                    return False
-
-            # If the query failed to run we must ignore this flow.
-            except Exception as e:
-                self._session.logging.exception(e)
-                return False
-
-        return True
 
     def run(self, flow_obj=None):
         """Called by the client to execute this action.

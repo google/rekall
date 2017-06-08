@@ -21,23 +21,11 @@
 #
 
 __author__ = "Michael Cohen <scudette@google.com>"
-from rekall_agent import action
-from rekall_agent import result_collections
+from rekall_lib.types import actions
 
 
-class CollectAction(action.Action):
+class CollectActionImpl(actions.CollectAction):
     """Collect the results of an efilter query into a collection."""
-
-    schema = [
-        dict(name="query", type="dict",
-             doc="The dotty/EFILTER query to run."),
-
-        dict(name="query_parameters", type="dict",
-             doc="Positional parameters for parametrized queries."),
-
-        dict(name="collection", type=result_collections.CollectionSpec,
-             doc="A specification for constructing the output collection."),
-    ]
 
     def _get_query(self):
         for mode, query in self.query.iteritems():
@@ -63,7 +51,7 @@ class CollectAction(action.Action):
             raise TypeError("Only a single table is supported.")
 
         # Open the collection for writing and upload it.
-        with self.collection.create_temp_file():
+        with self.collection:
             for row in self.collect():
                 self.collection.insert(row=row)
 

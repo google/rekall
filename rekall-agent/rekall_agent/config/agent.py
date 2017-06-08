@@ -30,24 +30,15 @@ import os
 import arrow
 
 from rekall import obj
-from rekall_agent import action
 from rekall_agent import common
-from rekall_agent import cache
 from rekall_agent import crypto
-from rekall_agent import location
+from rekall_lib.types import actions
+from rekall_lib.types import agent
+from rekall_lib.types import location
 from rekall_lib import serializer
 
-class RekallSession(serializer.SerializedObject):
-    """A message describing a Rekall Session."""
 
-    schema = [
-        dict(name="live", type="choices", default="API",
-             choices=["API", "Memory"],
-             doc="The Rekall live mode"),
-    ]
-
-
-class Manifest(serializer.SerializedObject):
+class ManifestXXX(serializer.SerializedObject):
     """The manifest contains basic information about the installation.
 
     It needs to be world readable because clients use this to bootstrap their
@@ -57,9 +48,9 @@ class Manifest(serializer.SerializedObject):
     """
 
     schema = [
-        dict(name="startup_actions", type=action.Action, repeated=True,
+        dict(name="startup_actions", type=actions.Action, repeated=True,
              doc="These actions will be run at startup on the client."),
-        dict(name="rekall_session", type=RekallSession,
+        dict(name="rekall_session", type=agent.RekallSession,
              doc="The session used to run startup actions"),
     ]
 
@@ -174,8 +165,8 @@ class ClientWriteback(serializer.SerializedObject):
         dict(name="private_key", type=crypto.RSAPrivateKey,
              doc="The client's private key"),
 
-        dict(name="current_ticket", type=serializer.SerializedObject,
-             doc="The currently running flow's ticket.")
+        dict(name="current_flow", type=serializer.SerializedObject,
+             doc="The currently running flow.")
     ]
 
 
@@ -292,9 +283,6 @@ class ServerPolicy(ExternalFileMixin,
 
         dict(name="private_key", type=crypto.RSAPrivateKey,
              doc="The server's private key"),
-
-        dict(name="cache", type=cache.Cache,
-             doc="Local cache to use."),
     ]
 
 
@@ -313,7 +301,7 @@ class Configuration(ExternalFileMixin,
         dict(name="client", type=ClientPolicy,
              doc="The client's configuration."),
 
-        dict(name="manifest", type=Manifest,
+        dict(name="manifest", type=ManifestXXX,
              doc="The installation manifest. Will be fetched from "
              "client.manifest_location"),
 

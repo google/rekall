@@ -5,7 +5,7 @@ NOTE: The Google App Engine app does not use this code, therefore none of the
 """
 import time
 
-from rekall_agent import location
+from rekall_lib.types import location
 from rekall_agent.config import agent
 from rekall_agent.locations import http
 from rekall_lib import utils
@@ -94,15 +94,15 @@ class GAEClientPolicy(agent.ClientPolicy):
     ]
 
     def get_jobs_queues(self):
-        # The jobs queue is world readable.
+
         result = [
-            http.HTTPLocation.from_keywords(
+            http.HTTPLocationImpl.from_keywords(
                 session=self._session, base=self.manifest_location.base,
-                path_prefix=utils.join_path(self.client_id, "jobs"))
+                path_prefix=utils.join_path("jobs", self.client_id, self.secret))
         ]
         for label in self.labels:
             result.append(
-                http.HTTPLocation.from_keywords(
+                http.HTTPLocationImpl.from_keywords(
                     session=self._session,
                     base=self.manifest_location.base,
                     # Make sure to append the secret to the unauthenticated

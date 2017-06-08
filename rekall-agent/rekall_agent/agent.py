@@ -41,14 +41,169 @@ results back to the server. The agent goes through the following phases:
 
 4) These actions are executed and results are uploaded to the server.
 """
+
+import json
+import platform
+import socket
 import time
 import traceback
 
+import psutil
+
+from rekall import plugin
 from rekall_agent import common
-from rekall_agent import flow
-from rekall_agent.config import agent
-from rekall_agent.messages import agent as agent_messages
+from rekall_agent import crypto
+
+# Required for plugins.
+from rekall_lib import serializer
 from rekall_lib import utils
+from rekall_lib.types import agent
+from rekall_lib.types import client
+from rekall_lib.types import resources
+
+from wheel import pep425tags
+
+
+# Time the agent was first started.
+START_TIME = time.time()
+
+
+class ResourcesImpl(resources.Resources):
+    """Measure resource usage."""
+
+    _start_user_time = _start_system_time = _start_wall_time = 0
+    _counting = False
+    _proc = None
+
+    def __init__(self, *args, **kwargs):
+        super(ResourcesImpl, self).__init__(*args, **kwargs)
+        self._proc = psutil.Process()
+
+    def start(self):
+        """Reset internal resource counters and start measuring."""
+        cpu_times = self._proc.cpu_times()
+
+        self._start_user_time = cpu_times.user
+        self._start_system_time = cpu_times.system
+        self._start_wall_time = time.time()
+        self._counting = True
+        self._signal_modified()
+
+    def stop(self):
+        """Stop measuring."""
+        self._counting = False
+
+    def update(self):
+        cpu_times = self._proc.cpu_times()
+        if self._counting:
+            self.user_time = cpu_times.user - self._start_user_time
+            self.system_time = cpu_times.system - self._start_system_time
+            self.wall_time = time.time() - self._start_wall_time
+
+    def to_primitive(self):
+        """Freeze the current resources upon serialization."""
+        self.update()
+        return super(ResourcesImpl, self).to_primitive(self)
+
+    @property
+    def total_time(self):
+        self.update()
+        return self.user_time + self.system_time
+
+
+class QuotaImpl(ResourcesImpl, resources.Quota):
+    _last_check_time = 0
+
+    def start(self):
+        self.used.start()
+
+    def check(self):
+        """Ensure our resource use does not exceed the quota."""
+        now = time.time()
+        # Skip checking if we got called less than 1 seconds ago.
+        if now - self._last_check_time < 1:
+            return True
+
+        self._last_check_time = now
+        return self.used.total_time <= self.total_time
+
+
+class UnameImpl(client.Uname):
+    """Stores information about the system."""
+
+    @classmethod
+    def from_current_system(cls, session=None):
+        """Gets a Uname object populated from the current system"""
+        uname = platform.uname()
+        fqdn = socket.getfqdn()
+        system = uname[0]
+        architecture, _ = platform.architecture()
+        if system == "Windows":
+            service_pack = platform.win32_ver()[2]
+            kernel = uname[3]  # 5.1.2600
+            release = uname[2]  # XP, 2000, 7
+            version = uname[3] + service_pack  # 5.1.2600 SP3, 6.1.7601 SP1
+        elif system == "Darwin":
+            kernel = uname[2]  # 12.2.0
+            release = "OSX"  # OSX
+            version = platform.mac_ver()[0]  # 10.8.2
+        elif system == "Linux":
+            kernel = uname[2]  # 3.2.5
+            release = platform.linux_distribution()[0]  # Ubuntu
+            version = platform.linux_distribution()[1]  # 12.04
+
+        # Emulate PEP 425 naming conventions - e.g. cp27-cp27mu-linux_x86_64.
+        pep425tag = "%s%s-%s-%s" % (pep425tags.get_abbr_impl(),
+                                    pep425tags.get_impl_ver(),
+                                    str(pep425tags.get_abi_tag()).lower(),
+                                    pep425tags.get_platform())
+
+        return cls.from_keywords(
+            session=session,
+            system=system,
+            architecture=architecture,
+            node=uname[1],
+            release=release,
+            version=version,
+            machine=uname[4],              # x86, x86_64
+            kernel=kernel,
+            fqdn=fqdn,
+            pep425tag=pep425tag,
+        )
+
+
+class StartupActionImpl(common.AgentConfigMixin, client.StartupAction):
+    def enroll(self):
+        """Generate a new client_id.
+
+        This runs only if the agent does not know its client_id.
+        """
+        private_key = crypto.RSAPrivateKey(session=self._session).generate_key()
+        self._config.client.writeback.private_key = private_key
+
+        client_id = private_key.public_key().client_id()
+        self._config.client.writeback.client_id = client_id
+
+        self._session.logging.info("Creating a new client_id %s", client_id)
+        self._config.client.save_writeback()
+
+    def run(self, flow_obj=None):
+        if not self.is_active():
+            return []
+
+        if not self._config.client.writeback.client_id:
+            self.enroll()
+
+        message = client.StartupMessage.from_keywords(
+            client_id=self._config.client.writeback.client_id,
+            boot_time=psutil.boot_time(),
+            agent_start_time=START_TIME,
+            timestamp=time.time(),
+            system_info=UnameImpl.from_current_system(session=self._session),
+            # public_key=self._config.client.writeback.private_key.public_key(),
+        )
+        self._session.logging.debug("Sending client startup message to server.")
+        self.location.write_file(message.to_json())
 
 
 class _LocationTracker(object):
@@ -64,6 +219,100 @@ class _LocationTracker(object):
         return data
 
 
+class RunFlow(plugin.TypedProfileCommand, plugin.Command):
+    """Run the flows specified."""
+    name = "run_flow"
+
+    table_header = [
+        dict(name="status"),
+    ]
+
+    __args = [
+        dict(name="flow", positional=True,
+             help="A string encoding a Flow JSON object."),
+        dict(name="flow_filename",
+             help="A filename containing an encoded Flow JSON object."),
+    ]
+
+    def _get_session(self, session_parameters):
+        kwargs = session_parameters.to_primitive(True)
+        rekall_session = self.session.clone(**kwargs)
+
+        # Make sure progress dispatchers are propagated.
+        rekall_session.progress = self.session.progress
+
+        return rekall_session
+
+    def _run_flow(self):
+        # Flow has a condition - we only run the flow if the condition matches.
+        if self.flow.condition:
+            try:
+                if not list(self.session.plugins.search(self.flow.condition)):
+                    self.session.logging.debug(
+                        "Ignoring flow %s because condition %s is not true.",
+                        self.flow.flow_id, self.flow.condition)
+                    return
+
+            # If the query failed to run we must ignore this flow.
+            except Exception as e:
+                self.session.logging.exception(e)
+                return
+
+        # Prepare the session specified by this flow.
+        rekall_session = self._get_session(self.flow.rekall_session)
+        status = self.flow.status
+        for action in self.flow.actions:
+            try:
+                # Make a progress ticket for this action if required.
+                status.status = "Started"
+                status.client_id = (self.session.GetParameter("client_id") or
+                                    None)
+                status.current_action = action
+
+                yield status
+
+                # Run the action with the new session, and report the produced
+                # collections. Note that the ticket contains all collections for
+                # all actions cumulatively.
+                action_to_run = action.from_primitive(
+                    action.to_primitive(), session=rekall_session)
+
+                for collection in (action_to_run.run(flow_obj=self.flow) or []):
+                    status.collections.append(collection)
+
+                # Update the server on our progress
+                self.flow.ticket.send_status(status)
+
+            except Exception as e:
+                status.status = "Error"
+                status.error = utils.SmartUnicode(e)
+                status.backtrace = traceback.format_exc()
+                yield status
+                self.flow.ticket.send_status(status)
+                self.session.logging.exception(e)
+                return
+
+        status.status = "Done"
+        status.current_action = None
+        yield status
+
+    def collect(self):
+        self.flow = self.plugin_args.flow
+        if isinstance(self.flow, basestring):
+            self.flow = serializer.unserialize(
+                json.loads(self.flow), session=self.session)
+        elif isinstance(self.flow, dict):
+            self.flow = serializer.unserialize(
+                self.flow, session=self.session)
+
+        elif not isinstance(self.flow, agent.Flow):
+            raise plugin.PluginError("Flow must be provided as JSON string.")
+
+        for status in self._run_flow():
+            self.flow.ticket.send_status(status)
+            yield status
+
+
 class RekallAgent(common.AbstractAgentCommand):
     """The Rekall DFIR Agent."""
 
@@ -72,18 +321,6 @@ class RekallAgent(common.AbstractAgentCommand):
     # If we currently running under quota management, this will contain the
     # quota object.
     _quota = None
-
-    def _get_session(self, session_parameters):
-        kwargs = session_parameters.to_primitive(True)
-        rekall_session = self.session.clone(**kwargs)
-
-        # Pass the agent config to the child session.
-        rekall_session.SetParameter("agent_config_obj", self._config)
-
-        # Make sure progress dispatches are propagated.
-        rekall_session.progress = self.session.progress
-
-        return rekall_session
 
     def _run_flow(self, flow_obj):
         # Flow has a condition - we only run the flow if the condition matches.
@@ -142,7 +379,7 @@ class RekallAgent(common.AbstractAgentCommand):
         flows_ran = 0
         try:
             for flow_obj in flows:
-                if not isinstance(flow_obj, flow.Flow):
+                if not isinstance(flow_obj, agent.Flow):
                     continue
 
                 # We already did this flow before.
@@ -154,26 +391,26 @@ class RekallAgent(common.AbstractAgentCommand):
                         continue
 
                     flows_ran += 1
-                    self.writeback.current_ticket = flow_obj.ticket
-                    self.writeback.last_flow_time = flow_obj.created_time
+                    self.writeback.current_flow = flow_obj
+                    self.writeback.current_flow.status.timestamp = time.time()
 
                     # Sync the writeback in case we crash.
                     self._config.client.save_writeback()
 
                     # Start counting resources from now.
-                    self._quota = flow_obj.ticket.quota
+                    self._quota = flow_obj.quota
                     self._quota.start()
 
-                    self._run_flow(flow_obj)
+                    try:
+                        for status in self.session.plugins.run_flow(flow_obj):
+                            self.session.logging.debug("Status: %s", status)
+                    finally:
+                        # We ran the flow with no exception - remove
+                        # transaction.
+                        self.writeback.current_flow = None
+                        self._config.client.save_writeback()
 
-                    # We ran the flow with no exception - remove transaction.
-                    self.writeback.current_ticket = None
         finally:
-            # At least one flow ran - we need to checkpoint the last ran time in
-            # persistent agent state so we do not run it again.
-            if flows_ran > 0:
-                self._config.client.save_writeback()
-
             # Stop measuring quotas.
             self._quota = None
 
@@ -185,10 +422,9 @@ class RekallAgent(common.AbstractAgentCommand):
                 _LocationTracker.get_data, self.jobs_locations):
             try:
                 if data:
-                    job_file = flow.JobFile.from_json(
+                    job_file = agent.JobFile.from_json(
                         data, session=self.session)
                     result.extend(job_file.flows)
-
             except Exception as e:
                 if self.session.GetParameter("debug"):
                     raise
@@ -205,51 +441,26 @@ class RekallAgent(common.AbstractAgentCommand):
             self.session.logging.info("Unable to read manifest file.")
             return False
 
-        # We need to verify the manifest. First do we trust the server
-        # certificate?
-        signed_manifest = agent.SignedManifest.from_json(
+        manifest = agent.Manifest.from_json(
             manifest_data, session=self.session)
 
-        server_cert = signed_manifest.server_certificate
-        server_cert.verify(
-            self._config.ca_certificate.get_public_key())
+        # Did we crash last time? If so, send the old flow a crash ticket.
+        current_flow = self.writeback.current_flow
+        if current_flow:
+            self.session.logging.debug("Reporting crash for %s",
+                                       current_flow.flow_id)
 
-        # Ok we trust the server, now make sure it signed the data properly.
-        server_public_key = server_cert.get_public_key()
-        server_public_key.verify(signed_manifest.data,
-                                 signed_manifest.signature)
+            status = current_flow.status
+            status.timestamp = time.time()
+            status.status = "Crash"
+            current_flow.ticket.send_status(status)
 
-        # Now that we trust the manifest we copy it into our running
-        # configuration.
-        self._config.manifest = agent.Manifest.from_json(
-            signed_manifest.data, session=self.session)
-
-        # Did we crash last time?
-        if self.writeback.current_ticket:
-            self.session.logging.debug(
-                "Reporting crash for %s",
-                self.writeback.current_ticket.flow_id)
-            self.writeback.current_ticket.status = "Crash"
-            self.writeback.current_ticket.timestamp = time.time()
-            self.writeback.current_ticket.send_message()
-            self.writeback.current_ticket = None
+            self.writeback.current_flow = None
             self._config.client.save_writeback()
 
-        # Now run the startup actions.
-        for action in self._config.manifest.startup_actions:
-            # Run the action with the new session, and report the produced
-            # collections. Note that the ticket contains all collections for
-            # all actions cumulatively.
-            action_to_run = action.from_primitive(
-                action.to_primitive(),
-                session=self._get_session(
-                    self._config.manifest.rekall_session))
-
-            try:
-                action_to_run.run(flow_obj=None)
-            except Exception as e:
-                self.session.logging.error(
-                    "Error running startup action: %s", e)
+        # Now run the startup flow.
+        for status in self.session.plugins.run_flow(manifest.startup).collect():
+            self.session.logging.debug("Status: %s", status)
 
         return True
 
@@ -327,6 +538,6 @@ class AgentInfo(common.AbstractAgentCommand):
     ]
 
     def collect(self):
-        uname = agent_messages.Uname.from_current_system(session=self.session)
+        uname = UnameImpl.from_current_system(session=self.session)
         for k, v in uname.to_primitive().iteritems():
             yield dict(key=k, value=v)

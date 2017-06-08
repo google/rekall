@@ -28,10 +28,11 @@ A location is an object which handles file transfer to a specific place.
 """
 import os
 import filelock
-from rekall_agent import location
+from rekall_agent import common
+from rekall_lib.types import location
 
 
-class FileLocation(location.Location):
+class FileLocationImpl(location.FileLocation):
     """A Location specifier that handles file paths on the local filesystem.
 
     Note that this does not work remotely and so it is mostly useful for tests.
@@ -47,13 +48,10 @@ class FileLocation(location.Location):
     MAX_FILE_SIZE = 100 * 1024 * 1024
     BUFFSIZE = 1 * 1024 * 1024
 
-    def expand_path(self, subpath="", **kwargs):
+    def expand_path(self, **kwargs):
         """Expand the complete path using the client's config."""
-        kwargs["client_id"] = self._config.client.writeback.client_id
-        kwargs["nonce"] = self._config.client.nonce
-        kwargs["subpath"] = subpath
-
-        return self.path_template.format(**kwargs)
+        return self.path_template.format(
+            **common.Interpolator(self._session, **kwargs))
 
     def to_path(self, **kwargs):
         # We really want the expansion to be a subdir of the path

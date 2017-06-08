@@ -37,6 +37,7 @@ from artifacts import definitions
 from rekall.plugins.response import forensic_artifacts
 from rekall_agent import flow
 from rekall_agent.flows import find
+from rekall_lib.types import agent
 
 
 class FileSourceType(forensic_artifacts.SourceType):
@@ -79,7 +80,7 @@ SOURCE_TYPES = {
 }
 
 
-class Artifact(flow.Flow):
+class Artifact(agent.Flow):
     """Launch artifacts on the client."""
     schema = [
         dict(name="artifacts", repeated=True, private=True, user=True,

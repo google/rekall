@@ -35,7 +35,7 @@ from rekall_agent.client_actions import files
 from rekall_agent.flows import collect
 from rekall_lib import serializer
 from rekall_lib import utils
-
+from rekall_lib.types import agent
 
 class FileFilterCondition(serializer.SerializedObject):
     """Baseclass for all file filter conditions."""
@@ -175,7 +175,7 @@ class VFSIndex(result_collections.GenericSQLiteCollection):
     )]
 
 
-class ListDirectory(flow.Flow):
+class ListDirectory(agent.Flow):
     """Maintain the client VFS view.
 
     Rekall maintains a view of the client's filesystem called the VFS (Virtual

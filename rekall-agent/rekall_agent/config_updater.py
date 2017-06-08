@@ -29,7 +29,7 @@ import os
 import yaml
 
 from rekall import plugin
-from rekall import yaml_utils
+from rekall_lib import yaml_utils
 from rekall_agent import crypto
 
 from rekall_agent.config import agent

@@ -25,19 +25,17 @@ __author__ = "Michael Cohen <scudette@google.com>"
 """Location handlers for a stand alone HTTP server.
 """
 import base64
-import contextlib
-import json
 import StringIO
-import os
-import tempfile
-import time
 from wsgiref import handlers
 
 import requests
 from requests import adapters
-from rekall_agent import location
+from rekall_lib.types import location
 from rekall_lib import serializer
 from rekall_lib import utils
+from rekall import session
+from rekall_agent import common
+
 
 MAX_BUFF_SIZE = 10*1024*1024
 
@@ -67,79 +65,14 @@ def _join_url(base, *components):
     return base.rstrip("/") + "/" + utils.join_path(*components).lstrip("/")
 
 
-class HTTPLocation(location.Location):
+class HTTPLocationImpl(location.HTTPLocation):
     """A stand along HTTP server location."""
 
-    schema = [
-        dict(name="base",
-             doc="The base URL of the server."),
-
-        dict(name="path_prefix",
-             doc="The path to load"),
-        dict(name="path_template", default="/",
-             doc="The path template to expand."),
-
-        dict(name="policy", type="str", hidden=True,
-             doc="The policy blob"),
-
-        dict(name="signature", type="str", hidden=True,
-             doc="The signature to use when accessing the resource."),
-
-        dict(name="path_template",
-             doc="A template from which to expand the complete path."),
-
-        dict(name="access", type="choices", repeated=True, default=["READ"],
-             choices=["READ", "WRITE", "LIST"],
-             doc="The allowed access pattern for this operation."),
-    ]
-
-    @classmethod
-    def New(cls, path_prefix=None, access=None, session=None, expiration=None,
-            path_template="", public=False):
-        if expiration is None:
-            expiration = time.time() + 60 * 60 * 24 * 7
-
-        # By default we give read/write access.
-        if access is None:
-            access = ["READ", "WRITE"]
-
-        # Make sure paths are always anchored.
-        if not path_prefix.startswith("/"):
-            path_prefix = "/" + path_prefix
-
-        config = session.GetParameter("agent_config_obj")
-        policy = URLPolicy.from_keywords(
-            session=session,
-            path_prefix=path_prefix,
-            path_template=path_template,
-            expires=expiration,
-            public=public,
-            access=access)
-
-        policy_data = policy.to_json()
-        signature = config.server.private_key.sign(policy_data)
-        base = config.server.base_url
-        if not base:
-            raise RuntimeError("Unable to determine deployment base url.")
-
-        return HTTPLocation.from_keywords(
-            session=session,
-            base=config.server.base_url,
-            path_prefix=path_prefix,
-            policy=policy_data,
-            path_template=path_template,
-            access=access,
-            signature=signature)
-
     def __init__(self, *args, **kwargs):
-        super(HTTPLocation, self).__init__(*args, **kwargs)
-        self._cache = self._config.server.cache
-
-    def get_canonical(self, **kwargs):
-        return HTTPLocation.from_keywords(
-            session=self._session,
-            base=self.base,
-            path_prefix=self.to_path(**kwargs))
+        super(HTTPLocationImpl, self).__init__(*args, **kwargs)
+        if not isinstance(self._session, session.Session):
+            raise TypeError("%s must be instantiated with a Rekall Session" %
+                            self.__class__)
 
     def get_requests_session(self):
         requests_session = self._session.GetParameter("requests_session")
@@ -161,28 +94,31 @@ class HTTPLocation(location.Location):
 
         return requests_session
 
-    def expand_path(self, subpath="", **kwargs):
+    def expand_path(self, **kwargs):
         """Expand the complete path using the client's config."""
-        kwargs["client_id"] = self._config.client.writeback.client_id
-        kwargs["nonce"] = self._config.client.nonce
-        #kwargs["subpath"] = urllib.quote_plus(
-        #    subpath.replace("\\", "/"), safe="/")
-
-        kwargs["subpath"] = subpath
-
-        return self.path_template.format(**kwargs)
+        return self.path_template.format(
+            **common.Interpolator(self._session, **kwargs))
 
     def to_path(self, **kwargs):
         return utils.join_path(self.path_prefix, self.expand_path(**kwargs))
 
     def _get_parameters(self, if_modified_since=None, **kwargs):
+        if not self.path_prefix and not self.base:
+            raise IOError("No base URL specified.")
+
         subpath = self.expand_path(**kwargs)
-        path = utils.join_path(self.path_prefix, subpath)
-        base_url = _join_url(self.base, path)
+        if subpath:
+            path = utils.join_path(self.path_prefix, subpath)
+        else:
+            path = self.path_prefix
+
+        if path:
+            base_url = _join_url(self.base, path)
+        else:
+            base_url = self.base
+
         headers = {
             "Cache-Control": "private",
-            "x-rekall-policy": base64.b64encode(self.policy),
-            "x-rekall-signature": base64.b64encode(self.signature),
         }
 
         if if_modified_since:
@@ -192,9 +128,6 @@ class HTTPLocation(location.Location):
         return base_url, {}, headers, path
 
     def read_file(self, **kw):
-        if "READ" not in self.access:
-            raise IOError("HTTPLocation is not created for reading.")
-
         url_endpoint, _, headers, _ = self._get_parameters(**kw)
 
         resp = self.get_requests_session().get(
@@ -206,15 +139,12 @@ class HTTPLocation(location.Location):
         return ""
 
     def write_file(self, data, **kwargs):
-        if "WRITE" not in self.access:
-            raise IOError("HTTPLocation is not created for writing.")
-
         return self.upload_file_object(StringIO.StringIO(data), **kwargs)
 
     def upload_file_object(self, fd, completion_routine=None, **kwargs):
         url_endpoint, params, headers, base_url = self._get_parameters(**kwargs)
 
-        resp = self.get_requests_session().put(
+        resp = self.get_requests_session().post(
             url_endpoint, data=fd,
             params=params, headers=headers)
 
@@ -244,170 +174,53 @@ class HTTPLocation(location.Location):
             if completion_routine:
                 completion_routine(status)
 
-        return response.ok
+        return location.Status(200, response.content)
 
-    def list_files(self, max_results=100, **kw):
-        url_endpoint, params, headers, _ = self._get_parameters(**kw)
-        params["action"] = "list"
-        params["limit"] = max_results
-        resp = self.get_requests_session().get(
-            url_endpoint, params=params, headers=headers)
 
-        if resp.ok:
-            for stat in json.loads(resp.text):
-                yield location.LocationStat.from_primitive(
-                    stat, session=self._session)
+class BlobUploaderImpl(HTTPLocationImpl, location.BlobUploader):
 
-    def stat(self, **kw):
-        url_endpoint, params, headers, _ = self._get_parameters(**kw)
-        params["action"] = "stat"
-        resp = self.get_requests_session().get(
-            url_endpoint, params=params, headers=headers)
+    def upload_file_object(self, fd, completion_routine=None, **kwargs):
+        spec = location.BlobUploadSpecs.from_json(self.read_file(**kwargs))
 
-        if resp.ok:
-            return location.LocationStat.from_primitive(
-                json.loads(resp.text), session=self._session)
+        # Upload the file to the blob endpoint.
+        resp = self.get_requests_session().post(
+            spec.url, files={spec.name: fd})
 
-    def delete(self, completion_routine=None, **kw):
-        url_endpoint, params, headers, _ = self._get_parameters(**kw)
-        params["action"] = "delete"
-        resp = self.get_requests_session().get(
-            url_endpoint, params=params, headers=headers)
+        self._session.logging.debug("Uploaded file: %s (%s bytes)",
+                                    spec.url, fd.tell())
 
         return self._report_error(completion_routine, resp)
 
-    def get_local_filename(self, completion_routine=None, **kwargs):
-        # We need to download the file locally.
-        url_endpoint, params, headers, base_url = self._get_parameters(
-            **kwargs)
-        current_generation = self._cache.get_generation(base_url)
-        if current_generation:
-            headers["If-None-Match"] = current_generation
 
-        with contextlib.closing(
-                self.get_requests_session().get(
-                    url_endpoint, params=params, headers=headers,
-                    stream=True)) as resp:
 
-            # Object not modified just return the cached object.
-            if resp.status_code == 304:
-                return self._cache.get_local_file(base_url, current_generation)
+class FileUploadLocationImpl(HTTPLocationImpl, location.FileUploadLocation):
+    def upload_file_object(self, fd, file_information=None, **kw):
+        """Upload a local file.
 
-            if not resp.ok:
-                # The file was removed from the server, make sure to expire the
-                # local copy too.
-                if resp.status_code == 404:
-                    self._cache.expire(base_url)
-                return self._report_error(completion_routine, resp)
-
-            # Store the generation of this object in the cache.
-            current_generation = json.loads(resp.headers["ETag"])
-            filename = self._cache.store_at_generation(
-                base_url, current_generation,
-                iterator=resp.iter_content(chunk_size=1024*1024))
-
-            # Report success.
-            self._report_error(completion_routine, resp)
-
-        return filename
-
-    def read_modify_write_local_file(self, modification_cb, *args):
-        """Atomically modifies this location.
-
-        We first download this object to the local filesystem cache, then we
-        modify it and then try to upload. If another modification occurred we
-        replay the callback until success.
-
-        Note that the modification_cb will be called with the filename to
-        modify. It may be called multiple times.
+        Read data from fd. If file_information is provided, then we use this to
+        report about the file.
         """
-        url_endpoint, _, headers, base_url = self._get_parameters()
-        for retry in range(5):
-            local_file_should_be_removed = False
-            current_generation = None
-            try:
-                try:
-                    local_filename = self.get_local_filename()
+        if file_information is None:
+            file_information = location.FileInformation.from_keywords(
+                filename=fd.name,
+            )
 
-                    # The current generation in the cache.
-                    current_generation = self._cache.get_generation(base_url)
-                except IOError:
-                    # File does not exist on the server, make a tmpfile.
-                    fd, local_filename = tempfile.mkstemp()
-                    os.close(fd)
+        request = location.FileUploadRequest.from_keywords(
+            flow_id=self.flow_id,
+            file_information=file_information)
 
-                    # Dont forget to remove the tempfile.
-                    local_file_should_be_removed = True
+        url_endpoint, _, headers, _ = self._get_parameters(**kw)
 
-                # Now let the callback modify the file.
-                modification_cb(local_filename, *args)
+        resp = self.get_requests_session().post(
+            url_endpoint, data=request.to_json(),
+            headers=headers)
 
-                # We may only write if this is the current generation.
-                if current_generation:
-                    headers["If-Match"] = current_generation
+        if resp.ok:
+            response = location.FileUploadResponse.from_json(resp.content)
 
-                resp = self.get_requests_session().put(
-                    url_endpoint, data=open(local_filename, "rb"),
-                    headers=headers)
+            # Upload the file to the blob endpoint.
+            self.get_requests_session().post(
+                response.url, files={"file": fd})
 
-                # OK - all went well.
-                if resp.ok:
-                    new_generation = json.loads(resp.headers["ETag"])
-                    # Update the cache into a new generation.
-                    self._cache.update_local_file_generation(
-                        base_url, new_generation, local_filename)
-
-                    # Do not remove the local file because it was moved by the
-                    # cache.
-                    local_file_should_be_removed = False
-                    self._session.logging.info("Modified: %s", self.to_path())
-                    return True
-
-                # The generation on the server has changed. Abort, wait a bit
-                # and retry.
-                if resp.status_code == 304:
-                    time.sleep(0.1 * retry)
-                    continue
-
-            finally:
-                if local_file_should_be_removed:
-                    os.unlink(local_filename)
-
-            raise IOError("Unable to update %s" % self)
-
-    def read_modify_write(self, modification_cb, *args):
-        """Atomically modify this location in a race free way.
-
-        modification_cb will receive the content of the file, and passed args
-        and should return the new content of the file.
-
-        Note that modification_cb can be called several times if a lock failure
-        is detected.
-
-        The underlying implementation is described here:
-        https://cloud.google.com/storage/docs/object-versioning
-        """
-        def cb(filename, modification_cb, *args):
-            with open(filename, "rb") as fd:
-                data = fd.read()
-
-            new_data = modification_cb(data, *args)
-
-            # Update the file.
-            with open(filename, "wb") as fd:
-                fd.write(new_data)
-
-        self.read_modify_write_local_file(cb, modification_cb, *args)
-
-    def upload_local_file(self, local_filename=None, fd=None,
-                          completion_routine=None, delete=True, **kwargs):
-        if local_filename:
-            fd = open(local_filename, "rb")
-
-        result = self.upload_file_object(
-            fd, completion_routine=completion_routine, **kwargs)
-
-        if delete and local_filename:
-            os.unlink(local_filename)
-
-        return result
+            self._session.logging.debug("Uploaded file: %s (%s bytes)",
+                                        file_information.filename, fd.tell())

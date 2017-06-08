@@ -34,7 +34,7 @@ from rekall import kb
 from rekall.plugins.response import common
 
 from rekall_agent import action
-from rekall_agent import location
+from rekall_lib.types import location
 from rekall_agent import result_collections
 
 
@@ -119,7 +119,7 @@ def lookup_mount_point(devices, path):
     return node[1]
 
 
-class ListDirectoryAction(action.Action):
+class ListDirectoryAction(action.ActionImpl):
     """List a directory and store it in the client's VFS.
 
     This essentially returns a big collection of the file's stats.

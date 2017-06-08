@@ -33,7 +33,7 @@ import subprocess
 
 from rekall_agent.config import agent
 from rekall_agent import action
-from rekall_agent import location
+from rekall_lib.types import location
 from rekall_agent import result_collections
 
 
@@ -45,7 +45,7 @@ class OSQueryConfiguration(agent.PluginConfiguration):
     ]
 
 
-class OSQueryAction(action.Action):
+class OSQueryAction(action.ActionImpl):
     """Runs the OSQuery query and stores the result.
 
     Note that the collection format (i.e. the columns) is determined by OSQuery

@@ -27,8 +27,10 @@ from rekall_agent import flow
 from rekall_agent import result_collections
 from rekall_agent.client_actions import collect as collect_action
 
+from rekall_lib.types import agent
 
-class CollectFlow(flow.Flow):
+
+class CollectFlow(agent.Flow):
     """Create a collection and upload it.
 
     This flow defines an EFilter query string, and a collection definition, and

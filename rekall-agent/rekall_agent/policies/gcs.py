@@ -57,7 +57,6 @@ import time
 
 from rekall_lib import utils
 
-from rekall_agent import cache
 from rekall_agent.config import agent
 from rekall_agent.locations import cloud
 
@@ -72,10 +71,6 @@ class GCSServerPolicy(agent.ServerPolicy):
 
         dict(name="service_account", type=cloud.ServiceAccount,
              doc="Service account credentials for cloud deployments."),
-
-        # GCS server must use a local cache.
-        dict(name="cache", type=cache.LocalDiskCache,
-             doc="Local cache to use."),
     ]
 
     # The following convention holds:

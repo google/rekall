@@ -92,13 +92,10 @@ setup(
     package_dir={'.': 'rekall_agent'},
     packages=find_packages('.'),
     data_files=data_files,
-
-# disable for now until the new agent is in place.
-
-#    entry_points="""
-#      [rekall.plugins]
-#      agent=rekall_agent.agent:RekallAgent
-#    """,
+    entry_points="""
+      [rekall.plugins]
+      agent=rekall_agent.agent:RekallAgent
+    """,
     zip_safe=False,
     install_requires=install_requires,
     test_suite="nose2.collector.collector",
