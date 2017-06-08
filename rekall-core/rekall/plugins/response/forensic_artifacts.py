@@ -38,7 +38,7 @@ from artifacts import errors
 
 from rekall import plugin
 from rekall import obj
-from rekall import yaml_utils
+from rekall_lib import yaml_utils
 from rekall.ui import text
 from rekall.ui import json_renderer
 from rekall.plugins.response import common

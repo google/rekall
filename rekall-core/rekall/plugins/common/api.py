@@ -18,10 +18,12 @@
 #
 
 """Rekall specifies an external API where plugins can be invoked."""
+import copy
 import textwrap
 
+from rekall import config
 from rekall import plugin
-from rekall import yaml_utils
+from rekall_lib import yaml_utils
 
 
 class APIGenerator(plugin.TypedProfileCommand,
@@ -60,12 +62,12 @@ class APIGenerator(plugin.TypedProfileCommand,
         for attr in ["default", "choices", "help"]:
             value = getattr(option, attr, None)
             if value is not None:
-                result[attr] = value
+                result[attr] = copy.copy(value)
 
         for attr in ["positional", "required", "hidden"]:
             value = getattr(option, attr, False)
             if value:
-                result[attr] = value
+                result[attr] = copy.copy(value)
 
         return result
 
@@ -73,7 +75,8 @@ class APIGenerator(plugin.TypedProfileCommand,
         """Collects the args from the plugin."""
         args = yaml_utils.OrderedYamlDict()
         for subclass in cls.__mro__:
-            for definition in getattr(cls, "_%s__args" % cls.__name__, []):
+            for definition in getattr(
+                    subclass, "_%s__args" % subclass.__name__, []):
                 # Definitions can be just simple dicts.
                 if isinstance(definition, dict):
                     definition = plugin.CommandOption(**definition)
@@ -131,6 +134,32 @@ class APIGenerator(plugin.TypedProfileCommand,
             yield dict(plugin=plugin_api["plugin"],
                        api=yaml_utils.safe_dump(plugin_api),
                        raw_api=plugin_api)
+
+        if self.plugin_args.output_file:
+            with open(self.plugin_args.output_file, "wb") as fd:
+                fd.write(yaml_utils.safe_dump(apis))
+
+
+class APISessionGenerator(APIGenerator):
+    name = "session_api"
+
+    table_header = [
+        dict(name="option", width=40),
+        dict(name="api", width=80),
+        dict(name="raw_api", hidden=True),
+    ]
+
+    def collect(self):
+        apis = []
+        for option, api in config.OPTIONS.args.items():
+            for k, v in api.items():
+                if callable(v):
+                    api[k] = v()
+
+            apis.append(api)
+            yield dict(option=option,
+                       api=yaml_utils.safe_dump(api),
+                       raw_api=api)
 
         if self.plugin_args.output_file:
             with open(self.plugin_args.output_file, "wb") as fd:

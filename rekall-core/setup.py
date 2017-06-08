@@ -65,7 +65,6 @@ install_requires = [
     "psutil >= 4.0, < 5.0",
     "rekall-capstone == 3.0.4.post2",
     "rekall-yara == 3.4.0.1",
-    "sortedcontainers == 1.4.4",
     "pytsk3 == 20160721",
     "ipaddr==2.1.11",
 

@@ -84,7 +84,7 @@ class FileSpec(utils.SlottedObject):
             self.path_sep = filename.path_sep
 
         elif isinstance(filename, basestring):
-            self.name = unicode(filename)
+            self.name = utils.SmartUnicode(filename)
             self.filesystem = filesystem
             self.path_sep = path_sep or self.default_path_sep
 

@@ -21,6 +21,10 @@
 """
 This plugin manages the profile repository.
 
+Cheatsheet:
+ - You can add one of more GUIDs to windows like this:
+    - rekal manage_repo nt/GUID add_guid 0D18D0FD87C04EB191F4E363F3977A9A1
+
 """
 import fnmatch
 import json

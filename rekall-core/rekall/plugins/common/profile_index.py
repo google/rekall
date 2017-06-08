@@ -256,7 +256,10 @@ class SymbolOffsetIndex(Index):
         A trait is a list of tuples (symbol, offset) that uniquely identify
         a profile.
         """
-        return all([profile.get(t[0]) == t[1] for t in trait])
+        try:
+          return all([profile.get(t[0]) == t[1] for t in trait])
+        except:
+          return False
 
     @classmethod
     def BuildIndex(cls, hashes=None, traits=None, duplicates=None, spec=None,

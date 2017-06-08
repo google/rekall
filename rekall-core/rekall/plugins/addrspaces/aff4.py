@@ -49,8 +49,8 @@ from pyaff4 import plugins  # pylint: disable=unused-import
 
 from rekall import addrspace
 from rekall import cache
-from rekall import yaml_utils
-from rekall import utils
+from rekall_lib import yaml_utils
+from rekall_lib import utils
 from rekall.plugins.addrspaces import standard
 
 # Control the logging level for the pyaff4 library logger.

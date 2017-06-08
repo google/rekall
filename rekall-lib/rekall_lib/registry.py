@@ -85,7 +85,6 @@ class MetaclassRegistry(UniqueObjectIdMetaclass):
 
     def __init__(cls, name, bases, env_dict):
         super(MetaclassRegistry, cls).__init__(name, bases, env_dict)
-
         cls._install_constructors(cls)
 
         # Attach the classes dict to the baseclass and have all derived classes

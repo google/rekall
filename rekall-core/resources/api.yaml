@@ -46,11 +46,44 @@
       type: IntParser
       default: 104857600
       help: Maximum file size to acquire.
+    gce_credentials:
+      type: String
+      help: The GCE service account credentials to use.
+    gce_credentials_path:
+      type: String
+      help: A path to the GCE service account credentials to use.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: AFF4Dump
   name: aff4dump
   description: |
     Dump the entire resolver contents for an AFF4 volume.
+  args:
+    long:
+      type: Boolean
+      help: Include additional information about each stream.
+    regex:
+      type: RegEx
+      default: .
+      help: Regex of filenames to dump.
+    volume:
+      type: String
+      help: Volume to list.
+      positional: true
+      required: true
+    gce_credentials:
+      type: String
+      help: The GCE service account credentials to use.
+    gce_credentials_path:
+      type: String
+      help: A path to the GCE service account credentials to use.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: AFF4Export
   name: aff4export
@@ -66,6 +99,19 @@
       help: Volume to list.
       positional: true
       required: true
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    gce_credentials:
+      type: String
+      help: The GCE service account credentials to use.
+    gce_credentials_path:
+      type: String
+      help: A path to the GCE service account credentials to use.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: AFF4Ls
   name: aff4ls
@@ -84,6 +130,16 @@
       help: Volume to list.
       positional: true
       required: true
+    gce_credentials:
+      type: String
+      help: The GCE service account credentials to use.
+    gce_credentials_path:
+      type: String
+      help: A path to the GCE service account credentials to use.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: APIGenerator
   name: api
@@ -93,17 +149,47 @@
     output_file:
       type: String
       help: If specified we write the API into this file in YAML.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: APIPslist
   name: pslist
   description: |
     A live pslist plugin using the APIs.
+  args:
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live_api
 - plugin: APISetProcessContext
   name: cc
   description: |
     A cc plugin for setting process context to live mode.
+  args:
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live_api
 - plugin: AgentControllerExplainFlows
@@ -131,6 +217,10 @@
     recursive:
       type: Bool
       help: Show recursively nested fields.
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
   active_modes:
   - mode_agent
   - mode_controller
@@ -149,6 +239,14 @@
       help: The output directory we use export to.
       positional: true
       required: true
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -162,6 +260,14 @@
       help: The path to fetch.
       positional: true
       required: true
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -214,6 +320,14 @@
       type: IntParser
       default: 3600
       help: Total number of CPU seconds allowed for this flow.
+    verbosity:
+      type: IntParser
+      default: 0
+      help: If non zero show all fields.
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
   active_modes:
   - mode_agent
   - mode_controller
@@ -231,6 +345,55 @@
       type: String
       default: All
       help: Which queue to schedule the hunt on.
+    flow:
+      type: Choices
+      choices:
+      - CollectFlow
+      - ListProcessesFlow
+      - FileFinderFlow
+      - YaraScan
+      - ListDirectory
+      - Artifact
+      - Hunt
+      help: The flow to launch
+      positional: true
+      required: true
+    args:
+      type: Any
+      default: {}
+      help: >-
+        Arguments to the flow (use explain_flow to see valid args).This may also be
+        a JSON encoded string
+      positional: true
+    condition:
+      type: String
+      help: An EFilter query to evaluate if the flow should be run.
+    canned_condition:
+      type: Choices
+      choices:
+        OS_LINUX: any from agent_info() where key=='system' and value=='Linux'
+        OS_OSX: any from agent_info() where key=='system' and value=='Darwin'
+        OS_WINDOWS: any from agent_info() where key=='system' and value=='Windows'
+      help: Canned conditions for the hunt.
+    live:
+      type: Choices
+      default: API
+      choices:
+      - API
+      - Memory
+      help: Live mode to use
+    quota:
+      type: IntParser
+      default: 3600
+      help: Total number of CPU seconds allowed for this flow.
+    verbosity:
+      type: IntParser
+      default: 0
+      help: If non zero show all fields.
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
   active_modes:
   - mode_agent
   - mode_controller
@@ -264,6 +427,14 @@
       type: IntParser
       default: 0
       help: An offset to hexdump.
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -276,6 +447,14 @@
       type: IntParser
       default: 20
       help: Total results to display
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -288,6 +467,18 @@
       type: String
       default: All
       help: The hunt queue.
+    limit:
+      type: IntParser
+      default: 20
+      help: Total results to display
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -304,6 +495,14 @@
       type: IntParser
       default: 100
       help: Total results to display
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -314,6 +513,11 @@
 
     The output format is essentially key value pairs. This is useful for efilter
     queries.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
 - plugin: AgentServerInitializeGCS
@@ -329,6 +533,24 @@
       type: String
       help: Path to the service account (JSON) credentials
       required: true
+    config_dir:
+      type: String
+      help: The directory to write configuration files into.
+      positional: true
+      required: true
+    client_writeback_path:
+      type: String
+      default: /etc/rekall/agent.local.json
+      help: Path to the local client writeback location
+    labels:
+      type: Array
+      default:
+      - All
+      help: The list of labels.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: AgentServerInitializeLocalHTTP
   name: agent_server_initialize_http
@@ -346,6 +568,24 @@
       type: String
       default: 127.0.0.1
       help: Address to bind to
+    config_dir:
+      type: String
+      help: The directory to write configuration files into.
+      positional: true
+      required: true
+    client_writeback_path:
+      type: String
+      default: /etc/rekall/agent.local.json
+      help: Path to the local client writeback location
+    labels:
+      type: Array
+      default:
+      - All
+      help: The list of labels.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: AgentWorker
   name: worker
@@ -367,6 +607,10 @@
       type: IntParser
       default: 0
       help: If specified we loop forever and sleep that many seconds between loops.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
 - plugin: AnalyzeStruct
@@ -387,12 +631,29 @@
       type: IntParser
       default: 256
       help: How many elements to identify.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Arp
   name: arp
   description: |
     print the ARP table.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: ArtifactsCollector
@@ -428,6 +689,10 @@
     output_path:
       type: String
       help: Path suitable for dumping files.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: ArtifactsList
   name: artifact_list
@@ -449,6 +714,10 @@
     all:
       type: Bool
       help: Show all artifacts.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: ArtifactsView
   name: artifact_view
@@ -459,6 +728,10 @@
       type: ArrayStringParser
       help: A list of artifacts to display
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: AtomScan
   name: atomscan
@@ -473,6 +746,73 @@
       - refcount
       - offset
       help: Sort by [offset | atom | refcount]
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: &id001 18446744073709551616
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Atoms
@@ -495,12 +835,30 @@
     obtain the string it identifies by querying the global atom table.
 
     (The global atom tables are only global within each session).
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Banner
   name: banner
   description: |
     Prints the Linux banner information.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: BashHistory
@@ -517,6 +875,28 @@
       type: RegEx
       default: ^bash$
       help: The processes we should examine.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: BuildIndex
@@ -608,6 +988,15 @@
 
     Note this plugin is quite inefficient - consider using the callbacks plugin
     instead.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Callbacks
@@ -623,17 +1012,39 @@
 
     Reference:
     <http://www.codemachine.com/notes.html>
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: CertDump
   name: simple_certdump
   description: |
     Dump certs found by cert scan.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: CertScan
   name: simple_certscan
   description: |
     Dump RSA private and public SSL keys from the physical address space.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: CertYaraScan
   name: certscan
@@ -660,24 +1071,149 @@
       type: IntParser
       default: 1000000
       help: Total number of hits to report.
+    string:
+      type: String
+      help: A verbatim string to search for.
+    binary_string:
+      type: String
+      help: A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506
+    context:
+      type: IntParser
+      default: 64
+      help: Context to print after the hit.
+    pre_context:
+      type: IntParser
+      default: 0
+      help: Context to print before the hit.
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: CheckAFInfo
   name: check_afinfo
   description: |
     Verifies the operation function pointers of network protocols.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: CheckCreds
   name: check_creds
   description: |
     Checks if any processes are sharing credential structures
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: CheckIdt
   name: check_idt
   description: |
     Checks if the IDT has been altered
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: CheckModules
@@ -698,6 +1234,15 @@
     module with the list of known modules (which is obtained by traversing the
     module's list member). So if a module were to simply unlink itself from the
     list, it would still be found by its reference from sysfs.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: CheckPEHooks
@@ -725,6 +1270,14 @@
       help: >-
         By default we take some optimization. This flags forces thorough but slower
         checks.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: CheckProcFops
@@ -735,12 +1288,29 @@
     all:
       type: Boolean
       help: Specify to see all the fops, even if they are known.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: CheckSyscall
   name: check_syscall
   description: |
     Checks if the system call table has been altered.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: CheckTTY
@@ -751,24 +1321,107 @@
     Some malware insert a hook into the ops struct of the tty driver. This
     plugin enumerates all tty_struct objects and checks if their ops handlers
     have been subverted.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: CheckTaskFops
   name: check_task_fops
   description: |
     Check open files in tasks for f_ops modifications.
+  args:
+    all:
+      type: Boolean
+      help: Specify to see all the fops, even if they are known.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: CheckTrapTable
   name: check_trap_table
   description: |
     Checks the traps table for hooks.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: Clipboard
   name: clipboard
   description: |
     Extract the contents of the windows clipboard
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: CmdScan
@@ -782,6 +1435,14 @@
       help: >-
         Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize
         for default.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Collect
@@ -800,11 +1461,83 @@
       help: The type (struct) to collect.
       positional: true
       required: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: ConnScan
   name: connscan
   description: |
     Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
   - mode_xp
@@ -823,6 +1556,15 @@
     Active TCP connections are found in a hash table. The Hash table is given by
     the _TCBTable symbol. The size of the hash table is found in the
     _MaxHashTableSize variable.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
   - mode_xp
@@ -837,18 +1579,54 @@
       help: >-
         Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize
         for default.
+    max_history:
+      type: IntParser
+      default: 50
+      help: >-
+        Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize
+        for default.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Consoles
   name: consoles
   description: |
     Enumerate command consoles.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ControllerAddressResolver
   name: address_resolver
   description: |2+
 
+  args:
+    symbol:
+      type: ArrayString
+      default: []
+      help: List of symbols to lookup
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -880,11 +1658,24 @@
       help: Path for output file.
       positional: true
       required: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: CpuInfo
   name: cpuinfo
   description: |
     Prints information about each active processor.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: DLLDump
@@ -896,6 +1687,47 @@
       type: RegEx
       default: .
       help: A Regular expression for selecting the dlls to dump.
+    out_fd:
+      type: String
+      help: A file like object to write the output.
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: DT
@@ -921,6 +1753,10 @@
     member_offset:
       type: IntParser
       help: If specified we only show the member at this offset.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: DTBScan
   name: dtbscan
@@ -934,12 +1770,60 @@
       type: IntParser
       default: 18446744073709551616
       help: Stop scanning after this many mb.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: DarwinAddressResolver
   name: address_resolver
   description: |
     A Darwin specific address resolver plugin.
+  args:
+    symbol:
+      type: ArrayString
+      default: []
+      help: List of symbols to lookup
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinAllProcCollector
@@ -949,30 +1833,75 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinArp
   name: arp
   description: |
     Show information about arp tables.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinBootParameters
   name: boot_cmdline
   description: |
     Prints the kernel command line.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinCheckSysCalls
   name: check_syscalls
   description: |
     Checks the syscall table.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinDMSG
   name: dmesg
   description: |
     Print the kernel debug messages.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinDeadFileprocCollector
@@ -982,24 +1911,63 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinDeadProcessCollector
   name: dead_procs
   description: |
     Lists dead processes using the proc allocation zone.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinDumpCompressedPages
   name: dumpcompressedmemory
   description: |
     Dumps all compressed pages.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinDumpZone
   name: dump_zone
   description: |
     Dumps an allocation zone's contents.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinFindDTB
@@ -1037,12 +2005,40 @@
 
     This is the same algorithm as lsof, but aimed at just collecting the
     fileprocs, without doing anything with them, or sorting.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinIPFilters
   name: ip_filters
   description: |
     Check IP Filters for hooks.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinIfnetCollector
@@ -1052,12 +2048,30 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinLsmod
   name: lsmod
   description: |
     Lists all kernel modules.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinLsof
@@ -1069,36 +2083,123 @@
     the array is the file descriptor and each fileproc struct represents a
     handle on some resource. A type field in the fileproc determines the type
     of the resource pointed to from the fileproc (e.g. vnode, socket, pipe...).
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinMachineInfo
   name: machine_info
   description: |
     Show information about this machine.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinMaps
   name: maps
   description: |
     Display the process maps.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinMemDump
   name: memdump
   description: |
     Dumps the memory map for darwin tasks.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinMemMap
   name: memmap
   description: |
     Prints the memory map for darwin tasks.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinMount
   name: mount
   description: |
     Show mount points.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinNetstat
@@ -1116,24 +2217,83 @@
 
     Netstat will also tell you, in the style of psxview, if a socket was only
     found using some of the methods available.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinNotifiers
   name: notifiers
   description: |
     Detects hooks in I/O Kit IONotify objects.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinPSAUX
   name: psaux
   description: |
     List processes with their commandline.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinPas2Vas
   name: pas2vas
   description: |
     Resolves a physical address to a virtual addrress in a process.
+  args:
+    offsets:
+      type: ArrayIntParser
+      help: A list of physical offsets to resolve.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinPgrpHashCollector
@@ -1143,12 +2303,30 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinPhysicalMap
   name: phys_map
   description: |
     Prints the EFI boot physical memory map.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinPidHashProcessCollector
@@ -1158,6 +2336,15 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinPsTree
@@ -1167,6 +2354,15 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinPslist
@@ -1176,6 +2372,25 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinPsxView
@@ -1185,12 +2400,40 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinRoute
   name: route
   description: |
     Show routing table.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinSessionZoneCollector
@@ -1200,24 +2443,80 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinSessions
   name: sessions
   description: |
     Finds sessions by walking their global hashtable.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinSetProcessContext
   name: cc
   description: |
     A cc plugin for windows.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinSigScan
   name: sigscan
   description: |
     Runs a signature scans against physical, kernel or process memory.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinSocketZoneCollector
@@ -1227,12 +2526,30 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinSocketsFromHandles
   name: open_sockets
   description: |
     Looks up handles that point to a socket and collects the socket.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinSysctl
@@ -1274,6 +2591,15 @@
 
     - CTLTYPE_NODE means this is a node which handles a sublevel of MIBs. It is
       actually a pointer to a new sysctl_oid_list which handles the sublevel.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinTTYZoneCollector
@@ -1283,6 +2609,15 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinTaskProcessCollector
@@ -1292,18 +2627,45 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinTerminals
   name: terminals
   description: |
     Lists open ttys.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinUnpListCollector
   name: unp_sockets
   description: |
     Walks the global list of sockets in uipc_usrreq.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinVADMap
@@ -1313,24 +2675,147 @@
 
     This allows us to see the address translation status of each page in the
     VAD.
+  args:
+    start:
+      type: IntParser
+      default: 0
+      help: Start reading from this page.
+    end:
+      type: IntParser
+      default: &id002 9223372036854775808
+      help: Stop reading at this offset.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinVadDump
   name: vaddump
   description: |
     Dump the VMA memory for a process.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinVtoP
   name: vtop
   description: |
     Describe virtual to physical translation on darwin platforms.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinYaraScan
   name: yarascan
   description: |
     Scan using yara signatures.
+  args:
+    hits:
+      type: IntParser
+      default: 10
+      help: Quit after finding this many hits.
+    string:
+      type: String
+      help: A verbatim string to search for.
+    binary_string:
+      type: String
+      help: A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506
+    yara_file:
+      type: String
+      help: The yara signature file to read.
+    yara_expression:
+      type: String
+      help: If provided we scan for this yara expression.
+    context:
+      type: IntParser
+      default: 64
+      help: Context to print after the hit.
+    pre_context:
+      type: IntParser
+      default: 0
+      help: Context to print before the hit.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    proc:
+      type: ArrayIntParser
+      help: Kernel addresses of proc structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinZoneCollector
@@ -1340,6 +2825,15 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: DarwinZoneVnodeCollector
@@ -1349,6 +2843,15 @@
 
     Args:
       dtb: A potential dtb to be used.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_darwin_memory
 - plugin: Describe
@@ -1366,11 +2869,83 @@
       default: 0
       help: The maximum depth to follow mappings.
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: DeviceTree
   name: devicetree
   description: |
     Show device tree.
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Disassemble
@@ -1408,6 +2983,10 @@
       type: Boolean
       default: false
       help: If set emit canonical instructions. These can be used to develop signatures.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: DriverIrp
   name: driverirp
@@ -1417,12 +2996,147 @@
     regex:
       type: RegEx
       help: Analyze drivers matching REGEX
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: DriverScan
   name: driverscan
   description: |
     Scan for driver objects _DRIVER_OBJECT
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Dump
@@ -1470,6 +3184,10 @@
     rows:
       type: IntParser
       help: Number of bytes per row
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: DumpFiles
   name: dumpfiles
@@ -1482,6 +3200,44 @@
     file_objects:
       type: ArrayIntParser
       help: Kernel addresses of _FILE_OBJECT structs.
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: DwarfParser
@@ -1498,11 +3254,51 @@
       type: String
       default: Linux64
       help: 'The name of the profile implementation. '
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: EATHooks
   name: hooks_eat
   description: |
     Detect EAT hooks in process and kernel memory
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: EWFAcquire
@@ -1516,17 +3312,39 @@
         The destination file to create. If not specified we write output.E01 in current
         directory.
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: EnumerateVacbs
   name: vacbs
   description: |
     Enumerate all blocks cached in the cache manager.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: EvtLogs
   name: evtlogs
   description: |
     Extract Windows Event Logs (XP/2003 only)
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
   - mode_xp
@@ -1545,17 +3363,50 @@
      - Any search query that can be passed to Search.
      - Expressions asking about types and members of profile types
        (like structs).
+  args:
+    query:
+      type: String
+      help: The dotty/EFILTER query to run.
+      positional: true
+      required: true
+    query_parameters:
+      type: ArrayString
+      help: Positional parameters for parametrized queries.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: FLS
   name: fls
   description: |2+
 
+  args:
+    path:
+      type: String
+      default: /
+      help: Path to print stats for.
+      positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_ntfs
 - plugin: FStat
   name: fstat
   description: |
     Print information by filename.
+  args:
+    path:
+      type: String
+      default: /
+      help: Path to print stats for.
+      positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_ntfs
 - plugin: FetchPDB
@@ -1574,11 +3425,86 @@
         The GUID of the pdb file. If provided, the pdb filename must be provided in
         the --pdb_filename parameter.
       positional: true
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: FileScan
   name: filescan
   description: |
     Scan Physical memory for _FILE_OBJECT pool allocations
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: FileYaraScanner
@@ -1590,6 +3516,34 @@
       type: Array
       help: Paths to scan.
       positional: true
+    hits:
+      type: IntParser
+      default: 10
+      help: Quit after finding this many hits.
+    string:
+      type: String
+      help: A verbatim string to search for.
+    binary_string:
+      type: String
+      help: A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506
+    yara_file:
+      type: String
+      help: The yara signature file to read.
+    yara_expression:
+      type: String
+      help: If provided we scan for this yara expression.
+    context:
+      type: IntParser
+      default: 64
+      help: Context to print after the hit.
+    pre_context:
+      type: IntParser
+      default: 0
+      help: Context to print before the hit.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live
 - plugin: FindPlugins
@@ -1609,6 +3563,10 @@
       help: >-
         Only include producers: plugins that output only this struct and have no side
         effects.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: FindReferenceAlloc
   name: show_referrer_alloc
@@ -1620,24 +3578,86 @@
       help: The address to display
       positional: true
       required: true
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Gahti
   name: gahti
   description: |
     Dump the USER handle type information.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: GetSIDs
   name: tokens
   description: |
     Print the SIDs owning each process token.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: GetServiceSids
   name: getservicesids
   description: |
     Get the names of services in the Registry and return Calculated SID
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Grep
@@ -1664,6 +3684,10 @@
       type: String
       default: 18446744073709551616
       help: The length of data to search.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: GuessGUID
   name: guess_guid
@@ -1680,6 +3704,14 @@
       help: >-
         The minimal number of comparison points to be considered. Sometimes not all
         comparison points can be used since they may not be mapped.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Handles
@@ -1693,18 +3725,71 @@
     named_only:
       type: Boolean
       help: Output only handles with a name .
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: HiveDump
   name: hivedump
   description: |
     Prints out a hive
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Hives
   name: hives
   description: |
     List all the registry hives on the system.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Hostname
@@ -1721,12 +3806,53 @@
         2) Guess using the load_as() plugin,
 
         3) Use session.kernel_address_space.base.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: IATHooks
   name: hooks_iat
   description: |
     Detect IAT/EAT hooks in process and kernel memory
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: IDump
@@ -1749,6 +3875,10 @@
       type: IntParser
       help: Id of attribute to dump.
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_ntfs
 - plugin: IExport
@@ -1758,18 +3888,61 @@
 
     For each specified MFT entry, dump the file to the specified dump
     directory. The filename is taken as the longest filename of this MFT entry.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    mft:
+      type: IntParser
+      default: 5
+      help: MFT entry to dump.
+      positional: true
+      required: true
+    type:
+      type: IntParser
+      default: 128
+      help: Attribute type to dump.
+      positional: true
+    id:
+      type: IntParser
+      help: Id of attribute to dump.
+      positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_ntfs
 - plugin: ILS
   name: ils
   description: |
     List files in an NTFS image.
+  args:
+    mfts:
+      type: ArrayIntParser
+      default:
+      - 5
+      help: MFT entries to list.
+      positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_ntfs
 - plugin: IOmem
   name: iomem
   description: |
     mimics /proc/iomem.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: IRDump
@@ -1793,6 +3966,30 @@
       type: IntParser
       default: 4
       help: Number of bytes per row
+    globs:
+      type: ArrayString
+      help: List of globs to return.
+      positional: true
+    root:
+      type: String
+      help: Root directory to glob from.
+    case_insensitive:
+      type: Bool
+      default: true
+      help: Globs will be case insensitive.
+    path_sep:
+      type: String
+      help: Path separator character (/ or \)
+    filesystem:
+      type: Choices
+      default: API
+      choices:
+      - API
+      help: The virtual filesystem implementation to glob in.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live
 - plugin: IRFind
@@ -1804,6 +4001,10 @@
       type: String
       help: The root directory to start search from.
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live
 - plugin: IRGlob
@@ -1833,6 +4034,10 @@
       choices:
       - API
       help: The virtual filesystem implementation to glob in.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live
 - plugin: IRHash
@@ -1853,6 +4058,10 @@
       - sha1
       - sha256
       help: One or more hashes to calculate.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live
 - plugin: IRMaps
@@ -1870,6 +4079,14 @@
       type: IntParser
       default: 1
       help: With high verbosity print more information on each region.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
   active_modes:
   - mode_live_api
 - plugin: IRStat
@@ -1881,18 +4098,42 @@
       type: Array
       help: Paths to hash.
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live
 - plugin: IStat
   name: istat
   description: |
     Print information related to an MFT entry.
+  args:
+    mfts:
+      type: ArrayIntParser
+      default:
+      - 5
+      help: MFT entries to list.
+      positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_ntfs
 - plugin: Ifconfig
   name: ifconfig
   description: |
     Gathers active interfaces.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: ImageCopy
@@ -1904,12 +4145,57 @@
   name: imageinfo
   description: |
     List overview information about this image.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ImpScan
   name: impscan
   description: |
     Scan for calls to imported functions.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Info
@@ -1921,6 +4207,42 @@
   name: hooks_inline
   description: |
     Detect API hooks in process and kernel memory
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: InspectFlow
@@ -1933,6 +4255,14 @@
       help: The flow to examine
       positional: true
       required: true
+    verbosity:
+      type: IntParser
+      default: 0
+      help: If non zero show all fields.
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
   active_modes:
   - mode_agent
   - mode_controller
@@ -1952,6 +4282,41 @@
     heaps:
       type: ArrayIntParser
       help: Only show these heaps (default show all)
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_amd64
   - mode_windows_memory
@@ -1967,6 +4332,19 @@
     graph_clients:
       type: Bool
       help: Also plot a graph of client participation.
+    flow_id:
+      type: String
+      help: The flow to examine
+      positional: true
+      required: true
+    verbosity:
+      type: IntParser
+      default: 0
+      help: If non zero show all fields.
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
   active_modes:
   - mode_agent
   - mode_controller
@@ -1995,6 +4373,10 @@
       help: The filename to parse.
       positional: true
       required: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: KDBGScan
   name: kdbgscan
@@ -2022,30 +4404,138 @@
     full_scan:
       type: Boolean
       help: Scan the full address space.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: KPCR
   name: kpcr
   description: |
     A plugin to print all KPCR blocks.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: LdrModules
   name: ldrmodules
   description: |
     Detect unlinked DLLs
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: LinMemDump
   name: memdump
   description: |
     Dump the addressable memory for a process.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinMemMap
   name: memmap
   description: |
     Dumps the memory map for linux tasks.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinPSTree
@@ -2055,48 +4545,234 @@
 
     This plugin prints a parent/child relationship tree by walking the
     task_struct.children and task_struct.sibling members.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinPas2Vas
   name: pas2vas
   description: |
     Resolves a physical address to a virtual addrress in a process.
+  args:
+    offsets:
+      type: ArrayIntParser
+      help: A list of physical offsets to resolve.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinVadDump
   name: vaddump
   description: |
     Dump the VMA memory for a process.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinVtoP
   name: vtop
   description: |
     Describe virtual to physical translation on Linux platforms.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinYaraScan
   name: yarascan
   description: |
     Scan using yara signatures.
+  args:
+    hits:
+      type: IntParser
+      default: 10
+      help: Quit after finding this many hits.
+    string:
+      type: String
+      help: A verbatim string to search for.
+    binary_string:
+      type: String
+      help: A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506
+    yara_file:
+      type: String
+      help: The yara signature file to read.
+    yara_expression:
+      type: String
+      help: If provided we scan for this yara expression.
+    context:
+      type: IntParser
+      default: 64
+      help: Context to print after the hit.
+    pre_context:
+      type: IntParser
+      default: 0
+      help: Context to print before the hit.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinuxAPIAddressResolver
   name: address_resolver
   description: |
     A Linux specific address resolver plugin.
+  args:
+    symbol:
+      type: ArrayString
+      default: []
+      help: List of symbols to lookup
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live_api
 - plugin: LinuxAddressResolver
   name: address_resolver
   description: |
     A Linux specific address resolver plugin.
+  args:
+    symbol:
+      type: ArrayString
+      default: []
+      help: List of symbols to lookup
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinuxDmesg
   name: dmesg
   description: |
     Gathers dmesg buffer.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinuxFindDTB
@@ -2106,6 +4782,11 @@
 
     The plugin also autodetects when the guest is running as a XEN
     ParaVirtualized guest and returns a compatible address space.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinuxPsList
@@ -2115,6 +4796,32 @@
 
     It does not display the swapper process. If the DTB column is blank, the
     item is likely a kernel thread.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinuxPsxView
@@ -2131,18 +4838,88 @@
       - InitTask
       - PidHashTable
       help: Method to list processes.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinuxSetProcessContext
   name: cc
   description: |
     A cc plugin for windows.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinuxSigScan
   name: sigscan
   description: |
     Runs a signature scans against physical, kernel or process memory.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LinuxVADMap
@@ -2152,6 +4929,40 @@
 
     This allows us to see the address translation status of each page in the
     VAD.
+  args:
+    start:
+      type: IntParser
+      default: 0
+      help: Start reading from this page.
+    end:
+      type: IntParser
+      default: *id002
+      help: Stop reading at this offset.
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: Lister
@@ -2171,6 +4982,10 @@
       - API
       - Memory
       help: Mode for live analysis.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: LoadAddressSpace
   name: load_as
@@ -2203,6 +5018,10 @@
     guid:
       type: String
       help: The guid of the module.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Lookup
@@ -2226,35 +5045,131 @@
       type: String
       help: The target args
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: Lsmod
   name: lsmod
   description: |
     Gathers loaded kernel modules.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: LsmodSections
   name: lsmod_sections
   description: |
     Display all the ELF sections of kernel modules.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: Lsmod_parameters
   name: lsmod_parameters
   description: |
     Display parameters for all kernel modules.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: Lsof
   name: lsof
   description: |
     Lists open files.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: Malfind
   name: malfind
   description: |
     Find hidden and injected code
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ManageRepository
@@ -2267,7 +5182,7 @@
       help: The path to the rekall binary. This is used for spawning multiple processes.
     processes:
       type: IntParser
-      default: 1
+      default: 12
       help: Number of concurrent workers.
     path_to_repository:
       type: String
@@ -2285,6 +5200,10 @@
       type: ArrayStringParser
       help: Optional args for the builder.
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: Mcat
   name: mcat
@@ -2292,6 +5211,26 @@
     Returns the contents available in memory for a given file.
 
     Ranges of the file that are not present in memory are returned blank.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    path:
+      type: String
+      default: /
+      help: Path to the file.
+      positional: true
+    device:
+      type: String
+      help: Name of the device to match.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: MemoryTranslation
@@ -2304,6 +5243,14 @@
       help: Virtual address to inspect.
       positional: true
       required: true
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: Mfind
   name: mfind
@@ -2318,18 +5265,44 @@
     device:
       type: String
       help: Name of the device to match.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: MftDump
   name: mftdump
   description: |
     Enumerate MFT entries from the cache manager.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Mimikatz
   name: mimikatz
   description: |
     Extract and decrypt passwords from the LSA Security Service.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Mls
@@ -2343,24 +5316,166 @@
     unallocated:
       type: Boolean
       help: Show files that have no inode information.
+    path:
+      type: String
+      default: /
+      help: Path to the file.
+      positional: true
+    device:
+      type: String
+      help: Name of the device to match.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: ModDump
   name: moddump
   description: |
     Dump kernel drivers from kernel space.
+  args:
+    regex:
+      type: RegEx
+      default: .
+      help: A Regular expression for selecting the dlls to dump.
+    out_fd:
+      type: String
+      help: A file like object to write the output.
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ModScan
   name: modscan
   description: |
     Scan Physical memory for _LDR_DATA_TABLE_ENTRY objects.
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ModVersions
   name: version_modules
   description: |
     Try to determine the versions for all kernel drivers.
+  args:
+    name_regex:
+      type: RegEx
+      help: Filter module names by this regex.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Moddump
@@ -2375,6 +5490,14 @@
     regexp:
       type: RegEx
       help: Regexp on the module name.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: Modules
@@ -2385,30 +5508,133 @@
     name_regex:
       type: RegEx
       help: Filter module names by this regex.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Mount
   name: mount
   description: |
     Lists the mount points.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: MutantScan
   name: mutantscan
   description: |
     Scan for mutant objects _KMUTANT
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Netstat
   name: netstat
   description: |
     Print the active network connections.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: NotifierChainPlugin
   name: notifier_chains
   description: |
     Outputs and verifies kernel notifier chains.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: 'Null'
@@ -2430,18 +5656,48 @@
       type: RegEx
       default: .
       help: Filter the type of objects shown.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Objects
   name: object_types
   description: |
     Displays all object Types on the system.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: PEAddressResolver
   name: address_resolver
   description: |
     A simple address resolver for PE files.
+  args:
+    symbol:
+      type: ArrayString
+      default: []
+      help: List of symbols to lookup
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: PEDump
   name: pedump
@@ -2461,6 +5717,14 @@
     out_fd:
       type: String
       help: A file like object to write the output.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: PEInfo
@@ -2479,6 +5743,10 @@
     address_space:
       type: String
       help: The address space to use.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: PFNInfo
   name: pfn
@@ -2490,12 +5758,46 @@
       help: The PFN to examine.
       positional: true
       required: true
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: PSAux
   name: psaux
   description: |
     Gathers processes along with full command line and start time.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: PSScan
@@ -2506,24 +5808,146 @@
     Status flags:
       E: A known _EPROCESS address from pslist.
       P: A known pid from pslist.
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: PSTree
   name: pstree
   description: |
     Print process list as a tree
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: PacketQueues
   name: pkt_queues
   description: |
     Dumps the current packet queues for all known open sockets.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: Pagefiles
   name: pagefiles
   description: |
     Report all the active pagefiles.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ParsePDB
@@ -2552,17 +5976,59 @@
     concise:
       type: Boolean
       help: Specify this to emit less detailed information.
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: PidHashTable
   name: pidhashtable
   description: |
     List processes by enumerating the pid hash tables.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: PoolTracker
   name: pool_tracker
   description: |
     Enumerate pool tag usage statistics.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Pools
@@ -2580,12 +6046,30 @@
     https://immunityinc.com/infiltrate/archives/kernelpool_infiltrate2011.pdf
 
     http://gate.upm.ro/os/LABs/Windows_OS_Internals_Curriculum_Resource_Kit-ACADEMIC/WindowsResearchKernel-WRK/WRK-v1.2/base/ntos/ex/pool.c
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: PrintKey
   name: printkey
   description: |
     Print a registry key, and its subkeys and values
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Printer
@@ -2597,6 +6081,42 @@
   name: privileges
   description: |
     Prints process privileges.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ProcExeDump
@@ -2607,24 +6127,161 @@
     out_fd:
       type: String
       help: A file like object to write the output.
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ProcInfo
   name: procinfo
   description: |
     Dump detailed information about a running process.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ProcMaps
   name: maps
   description: |
     Gathers process maps for linux.
+  args:
+    pids:
+      type: ArrayIntParser
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    task:
+      type: ArrayIntParser
+      help: Kernel addresses of task structs.
+    method:
+      type: ChoiceArray
+      default:
+      - InitTask
+      choices:
+      - InitTask
+      help: Method to list processes (Default uses all methods).
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_linux_memory
 - plugin: ProcessYaraScanner
   name: yarascan
   description: |
     Yara scan process memory using the ReadProcessMemory() API.
+  args:
+    hits:
+      type: IntParser
+      default: 10
+      help: Quit after finding this many hits.
+    string:
+      type: String
+      help: A verbatim string to search for.
+    binary_string:
+      type: String
+      help: A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506
+    yara_file:
+      type: String
+      help: The yara signature file to read.
+    yara_expression:
+      type: String
+      help: If provided we scan for this yara expression.
+    context:
+      type: IntParser
+      default: 64
+      help: Context to print after the hit.
+    pre_context:
+      type: IntParser
+      default: 0
+      help: Context to print before the hit.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_live_api
 - plugin: PtoV
@@ -2636,6 +6293,41 @@
       type: IntParser
       help: The Virtual Address to examine.
       positional: true
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: RaisingTheRoof
@@ -2695,24 +6387,54 @@
     rebuild:
       type: Boolean
       help: Rebuild the KDBG data block.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: RegDump
   name: regdump
   description: |
     Dump all registry hives from memory into a dump directory.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: RekallAgent
   name: agent
   description: |
     The Rekall DFIR Agent.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
 - plugin: RekallAgentController
   name: agent_controller
   description: |
     Main entry point for running the agent controller.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
 - plugin: RekallAgentControllerClientContext
@@ -2726,6 +6448,10 @@
       type: String
       help: Client id to switch to.
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -2733,6 +6459,11 @@
   name: http_server
   description: |
     A plugin to create a front end server.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
 - plugin: RekallBovineExperience3000
@@ -2793,6 +6524,18 @@
       type: Boolean
       default: false
       help: Queries should fail silently.
+    query:
+      type: String
+      help: The dotty/EFILTER query to run.
+      positional: true
+      required: true
+    query_parameters:
+      type: ArrayString
+      help: Positional parameters for parametrized queries.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: SearchClients
   name: show_clients
@@ -2810,6 +6553,10 @@
       type: IntParser
       default: 20
       help: Number of rows to show.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -2817,6 +6564,15 @@
   name: services
   description: |
     Enumerate all services.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: SessionDelete
@@ -2858,6 +6614,42 @@
 
     Note that this plugin traverses the ProcessList member of the session object
     to list the processes - yet another list _EPROCESS objects are on.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: SetPartitionContext
@@ -2879,12 +6671,21 @@
       type: IntParser
       help: The partition to switch to.
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_tsk
 - plugin: ShimCacheMem
   name: shimcachemem
   description: |
     Extract the Application Compatibility Shim Cache from kernel memory.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: ShowAllocation
@@ -2904,6 +6705,14 @@
       type: IntParser
       default: 800
       help: How many bytes after the address to display.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: SimpleYaraScan
@@ -2922,6 +6731,34 @@
       type: IntParser
       default: 18446744073709551616
       help: The length of data to search.
+    hits:
+      type: IntParser
+      default: 10
+      help: Quit after finding this many hits.
+    string:
+      type: String
+      help: A verbatim string to search for.
+    binary_string:
+      type: String
+      help: A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506
+    yara_file:
+      type: String
+      help: The yara signature file to read.
+    yara_expression:
+      type: String
+      help: If provided we scan for this yara expression.
+    context:
+      type: IntParser
+      default: 64
+      help: Context to print after the hit.
+    pre_context:
+      type: IntParser
+      default: 0
+      help: Context to print before the hit.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: Sockets
   name: sockets
@@ -2936,6 +6773,15 @@
 
     _ADDRESS_OBJECT are arranged in a hash table found by the _AddrObjTable
     symbol. The hash table has a size found by the _AddrObjTableSize symbol.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
   - mode_xp
@@ -2943,12 +6789,89 @@
   name: svcscan
   description: |
     Scan for Windows services
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: SymLinkScan
   name: symlinkscan
   description: |
     Scan for symbolic link objects
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: TSKFls
@@ -2971,18 +6894,126 @@
       default: /
       help: Directory path to print content of
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_tsk
 - plugin: ThrdScan
   name: thrdscan
   description: |
     Scan physical memory for _ETHREAD objects
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Threads
   name: threads
   description: |
     Enumerate threads.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Timers
@@ -2992,6 +7023,15 @@
 
     Ref:
     http://computer.forensikblog.de/en/2011/10/timers-and-times.html
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: TskMmls
@@ -3008,6 +7048,11 @@
         2) Guess using the load_as() plugin,
 
         3) Use session.kernel_address_space.base.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_tsk
 - plugin: UnloadedModules
@@ -3019,12 +7064,30 @@
     Ref:
 
     http://volatility-labs.blogspot.de/2013/05/movp-ii-22-unloaded-windows-kernel_22.html
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: UserAssist
   name: userassist
   description: |
     Print userassist registry keys and information
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: UserHandles
@@ -3039,6 +7102,41 @@
     free:
       type: Boolean
       help: Also include free handles.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Users
@@ -3051,6 +7149,15 @@
 
     # copyright 2012 Quantum Analytics Research, LLC
     # Author: H. Carvey, keydet89@yahoo.com
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: VAD
@@ -3066,12 +7173,92 @@
     offset:
       type: IntParser
       help: Only print the vad corresponding to this offset.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: VADDump
   name: vaddump
   description: |
     Dumps out the vad sections to a file
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    regex:
+      type: RegEx
+      help: A regular expression to filter VAD filenames.
+    offset:
+      type: IntParser
+      help: Only print the vad corresponding to this offset.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: VADMap
@@ -3081,6 +7268,50 @@
 
     This allows us to see the address translation status of each page in the
     VAD.
+  args:
+    start:
+      type: IntParser
+      default: 0
+      help: Start reading from this page.
+    end:
+      type: IntParser
+      default: *id002
+      help: Stop reading at this offset.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: VFSLs
@@ -3099,6 +7330,14 @@
     recursive:
       type: Bool
       help: Recurse into subdirs.
+    client_id:
+      type: String
+      help: The client_id. If not specified we use the context as set by the cc()
+        plugin.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_agent
   - mode_controller
@@ -3115,6 +7354,10 @@
       type: String
       help: Optional file to scan. If not specified we scan the physical address space.
       positional: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: VmScan
   name: vmscan
@@ -3161,17 +7404,66 @@
       type: Boolean
       default: false
       help: '[DEBUG SETTING] Disable validation of VMs.'
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes: []
 - plugin: VtoP
   name: vtop
   description: |
     Prints information about the virtual to physical translation.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: Win32kAutodetect
   name: win32k_autodetect
   description: |
     Automatically detect win32k struct layout.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinDNSCache
@@ -3185,6 +7477,14 @@
     no_index:
       type: Boolean
       help: Should we not use the index
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_amd64
   - mode_vista_plus
@@ -3193,18 +7493,99 @@
   name: desktops
   description: |
     Print information on each desktop.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinDllList
   name: dlllist
   description: |
     Prints a list of dll modules mapped into each process.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinEventHooks
   name: eventhooks
   description: |
     Print details on windows event hooks
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinFindDTB
@@ -3223,48 +7604,262 @@
       the exception of session space which might be different) so using any
       process's DTB from the same session will work to read kernel data
       structures. If this plugin fails, try psscan to find potential DTBs.
+  args:
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinMemDump
   name: memdump
   description: |
     Dump windows processes.
+  args:
+    dump_dir:
+      type: String
+      help: Path suitable for dumping files.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinMemMap
   name: memmap
   description: |
     Calculates the memory regions mapped by a process.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinMessageHooks
   name: messagehooks
   description: |
     List desktop and thread window message hooks.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinNetscan
   name: netscan
   description: |
     Scan a Vista, 2008 or Windows 7 image for connections and sockets
+  args:
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinNetstat
   name: netstat
   description: |
     Enumerate image for connections and sockets
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinPas2Vas
   name: pas2vas
   description: |
     Resolves a physical address to a virtual addrress in a process.
+  args:
+    offsets:
+      type: ArrayIntParser
+      help: A list of physical offsets to resolve.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinPhysicalMap
   name: phys_map
   description: |
     Prints the boot physical memory map.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinPhysicalYaraScanner
@@ -3319,12 +7914,52 @@
       type: IntParser
       default: 0
       help: Context to print before the hit.
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinPsList
   name: pslist
   description: |
     List processes for windows.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinRammap
@@ -3340,18 +7975,71 @@
     end:
       type: IntParser
       help: Physical memory address to end displaying.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinSSDT
   name: ssdt
   description: |
     Enumerate the SSDT.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinSigScan
   name: sigscan
   description: |
     Runs a signature scans against physical, kernel or process memory.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinVirtualMap
@@ -3371,18 +8059,132 @@
 
 
     http://www.woodmann.com/forum/entry.php?219-Using-nt!_MiSystemVaType-to-navigate-dynamic-kernel-address-space-in-Windows7
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WinYaraScan
   name: yarascan
   description: |
     Scan using yara signatures.
+  args:
+    hits:
+      type: IntParser
+      default: 10
+      help: Quit after finding this many hits.
+    string:
+      type: String
+      help: A verbatim string to search for.
+    binary_string:
+      type: String
+      help: A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506
+    yara_file:
+      type: String
+      help: The yara signature file to read.
+    yara_expression:
+      type: String
+      help: If provided we scan for this yara expression.
+    context:
+      type: IntParser
+      default: 64
+      help: Context to print after the hit.
+    pre_context:
+      type: IntParser
+      default: 0
+      help: Context to print before the hit.
+    scan_kernel_paged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel paged pool.
+    scan_kernel_nonpaged_pool:
+      type: Boolean
+      default: false
+      help: Scan the kernel non-paged pool.
+    scan_kernel_code:
+      type: Boolean
+      default: false
+      help: Scan the kernel image and loaded drivers.
+    scan_kernel_session_pools:
+      type: Boolean
+      default: false
+      help: Scan session pools for all processes.
+    limit:
+      type: IntParser
+      default: *id001
+      help: The length of data to search in each selected region.
+    scan_physical:
+      type: Boolean
+      default: false
+      help: Scan the physical address space only.
+    scan_kernel:
+      type: Boolean
+      default: false
+      help: Scan the entire kernel address space.
+    scan_process_memory:
+      type: Boolean
+      default: false
+      help: Scan all of process memory. Uses process selectors to narrow down selections.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WindowsAddressResolver
   name: address_resolver
   description: |
     A windows specific address resolver plugin.
+  args:
+    symbol:
+      type: ArrayString
+      default: []
+      help: List of symbols to lookup
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WindowsPsxView
@@ -3409,23 +8211,97 @@
       - PSScan
       - Thrdproc
       help: Method to list processes.
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WindowsSetProcessContext
   name: cc
   description: |
     A cc plugin for windows.
+  args:
+    eprocess:
+      type: ArrayIntParser
+      default: []
+      help: Kernel addresses of eprocess structs.
+    pids:
+      type: ArrayIntParser
+      default: []
+      help: One or more pids of processes to select.
+      positional: true
+    proc_regex:
+      type: RegEx
+      help: A regex to select a process by name.
+    method:
+      type: ChoiceArray
+      default:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      choices:
+      - PsActiveProcessHead
+      - CSRSS
+      - PspCidTable
+      - Sessions
+      - Handles
+      help: Method to list processes.
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WindowsStations
   name: windows_stations
   description: |
     Displays all the windows stations by following lists.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory
 - plugin: WindowsTimes
   name: times
   description: |
     Return current time, as known to the kernel.
+  args:
+    dtb:
+      type: IntParser
+      help: The DTB physical address.
+      hidden: true
+    verbosity:
+      type: IntParser
+      default: 1
+      help: 'An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy.'
   active_modes:
   - mode_windows_memory

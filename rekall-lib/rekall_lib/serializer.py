@@ -112,6 +112,17 @@ from rekall_lib import registry
 from rekall_lib import utils
 
 
+def StripImpl(name):
+    if name.endswith("Impl"):
+        return name[:-4]
+    return name
+
+
+class Session(object):
+    """A session keeps serialization state."""
+    _unstrict_serialization = False
+
+
 class FieldDescriptor(object):
     """A descriptor for a field."""
 
@@ -160,7 +171,7 @@ class FloatDescriptor(FieldDescriptor):
         return float(value)
 
     def get_default(self, session=None):
-        return 0
+        return self.descriptor.get("default", 0.0)
 
 
 class EpochDescriptor(FieldDescriptor):
@@ -185,7 +196,7 @@ class DictDescriptor(FieldDescriptor):
     def validate(self, value, session=None):
         _ = session
         if not isinstance(value, dict):
-            raise ValueError("Value must be unicode string")
+            raise ValueError("Value must be a dict")
 
         return value
 
@@ -243,6 +254,7 @@ class NestedDescriptor(FieldDescriptor):
     nested = None
 
     def validate(self, value, session=None):
+        # Check that the assigned value is a subclass of the nested class.
         nested_cls = SerializedObject.ImplementationByClass(self.nested)
 
         # Direct assignment of the correct type.
@@ -266,7 +278,7 @@ class NestedDescriptor(FieldDescriptor):
         # sure to mark the data with the full class name so it can be properly
         # unserialized.
         if value.__class__.__name__ != self.nested:
-            result["__type__"] = value.__class__.__name__
+            result["__type__"] = StripImpl(value.__class__.__name__)
 
         return result
 
@@ -277,11 +289,14 @@ class NestedDescriptor(FieldDescriptor):
         if isinstance(value, dict):
             # Support instantiating a derived class from the raw data.
             value_cls_name = value.get("__type__", self.nested)
-            value_cls = SerializedObject.ImplementationByClass(value_cls_name)
+
+            # Allow specialized implementations for serializable types.
+            value_cls = SerializedObject.get_implemetation(value_cls_name)
             if value_cls is None:
                 raise TypeError(
                     "Unknown implementation for %s" % value_cls_name)
 
+            # Validate that the value is an instance of the nested class.
             nested_cls = SerializedObject.ImplementationByClass(self.nested)
             if not issubclass(value_cls, nested_cls):
                 raise TypeError(
@@ -292,11 +307,11 @@ class NestedDescriptor(FieldDescriptor):
             value.pop("__type__", None)
             return value_cls.from_primitive(value, session=session)
 
-        nested_cls = SerializedObject.ImplementationByClass(self.nested)
+        nested_cls = SerializedObject.get_implemetation(self.nested)
         return nested_cls.from_primitive(value, session=session)
 
     def get_default(self, session=None):
-        return SerializedObject.ImplementationByClass(self.nested)(
+        return SerializedObject.get_implemetation(self.nested)(
             session=session)
 
 
@@ -305,9 +320,9 @@ class RepeatedHelper(list):
         super(RepeatedHelper, self).__init__(initializer or [])
         self.descriptor = descriptor
         self._hooks = []
-        self._session = session
         if not session:
-            raise RuntimeError("Session must be provided.")
+            session = Session()
+        self._session = session
 
     def add_update_cb(self, cb):
         self._hooks.append(cb)
@@ -468,7 +483,7 @@ class SerializedObject(object):
 
     def __init__(self, session=None):
         if session is None:
-            raise RuntimeError("Session must be provided.")
+            session = Session()
 
         self._data = {}
         self._session = session
@@ -476,19 +491,88 @@ class SerializedObject(object):
         self._unknowns = {}
 
     @classmethod
+    def get_implemetation(cls, name):
+        """Gets a class implementing the name specified.
+
+        In order to implement the Pimpl pattern we allow implementations to
+        define classes implementing an simple serializable type.
+
+        For example, if a serializable type is:
+          class Foo(SerializedObject):...
+
+        Then we may implement this object in another file like:
+
+           class FooImpl(Foo): ...
+
+        Unserializing will then choose the implementation over the base type
+        when creating it from the Raw JSON. For example, the following JSON
+        object will actually contain an instance if FooImpl:
+
+          {"__type__": "Foo"}
+
+        We need PIMPL in order to separate the definition of the
+        SerializedObject which may need to be used in code which is not capable
+        of running any of the methods offered by the baseclasses (but may still
+        need to create and serialize such objects).
+
+        The receiver of the serialized JSON object will then instantiate the
+        object with concrete implementations.
+
+        For example: in common code between client and server:
+          class Foo(SerializedObject):
+            schema = [
+             ...
+            ]
+
+            def some_method(self):
+              raise NotImplementedError()
+
+        Clients can import this code and not have to have concrete
+        implementations for the methods. In Client code:
+
+        x = Foo.from_keywords(foo=1, bar2=2)
+
+        send x.to_primitive() ->
+        {"__type__": "Foo", "foo": 1, "bar": 2}
+
+        Then the server will define the actual implementation:
+
+        class FooImpl(Foo):
+          def some_method(self):
+            ..... <- real implementation
+
+        and can then simply parse it and receive the implementation:
+        x = serializer.unserialize(json_dict)
+        x.some_method()   <-- Run the FooImpl.some_method()
+
+        For now we keep it really simple: An implementation class name must have
+        the suffix "Impl" which implements the base SerializedObject and must
+        also inherit from it.
+        """
+        # Fallback to the base type if not available.
+        base_cls = cls.ImplementationByClass(name)
+
+        # Match an implementation if that is available.
+        result = cls.ImplementationByClass(name + "Impl")
+        if result is not None:
+            if not issubclass(result, base_cls):
+                raise AttributeError(
+                    "Class Implementation %s must inherit from %s" % (
+                        result, name))
+
+            return result
+        else:
+            return base_cls
+
+    @classmethod
     def from_keywords(cls, session=None, **kwargs):
         if session is None:
-            raise ValueError("Session must be provided.")
+            session = Session()
 
-        try:
-            tmp = session._unstrict_serialization
-            session._unstrict_serialization = True
+        result = cls(session=session)
+        for k, v in kwargs.iteritems():
+            result.SetMember(k, v)
 
-            result = cls(session=session)
-            for k, v in kwargs.iteritems():
-                result.SetMember(k, v)
-        finally:
-            session._unstrict_serialization = tmp
         return result
 
     def copy(self):
@@ -534,6 +618,8 @@ class SerializedObject(object):
             if isinstance(default, (SerializedObject, RepeatedHelper)):
                 default.add_update_cb(
                     lambda n=name, d=default: self.SetMember(n, d))
+            elif isinstance(default, dict):
+                self.SetMember(name, default)
 
             return default
 
@@ -598,7 +684,7 @@ class SerializedObject(object):
             result[k] = self._descriptors[k].to_primitive(v)
 
         if with_type:
-            result["__type__"] = self.__class__.__name__
+            result["__type__"] = StripImpl(self.__class__.__name__)
 
         return result
 
@@ -623,10 +709,11 @@ class SerializedObject(object):
             raise ValueError("Must be initialized from dict")
 
         cls_type = data.get("__type__", cls.__name__)
-        data_cls = cls.ImplementationByClass(cls_type)
-        if not issubclass(data_cls, cls):
-            raise ValueError("Incompatible class types: %s != %s" % (
-                cls_type, cls.__name__))
+        data_cls = cls.get_implemetation(cls_type)
+        if data_cls is None or not issubclass(data_cls, cls):
+            raise ValueError(
+                "Incompatible class types: %s != %s (Should be inherited)" % (
+                    cls_type, cls.__name__))
 
         result = data_cls(session=session)
 
@@ -724,7 +811,7 @@ class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):
         return result
 
 
-def load_from_dict(data, names=None):
+def load_from_dicts(data, names=None):
     """Loads definitions from a yaml file.
 
     Returns a dict mapping class names to class implementations.
@@ -739,3 +826,34 @@ def load_from_dict(data, names=None):
         result[name] = type(name, (SerializedObject, ), dict(schema=schema))
 
     return result
+
+
+def unserialize(data, session=None, strict_parsing=True):
+    """Unserialize a dict into a SerializedObject.
+
+    Args:
+      strict_parsing: If enabled we silently drop invalid field assignments
+      instead of raise exceptions. This is useful when the system likely to
+      generate the data has changed its definitions.
+    """
+    if not isinstance(data, dict) or "__type__" not in data:
+        raise ValueError(
+            "Unserialize is only possible from typed serialized dict.")
+
+    type_name = data["__type__"]
+    impl = SerializedObject.get_implemetation(type_name)
+    if impl is None:
+        raise ValueError(
+            "No implementation for serialized type %s" % data["__type__"])
+
+    if session is None:
+        session = Session()
+
+    if strict_parsing:
+        return impl.from_primitive(data, session=session)
+
+    session._unstrict_serialization = True
+    try:
+        return impl.from_primitive(data, session=session)
+    finally:
+        session._unstrict_serialization = False

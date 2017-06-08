@@ -59,7 +59,9 @@ class IRFind(common.AbstractIRCommandPlugin):
                 full_path = os.path.join(root, d)
                 result = common.FileFactory(full_path, session=self.session)
                 if result:
-                    yield (result.st_mode, result.st_size, result)
+                    yield dict(Perms=result.st_mode,
+                               Size=result.st_size,
+                               Path=result)
 
 
 class IRStat(common.AbstractIRCommandPlugin):
