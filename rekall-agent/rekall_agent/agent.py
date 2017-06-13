@@ -235,8 +235,7 @@ class RunFlow(plugin.TypedProfileCommand, plugin.Command):
     ]
 
     def _get_session(self, session_parameters):
-        kwargs = session_parameters.to_primitive(True)
-        rekall_session = self.session.clone(**kwargs)
+        rekall_session = self.session.clone(**session_parameters)
 
         # Make sure progress dispatchers are propagated.
         rekall_session.progress = self.session.progress
@@ -274,8 +273,10 @@ class RunFlow(plugin.TypedProfileCommand, plugin.Command):
                 # Run the action with the new session, and report the produced
                 # collections. Note that the ticket contains all collections for
                 # all actions cumulatively.
-                action_to_run = action.from_primitive(
-                    action.to_primitive(), session=rekall_session)
+                action_to_run = serializer.unserialize(
+                    action.to_primitive(),
+                    session=rekall_session,
+                    strict_parsing=False)
 
                 for collection in (action_to_run.run(flow_obj=self.flow) or []):
                     status.collections.append(collection)
@@ -300,17 +301,21 @@ class RunFlow(plugin.TypedProfileCommand, plugin.Command):
         self.flow = self.plugin_args.flow
         if isinstance(self.flow, basestring):
             self.flow = serializer.unserialize(
-                json.loads(self.flow), session=self.session)
+                json.loads(self.flow), session=self.session,
+                # Allow for future addition of fields.
+                strict_parsing=False)
+
         elif isinstance(self.flow, dict):
             self.flow = serializer.unserialize(
-                self.flow, session=self.session)
+                self.flow, session=self.session,
+                strict_parsing=False)
 
         elif not isinstance(self.flow, agent.Flow):
             raise plugin.PluginError("Flow must be provided as JSON string.")
 
         for status in self._run_flow():
             self.flow.ticket.send_status(status)
-            yield status
+            yield dict(status=status.copy())
 
 
 class RekallAgent(common.AbstractAgentCommand):

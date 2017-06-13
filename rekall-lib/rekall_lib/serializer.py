@@ -718,8 +718,13 @@ class SerializedObject(object):
         result = data_cls(session=session)
 
         for k, v in data.iteritems():
+            if k == "__type__":
+                continue
             descriptor = data_cls._descriptors.get(k)
             if descriptor is None:
+                if session and not session._unstrict_serialization:
+                    raise ValueError("Unknown field %s.%s" % (
+                        data_cls.__name__, k))
                 # We do not know about this field, we preserve it but do not set
                 # it.
                 result.set_unknown(k, v)

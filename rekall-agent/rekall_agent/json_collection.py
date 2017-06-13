@@ -1,5 +1,4 @@
 import arrow
-import json
 
 from rekall_lib import registry
 from rekall_lib.types import collections
@@ -78,9 +77,8 @@ class JSONCollectionImpl(collections.JSONCollection):
         return sanitized_row
 
     def insert(self, table=None, row=None, **kwargs):
-        print "Insert into %s %s" % (id(self), id(self.table_data))
         table_data = self.table_data.setdefault(table or 'default', [])
-        table_data.append(self.sanitize_row(row or kwargs))
+        table_data.append(self.sanitize_row(row or kwargs, table=table))
         if len(table_data) >= self.max_rows:
             self.flush()
 

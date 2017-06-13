@@ -26,7 +26,7 @@ import yaml
 from rekall import kb
 from rekall import obj
 
-from rekall_agent.config import agent
+from rekall_lib import serializer
 
 
 class AgentMode(kb.ParameterHook):
@@ -79,5 +79,6 @@ class AgentConfigHook(kb.ParameterHook):
         if not config_data:
             return obj.NoneObject("No valid configuration provided in session.")
 
-        return agent.Configuration.from_primitive(
-            session=self.session, data=yaml.safe_load(config_data))
+        return serializer.unserialize(
+            session=self.session, data=yaml.safe_load(config_data),
+            strict_parsing=False)

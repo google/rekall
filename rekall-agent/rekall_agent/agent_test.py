@@ -21,8 +21,13 @@
 #
 
 __author__ = "Michael Cohen <scudette@google.com>"
+import json
+import os
+import uuid
 
 from rekall import testlib
+from rekall_agent import agent as rekall_agent
+from rekall_lib import serializer
 from rekall_lib.types import agent
 
 
@@ -31,8 +36,9 @@ class TestAgent(testlib.RekallBaseUnitTestCase):
         self.session = self.MakeUserSession()
 
     def testAgent(self):
-        flow = agent.Flow.from_keywords(
-            rekall_session=dict(live="API"),
+        flow_data = dict(
+            __type__="Flow",
+            rekall_session=dict(live="API", logging_level="debug"),
             ticket=dict(
                 location=dict(
                     __type__="FileLocation",
@@ -41,10 +47,12 @@ class TestAgent(testlib.RekallBaseUnitTestCase):
                 )),
             actions=[
                 dict(__type__="PluginAction",
-                     plugin="pslist",
-                     args=dict(proc_regex="bash"),
+                     plugin="Search",
+                     args=dict(
+                         query="select proc from pslist() where proc.pid < 10"),
                      collection=dict(
                          __type__="JSONCollection",
+                         id=str(uuid.uuid4()),
                          location=dict(
                              __type__="FileLocation",
                              path_prefix=self.temp_directory,
@@ -52,13 +60,27 @@ class TestAgent(testlib.RekallBaseUnitTestCase):
                      ))
                 ])
 
-        flow_data = flow.to_primitive()
-        for row in self.session.plugins.run_flow(flow_data):
-            print row
+        # Validate the data
+        flow_obj = serializer.unserialize(
+            flow_data, session=self.session, strict_parsing=True)
+        statuses = [x["status"]
+                    for x in self.session.plugins.run_flow(flow_obj)]
 
-        import pdb; pdb.set_trace()
+        self.assertEqual(statuses[0].status, "Started")
+        self.assertEqual(statuses[1].status, "Done")
 
-        print self.session.plugins.run_flow(flow.to_primitive())
+        self.assertGreater(statuses[1].timestamp, statuses[0].timestamp)
+        self.assertEqual(len(statuses[1].collection_ids), 1)
+        self.assertIn(statuses[0].current_action.collection.id,
+                      statuses[1].collection_ids)
+
+        with open(os.path.join(self.temp_directory, "collection.json")) as fd:
+            collection_data = json.load(fd)
+            # Should be two tables, one for data and one for logs
+            self.assertEqual(len(collection_data["tables"]), 2)
+            self.assertEqual(collection_data["tables"][0]["name"], "logs")
+            self.assertEqual(collection_data["tables"][1]["name"], "data")
+            self.assertEqual(collection_data["part_number"], 0)
 
     def XXXtestAgent(self):
         flow = agent.Flow.from_keywords(

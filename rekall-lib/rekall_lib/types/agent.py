@@ -108,7 +108,7 @@ class Flow(serializer.SerializedObject):
         dict(name="actions", type=actions.Action, repeated=True,
              doc="The action requests sent to the client."),
 
-        dict(name="rekall_session", type=RekallSession,
+        dict(name="rekall_session", type="dict",
              doc="The session that will be invoked for this flow."),
 
         dict(name="quota", type=resources.Quota,

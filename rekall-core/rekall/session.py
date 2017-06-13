@@ -1285,7 +1285,7 @@ class InteractiveSession(Session):
         elif isinstance(e, plugin.PluginError):
             self.logging.fatal(str(e))
 
-        elif isinstance(e, KeyboardInterrupt) or isinstance(e, plugin.Abort):
+        elif isinstance(e, (KeyboardInterrupt, plugin.Abort)):
             logging.error("Aborted\r\n")
 
         else:
