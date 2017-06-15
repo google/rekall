@@ -833,7 +833,7 @@ def load_from_dicts(data, names=None):
     return result
 
 
-def unserialize(data, session=None, strict_parsing=True):
+def unserialize(data, session=None, strict_parsing=True, type=None):
     """Unserialize a dict into a SerializedObject.
 
     Args:
@@ -841,15 +841,20 @@ def unserialize(data, session=None, strict_parsing=True):
       instead of raise exceptions. This is useful when the system likely to
       generate the data has changed its definitions.
     """
-    if not isinstance(data, dict) or "__type__" not in data:
-        raise ValueError(
-            "Unserialize is only possible from typed serialized dict.")
+    if isinstance(data, basestring):
+        data = json.loads(data)
 
-    type_name = data["__type__"]
-    impl = SerializedObject.get_implemetation(type_name)
+    impl = type
     if impl is None:
-        raise ValueError(
-            "No implementation for serialized type %s" % data["__type__"])
+        if not isinstance(data, dict) or "__type__" not in data:
+            raise ValueError(
+                "Unserialize is only possible from typed serialized dict.")
+
+        type_name = data["__type__"]
+        impl = SerializedObject.get_implemetation(type_name)
+        if impl is None:
+            raise ValueError(
+                "No implementation for serialized type %s" % data["__type__"])
 
     if session is None:
         session = Session()
@@ -862,3 +867,10 @@ def unserialize(data, session=None, strict_parsing=True):
         return impl.from_primitive(data, session=session)
     finally:
         session._unstrict_serialization = False
+
+
+def robust_unserialize(data, default=None):
+    try:
+        return unserialize(data)
+    except ValueError:
+        return default

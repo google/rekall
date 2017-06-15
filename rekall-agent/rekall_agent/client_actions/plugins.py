@@ -17,10 +17,9 @@ use the CollectAction() to specify exactly the required data.
 In this Action we include both the text and data export in each column output.
 """
 import logging
-import weakref
+import time
 
 from rekall import plugin
-from rekall import session
 from rekall.ui import renderer
 from rekall.plugins.renderers import data_export
 from rekall.plugins.response import common
@@ -58,11 +57,13 @@ class PluginRenderer(renderer.BaseRenderer):
             dict(name="message"),
         ]))
 
-        handler = LogCapturer(self)
-        logging.getLogger().addHandler(
-            weakref.proxy(
-                handler,
-                lambda _, h=handler: logging.getLogger().removeHandler(h)))
+        self.handler = LogCapturer(self)
+
+    def __enter__(self):
+        self.session.logging.addHandler(self.handler)
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.session.logging.removeHandler(self.handler)
 
     def emit_record(self, record):
         self.collection.insert(
@@ -124,19 +125,27 @@ class PluginActionImpl(actions.PluginAction):
         # to create.
         flow_obj.status.collection_ids.append(self.collection.id)
 
-        # Find the plugin we need to call.
-        plugin_cls = plugin.Command.ImplementationByClass(self.plugin)
-        if plugin_cls == None:
-            raise plugin.PluginError("Unknown plugin")
-
-        plugin_obj = plugin_cls(session=self._session, **self.args)
-        if plugin_obj == None:
-            raise plugin.PluginError("Plugin not active")
-
-        # Sometimes we dont know all the columns until we actually run the
-        # plugin (For example the Search plugin creates columns dynamically). It
-        # is always safer to run the plugin through the renderer.
+        plugin_renderer = PluginRenderer(session=self._session,
+                                         collection=self.collection,
+                                         flow_obj=flow_obj)
         with self.collection.start():
-            plugin_obj.render(PluginRenderer(session=self._session,
-                                             collection=self.collection,
-                                             flow_obj=flow_obj))
+            with plugin_renderer:
+                # Find the plugin we need to call.
+                plugin_cls = plugin.Command.ImplementationByClass(self.plugin)
+                if plugin_cls == None:
+                    raise plugin.PluginError("Unknown plugin")
+
+                plugin_obj = plugin_cls(session=self._session, **self.args)
+                if plugin_obj == None:
+                    raise plugin.PluginError("Plugin not active")
+
+                # Sometimes we dont know all the columns until we actually run
+                # the plugin (For example the Search plugin creates columns
+                # dynamically). It is always safer to run the plugin through the
+                # renderer.
+                self._session.logging.info("Running plugin %s", plugin_cls)
+                now = time.time()
+                plugin_obj.render(plugin_renderer)
+
+                self._session.logging.info("Completed in %s seconds",
+                                           time.time() - now)

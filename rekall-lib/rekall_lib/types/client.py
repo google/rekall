@@ -136,6 +136,7 @@ class StartupMessage(serializer.SerializedObject):
              doc="Information about the running system"),
     ]
 
+
 class StartupAction(actions.Action):
     """The startup message.
 

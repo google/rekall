@@ -31,48 +31,9 @@ import arrow
 
 from rekall import obj
 from rekall_agent import common
-from rekall_agent import crypto
-from rekall_lib.types import actions
-from rekall_lib.types import agent
+from rekall_lib import crypto
 from rekall_lib.types import location
 from rekall_lib import serializer
-
-
-class ManifestXXX(serializer.SerializedObject):
-    """The manifest contains basic information about the installation.
-
-    It needs to be world readable because clients use this to bootstrap their
-    basic information about the server.
-
-    The manifest is signed and stored inside a SignedManifest message below.
-    """
-
-    schema = [
-        dict(name="startup_actions", type=actions.Action, repeated=True,
-             doc="These actions will be run at startup on the client."),
-        dict(name="rekall_session", type=agent.RekallSession,
-             doc="The session used to run startup actions"),
-    ]
-
-
-class SignedManifest(serializer.SerializedObject):
-    """A signed manifest.
-
-    The agent will verify the manifest's signature.  First we verify the
-    server's certificate is properly signed by the hardcoded CA.  Then we verify
-    that the manifest is signed using the server's certificate.
-    """
-
-    schema = [
-        dict(name="data", type="bytes",
-             doc="The Json encoded Manifest object."),
-
-        dict(name="signature", type="bytes",
-             doc="Signature of the manifest"),
-
-        dict(name="server_certificate", type=crypto.X509Ceritifcate,
-             doc="The server's certificate."),
-    ]
 
 
 class ExternalFileMixin(object):
@@ -157,13 +118,13 @@ class ClientWriteback(serializer.SerializedObject):
 
     schema = [
         dict(name="client_id",
-             doc="A unique identified for the client."),
+             doc="A unique identifier for the client."),
 
         dict(name="last_flow_time", type="epoch", default=arrow.get(0),
              doc="The create timestamp of the last flow we processed."),
 
         dict(name="private_key", type=crypto.RSAPrivateKey,
-             doc="The client's private key"),
+             doc="The client's private key."),
 
         dict(name="current_flow", type=serializer.SerializedObject,
              doc="The currently running flow.")
@@ -201,7 +162,7 @@ class ClientPolicy(ExternalFileMixin,
         dict(name="poll_max", type="int", default=60,
              doc="How frequently to poll the server."),
 
-        dict(name="plugins", type="PluginConfiguration", repeated=True,
+        dict(name="plugins", type=PluginConfiguration, repeated=True,
              doc="Free form plugin specific configuration."),
 
         dict(name="secret", default="",
@@ -236,7 +197,9 @@ class ClientPolicy(ExternalFileMixin,
                 with open(self.writeback_path, "rb") as fd:
                     self._writeback = ClientWriteback.from_primitive(
                         session=self._session, data=json.loads(fd.read()))
-            except (IOError, TypeError, AttributeError, ValueError):
+            except (IOError, TypeError, AttributeError, ValueError) as e:
+                self._session.logging.error(
+                    "Failed to decode writeback file: %s", e)
                 self._writeback = ClientWriteback(session=self._session)
 
         return self._writeback
@@ -259,6 +222,7 @@ class ClientPolicy(ExternalFileMixin,
 
         return self._nonce
 
+
 class ServerPolicy(ExternalFileMixin,
                    common.AgentConfigMixin,
                    serializer.SerializedObject):
@@ -278,11 +242,6 @@ class ServerPolicy(ExternalFileMixin,
     """
 
     schema = [
-        dict(name="certificate", type=crypto.X509Ceritifcate,
-             doc="The server's certificate"),
-
-        dict(name="private_key", type=crypto.RSAPrivateKey,
-             doc="The server's private key"),
     ]
 
 
@@ -300,15 +259,4 @@ class Configuration(ExternalFileMixin,
 
         dict(name="client", type=ClientPolicy,
              doc="The client's configuration."),
-
-        dict(name="manifest", type=ManifestXXX,
-             doc="The installation manifest. Will be fetched from "
-             "client.manifest_location"),
-
-        dict(name="signed_manifest", type=SignedManifest,
-             doc="The signed manifest."),
-
-        dict(name="ca_certificate", type=crypto.X509Ceritifcate,
-             doc="The certificate of the CA. Clients have this certificate "
-             "hard coded and only trust data signed by it.")
     ]

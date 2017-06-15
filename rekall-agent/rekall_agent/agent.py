@@ -52,9 +52,9 @@ import psutil
 
 from rekall import plugin
 from rekall_agent import common
-from rekall_agent import crypto
 
 # Required for plugins.
+from rekall_lib import crypto
 from rekall_lib import serializer
 from rekall_lib import utils
 from rekall_lib.types import agent
@@ -200,7 +200,6 @@ class StartupActionImpl(common.AgentConfigMixin, client.StartupAction):
             agent_start_time=START_TIME,
             timestamp=time.time(),
             system_info=UnameImpl.from_current_system(session=self._session),
-            # public_key=self._config.client.writeback.private_key.public_key(),
         )
         self._session.logging.debug("Sending client startup message to server.")
         self.location.write_file(message.to_json())
@@ -219,7 +218,9 @@ class _LocationTracker(object):
         return data
 
 
-class RunFlow(plugin.TypedProfileCommand, plugin.Command):
+class RunFlow(common.AgentConfigMixin,
+              plugin.TypedProfileCommand,
+              plugin.Command):
     """Run the flows specified."""
     name = "run_flow"
 
@@ -264,8 +265,7 @@ class RunFlow(plugin.TypedProfileCommand, plugin.Command):
             try:
                 # Make a progress ticket for this action if required.
                 status.status = "Started"
-                status.client_id = (self.session.GetParameter("client_id") or
-                                    None)
+                status.client_id = self._config.client.client_id
                 status.current_action = action
 
                 yield status
@@ -427,8 +427,9 @@ class RekallAgent(common.AbstractAgentCommand):
                 _LocationTracker.get_data, self.jobs_locations):
             try:
                 if data:
-                    job_file = agent.JobFile.from_json(
-                        data, session=self.session)
+                    job_file = serializer.unserialize(
+                        json.loads(data), session=self.session,
+                        strict_parsing=False)
                     result.extend(job_file.flows)
             except Exception as e:
                 if self.session.GetParameter("debug"):

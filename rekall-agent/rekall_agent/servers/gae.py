@@ -94,21 +94,9 @@ class GAEClientPolicy(agent.ClientPolicy):
     ]
 
     def get_jobs_queues(self):
-
-        result = [
+        return [
             http.HTTPLocationImpl.from_keywords(
                 session=self._session, base=self.manifest_location.base,
-                path_prefix=utils.join_path("jobs", self.client_id, self.secret))
+                path_prefix=utils.join_path("jobs", self.client_id,
+                                            self.secret))
         ]
-        for label in self.labels:
-            result.append(
-                http.HTTPLocationImpl.from_keywords(
-                    session=self._session,
-                    base=self.manifest_location.base,
-                    # Make sure to append the secret to the unauthenticated
-                    # queues to prevent public (non deployment) access.
-                    path_prefix=utils.join_path(
-                        "labels", label, "jobs", self.secret))
-            )
-
-        return result

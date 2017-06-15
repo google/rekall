@@ -24,13 +24,15 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 """Location handlers for a stand alone HTTP server.
 """
-import base64
-import StringIO
+import cStringIO
+import time
+
 from wsgiref import handlers
 
 import requests
 from requests import adapters
 from rekall_lib.types import location
+from rekall_lib import crypto
 from rekall_lib import serializer
 from rekall_lib import utils
 from rekall import session
@@ -65,7 +67,7 @@ def _join_url(base, *components):
     return base.rstrip("/") + "/" + utils.join_path(*components).lstrip("/")
 
 
-class HTTPLocationImpl(location.HTTPLocation):
+class HTTPLocationImpl(common.AgentConfigMixin, location.HTTPLocation):
     """A stand along HTTP server location."""
 
     def __init__(self, *args, **kwargs):
@@ -129,7 +131,7 @@ class HTTPLocationImpl(location.HTTPLocation):
 
     def read_file(self, **kw):
         url_endpoint, _, headers, _ = self._get_parameters(**kw)
-
+        self.add_signature("", url_endpoint, headers)
         resp = self.get_requests_session().get(
             url_endpoint, headers=headers)
 
@@ -138,20 +140,32 @@ class HTTPLocationImpl(location.HTTPLocation):
 
         return ""
 
+    def add_signature(self, data, url, headers):
+        # Calculate the signature on the data.
+        private_key = self._config.client.writeback.private_key
+        assertion = crypto.HTTPAssertion.from_keywords(
+            timestamp=time.time(),
+            url=url).to_json()
+
+        signature = crypto.HTTPSignature.from_keywords(
+            assertion=assertion,
+            client_id=self._config.client.writeback.client_id,
+            public_key=private_key.public_key(),
+            signature=private_key.sign(assertion + data))
+
+        headers["x-rekall-signature"] = signature.to_json()
+
     def write_file(self, data, **kwargs):
-        return self.upload_file_object(StringIO.StringIO(data), **kwargs)
-
-    def upload_file_object(self, fd, completion_routine=None, **kwargs):
         url_endpoint, params, headers, base_url = self._get_parameters(**kwargs)
-
+        self.add_signature(data, url_endpoint, headers)
         resp = self.get_requests_session().post(
-            url_endpoint, data=fd,
+            url_endpoint, data=data,
             params=params, headers=headers)
 
         self._session.logging.debug("Uploaded file: %s (%s bytes)",
-                                    base_url, fd.tell())
+                                    base_url, len(data))
 
-        return self._report_error(completion_routine, resp)
+        return self._report_error(None, resp)
 
     def _report_error(self, completion_routine, response=None,
                       message=None):
@@ -179,18 +193,17 @@ class HTTPLocationImpl(location.HTTPLocation):
 
 class BlobUploaderImpl(HTTPLocationImpl, location.BlobUploader):
 
-    def upload_file_object(self, fd, completion_routine=None, **kwargs):
+    def write_file(self, data, **kwargs):
         spec = location.BlobUploadSpecs.from_json(self.read_file(**kwargs))
 
         # Upload the file to the blob endpoint.
         resp = self.get_requests_session().post(
-            spec.url, files={spec.name: fd})
+            spec.url, files={spec.name: cStringIO.StringIO(data)})
 
         self._session.logging.debug("Uploaded file: %s (%s bytes)",
-                                    spec.url, fd.tell())
+                                    spec.url, len(data))
 
-        return self._report_error(completion_routine, resp)
-
+        return self._report_error(None, resp)
 
 
 class FileUploadLocationImpl(HTTPLocationImpl, location.FileUploadLocation):
