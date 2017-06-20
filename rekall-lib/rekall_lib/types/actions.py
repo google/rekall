@@ -12,6 +12,8 @@ class Action(serializer.SerializedObject):
     schema = [
         dict(name="condition",
              doc="An Efilter condition to evaluate before running."),
+        dict(name="rekall_session", type="dict",
+             doc="The session that will be invoked for this flow."),
     ]
 
     def is_active(self):

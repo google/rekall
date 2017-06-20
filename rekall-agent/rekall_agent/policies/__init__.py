@@ -38,4 +38,3 @@ from static files, static web pages, pub/sub queues etc.
 """
 
 from rekall_agent.policies import files
-from rekall_agent.policies import gcs

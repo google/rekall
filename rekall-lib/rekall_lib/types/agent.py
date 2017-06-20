@@ -2,19 +2,8 @@ import time
 
 from rekall_lib import serializer
 from rekall_lib.types import actions
-from rekall_lib.types import collections
 from rekall_lib.types import location
 from rekall_lib.types import resources
-
-
-class RekallSession(serializer.SerializedObject):
-    """A message describing a Rekall Session."""
-
-    schema = [
-        dict(name="live", type="choices", default="API",
-             choices=["API", "Memory"],
-             doc="The Rekall live mode"),
-    ]
 
 
 class Status(serializer.SerializedObject):
@@ -80,6 +69,9 @@ class Flow(serializer.SerializedObject):
     To launch a flow simply build a Flow object and call its start() method.
     """
     schema = [
+        dict(name="name",
+             doc="A name for this flow"),
+
         dict(name="client_id",
              doc="A client id to target this flow on."),
 
@@ -107,9 +99,6 @@ class Flow(serializer.SerializedObject):
 
         dict(name="actions", type=actions.Action, repeated=True,
              doc="The action requests sent to the client."),
-
-        dict(name="rekall_session", type="dict",
-             doc="The session that will be invoked for this flow."),
 
         dict(name="quota", type=resources.Quota,
              doc="The total resources the flow is allowed to use."),
@@ -140,6 +129,16 @@ class Flow(serializer.SerializedObject):
         return time.time() + self.ttl
 
 
+class CannedFlow(serializer.SerializedObject):
+    """A canned flow can be used to make a flow object."""
+    schema = [
+        dict(name="name"),
+        dict(name="description"),
+        dict(name="category"),
+        dict(name="actions", type=actions.Action, repeated=True)
+    ]
+
+
 class JobFile(serializer.SerializedObject):
     """The contents of the jobs file.
 
@@ -161,4 +160,77 @@ class Manifest(serializer.SerializedObject):
     schema = [
         dict(name="startup", type=Flow,
              doc="The initial flow to run when connecting to the server."),
+    ]
+
+
+class PluginConfiguration(serializer.SerializedObject):
+    """Plugin specific configuration."""
+    schema = []
+
+
+class ClientPolicy(serializer.SerializedObject):
+    """The persistent state of the agent."""
+
+    schema = [
+        dict(name="manifest_location", type=location.Location,
+             doc="The location of the installation manifest file. "
+             "NOTE: This must be unauthenticated because it contains "
+             "information required to initialize the connection."),
+
+        dict(name="writeback_path",
+             doc="Any persistent changes will be written to this location."),
+
+        dict(name="labels", repeated=True,
+             doc="A set of labels for this client."),
+
+        dict(name="poll_min", type="int", default=5,
+             doc="How frequently to poll the server."),
+
+        dict(name="poll_max", type="int", default=60,
+             doc="How frequently to poll the server."),
+
+        dict(name="notifier", type=location.NotificationLocation,
+             doc="If this is set we use the notifier to also control poll rate."),
+
+        dict(name="plugins", type=PluginConfiguration, repeated=True,
+             doc="Free form plugin specific configuration."),
+
+        dict(name="secret", default="",
+             doc="A shared secret between the client and server. "
+             "This is used to share data with all clients but "
+             "hide it from others.")
+    ]
+
+
+class ServerPolicy(serializer.SerializedObject):
+    """The configuration of all server side batch jobs.
+
+    There are many ways to organize the agent's server side code. Although
+    inherently the Rekall agent is all about tranferring files to the server,
+    there has to be a systemic arrangement of where to store these files and how
+    to deliver them (i.e. the Location object's specification).
+
+    The final choice of Location objects is therefore implemented via the
+    ServerPolicy object. Depending on the type of deployment, different
+    parameters will be required, but ultimately the ServerPolicy object will be
+    responsible to produce the required Location objects.
+
+    This is the baseclass of all ServerPolicy objects.
+    """
+    schema = []
+
+
+class Configuration(serializer.SerializedObject):
+    """The agent configuration system.
+
+    Both client side and server side configuration exist here, but on clients,
+    the server side will be omitted.
+    """
+
+    schema = [
+        dict(name="server", type=ServerPolicy,
+             doc="The server's configuration."),
+
+        dict(name="client", type=ClientPolicy,
+             doc="The client's configuration."),
     ]

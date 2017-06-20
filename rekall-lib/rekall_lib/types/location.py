@@ -121,3 +121,14 @@ class FileUploadLocation(HTTPLocation):
     schema = [
         dict(name="flow_id"),
     ]
+
+
+class NotificationLocation(HTTPLocation):
+    """A location which notifies when it changes."""
+
+    def Start(self, callback):
+        """Start the loop. Never returns.
+
+        callback is called with each notification.
+        """
+        raise NotImplementedError()

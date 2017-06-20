@@ -36,7 +36,7 @@ Main policy:
 
 import os
 
-from rekall_agent.config import agent
+from rekall_lib.types import agent
 from rekall_agent.locations import files
 
 

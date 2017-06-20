@@ -22,7 +22,7 @@ class CipherError(TypeError):
 class RSAPublicKey(serializer.SerializedObject):
     _value = None
 
-    def to_primitive(self):
+    def to_primitive(self, with_type=True):
         if not self._value:
             raise RuntimeError("Key not initialized yet.")
 
@@ -71,7 +71,7 @@ class RSAPrivateKey(serializer.SerializedObject):
         self._signal_modified()
         return self
 
-    def to_primitive(self):
+    def to_primitive(self, with_type=True):
         if not self._value:
             raise RuntimeError("Key not initialized yet.")
 

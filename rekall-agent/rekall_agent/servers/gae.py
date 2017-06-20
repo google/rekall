@@ -5,14 +5,14 @@ NOTE: The Google App Engine app does not use this code, therefore none of the
 """
 import time
 
-from rekall_lib.types import location
 from rekall_agent.config import agent
 from rekall_agent.locations import http
 from rekall_lib import utils
+from rekall_lib.types import location
 
 
 
-class GAEServerPolicy(agent.ServerPolicy):
+class GAEServerPolicy(agent.ServerPolicyImpl):
     """A Stand along HTTP Server."""
     schema = [
         dict(name="base_url", default="http://127.0.0.1/",
@@ -86,7 +86,7 @@ class GAEServerPolicy(agent.ServerPolicy):
             expiration=expiration)
 
 
-class GAEClientPolicy(agent.ClientPolicy):
+class GAEClientPolicy(agent.ClientPolicyImpl):
     """Clients which connect to Google AppEngine."""
     schema = [
         dict(name="job_locations", type=location.Location, repeated=True,

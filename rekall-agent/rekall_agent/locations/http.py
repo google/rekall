@@ -25,6 +25,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 """Location handlers for a stand alone HTTP server.
 """
 import cStringIO
+import hashlib
 import time
 
 from wsgiref import handlers
@@ -37,6 +38,7 @@ from rekall_lib import serializer
 from rekall_lib import utils
 from rekall import session
 from rekall_agent import common
+import sseclient
 
 
 MAX_BUFF_SIZE = 10*1024*1024
@@ -237,3 +239,30 @@ class FileUploadLocationImpl(HTTPLocationImpl, location.FileUploadLocation):
 
             self._session.logging.debug("Uploaded file: %s (%s bytes)",
                                         file_information.filename, fd.tell())
+
+
+
+class FirbaseNotifier(HTTPLocationImpl, location.NotificationLocation):
+    """Read notifications from the server."""
+
+    def Start(self, callback):
+        client_id = self._config.client.writeback.client_id
+        client_id_hash = hashlib.sha1(client_id).hexdigest()
+        url_endpoint = "%s/%s.json" % (self.base, client_id_hash)
+
+        headers = {}
+        headers['Accept'] = 'text/event-stream'
+        while 1:
+            resp = self.get_requests_session().get(
+                url_endpoint, headers=headers, stream=True)
+
+            client = sseclient.SSEClient(resp)
+            for event in client.events():
+                # Ignore keep alive events.
+                if event.event in ['put', 'patch']:
+                    self._session.logging.debug("FirebseNotifier woke up.")
+                    callback(event.data)
+
+            self._session.logging.debug(
+                "Firebase connection reset, backing off.")
+            time.sleep(60)

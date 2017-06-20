@@ -32,7 +32,7 @@ import arrow
 from rekall import obj
 from rekall_agent import common
 from rekall_lib import crypto
-from rekall_lib.types import location
+from rekall_lib.types import agent
 from rekall_lib import serializer
 
 
@@ -131,45 +131,16 @@ class ClientWriteback(serializer.SerializedObject):
     ]
 
 
-class PluginConfiguration(serializer.SerializedObject):
-    """Plugin specific configuration."""
-    schema = []
+class ServerPolicyImpl(ExternalFileMixin,
+                       common.AgentConfigMixin,
+                       agent.ServerPolicy):
+    pass
 
 
-class ClientPolicy(ExternalFileMixin,
-                   common.AgentConfigMixin,
-                   serializer.SerializedObject):
-
-    """The persistent state of the agent."""
-
+class ClientPolicyImpl(ExternalFileMixin,
+                       common.AgentConfigMixin,
+                       agent.ClientPolicy):
     _writeback = obj.NoneObject("No writeback set")
-
-    schema = [
-        dict(name="manifest_location", type=location.Location,
-             doc="The location of the installation manifest file. "
-             "NOTE: This must be unauthenticated because it contains "
-             "information required to initialize the connection."),
-
-        dict(name="writeback_path",
-             doc="Any persistent changes will be written to this location."),
-
-        dict(name="labels", repeated=True,
-             doc="A set of labels for this client."),
-
-        dict(name="poll_min", type="int", default=5,
-             doc="How frequently to poll the server."),
-
-        dict(name="poll_max", type="int", default=60,
-             doc="How frequently to poll the server."),
-
-        dict(name="plugins", type=PluginConfiguration, repeated=True,
-             doc="Free form plugin specific configuration."),
-
-        dict(name="secret", default="",
-             doc="A shared secret between the client and server. "
-             "This is used to share data with all clients but "
-             "hide it from others.")
-    ]
 
     def plugin_config(self, plugin_cls):
         for plugin in self.plugins:
@@ -223,40 +194,6 @@ class ClientPolicy(ExternalFileMixin,
         return self._nonce
 
 
-class ServerPolicy(ExternalFileMixin,
-                   common.AgentConfigMixin,
-                   serializer.SerializedObject):
-    """The configuration of all server side batch jobs.
-
-    There are many ways to organize the agent's server side code. Although
-    inherently the Rekall agent is all about tranferring files to the server,
-    there has to be a systemic arrangement of where to store these files and how
-    to deliver them (i.e. the Location object's specification).
-
-    The final choice of Location objects is therefore implemented via the
-    ServerPolicy object. Depending on the type of deployment, different
-    parameters will be required, but ultimately the ServerPolicy object will be
-    responsible to produce the required Location objects.
-
-    This is the baseclass of all ServerPolicy objects.
-    """
-
-    schema = [
-    ]
-
-
-class Configuration(ExternalFileMixin,
-                    serializer.SerializedObject):
-    """The agent configuration system.
-
-    Both client side and server side configuration exist here, but on clients,
-    the server side will be omitted.
-    """
-
-    schema = [
-        dict(name="server", type=ServerPolicy,
-             doc="The server's configuration."),
-
-        dict(name="client", type=ClientPolicy,
-             doc="The client's configuration."),
-    ]
+class ConfigurationImpl(ExternalFileMixin,
+                        agent.Configuration):
+    pass

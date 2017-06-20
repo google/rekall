@@ -47,6 +47,8 @@ import platform
 import socket
 import time
 import traceback
+import threading
+import Queue
 
 import psutil
 
@@ -235,11 +237,19 @@ class RunFlow(common.AgentConfigMixin,
              help="A filename containing an encoded Flow JSON object."),
     ]
 
-    def _get_session(self, session_parameters):
-        rekall_session = self.session.clone(**session_parameters)
+    def __init__(self, *args, **kwargs):
+        super(RunFlow, self).__init__(*args, **kwargs)
+        self._session_cache = {}
 
-        # Make sure progress dispatchers are propagated.
-        rekall_session.progress = self.session.progress
+    def _get_session(self, session_parameters):
+        cache_key = json.dumps(session_parameters, sort_keys=True)
+        rekall_session = self._session_cache.get(cache_key)
+        if rekall_session is None:
+            rekall_session = self.session.clone(**session_parameters)
+
+            # Make sure progress dispatchers are propagated.
+            rekall_session.progress = self.session.progress
+            self._session_cache[cache_key] = rekall_session
 
         return rekall_session
 
@@ -259,7 +269,6 @@ class RunFlow(common.AgentConfigMixin,
                 return
 
         # Prepare the session specified by this flow.
-        rekall_session = self._get_session(self.flow.rekall_session)
         status = self.flow.status
         for action in self.flow.actions:
             try:
@@ -273,6 +282,7 @@ class RunFlow(common.AgentConfigMixin,
                 # Run the action with the new session, and report the produced
                 # collections. Note that the ticket contains all collections for
                 # all actions cumulatively.
+                rekall_session = self._get_session(action.rekall_session)
                 action_to_run = serializer.unserialize(
                     action.to_primitive(),
                     session=rekall_session,
@@ -326,6 +336,10 @@ class RekallAgent(common.AbstractAgentCommand):
     # If we currently running under quota management, this will contain the
     # quota object.
     _quota = None
+
+    def __init__(self, *args, **kwargs):
+        super(RekallAgent, self).__init__(*args, **kwargs)
+        self._queue = Queue.Queue()
 
     def _run_flow(self, flow_obj):
         # Flow has a condition - we only run the flow if the condition matches.
@@ -508,6 +522,13 @@ class RekallAgent(common.AbstractAgentCommand):
         self.jobs_locations = [_LocationTracker(x)
                                for x in self._config.client.get_jobs_queues()]
 
+        # If a notifier is specified, we launch it.
+        if self._config.client.notifier:
+            t = threading.Thread(
+                target=self._config.client.notifier.Start, args=(self._Notify,))
+            t.daemon = True
+            t.start()
+
         # Spin here running jobs.
         while 1:
             flows_ran = 0
@@ -522,12 +543,38 @@ class RekallAgent(common.AbstractAgentCommand):
                 self.poll_wait = self._config.client.poll_min
             else:
                 # Slowly drift to slow poll
-                self.poll_wait += 5
+                self.poll_wait += (self._config.client.poll_max -
+                                   self._config.client.poll_min) / 10
                 if self.poll_wait > self._config.client.poll_max:
                     self.poll_wait = self._config.client.poll_max
 
-            # Wait a bit for the next poll.
-            time.sleep(self.poll_wait)
+            # Wait a bit for the next poll. The wait may be interrupted by the
+            # notifier.
+            now = time.time()
+            while 1:
+                try:
+                    # If an event was sent by notifier, break immediately,
+                    # unless the event is too soon after then previous event.
+                    if (self._queue.get(block=True, timeout=self.poll_wait) and
+                        time.time() > now + 5):
+                        break
+
+                except Exception:
+                    # Wait at least as long as poll_wait.
+                    if time.time() > now + self.poll_wait:
+                        break
+
+
+    def _Notify(self, event):
+        """Push the event on the queue.
+
+        We don't actually care about the content of the event.
+        """
+        if event:
+            try:
+                self._queue.put(event, block=False)
+            except Exception:
+                pass
 
 
 class AgentInfo(common.AbstractAgentCommand):

@@ -133,7 +133,7 @@ class FieldDescriptor(object):
         _ = session
         return value
 
-    def to_primitive(self, value):
+    def to_primitive(self, value, with_type=True):
         return value
 
     def from_primitive(self, value, session=None):
@@ -184,7 +184,7 @@ class EpochDescriptor(FieldDescriptor):
 
         return value
 
-    def to_primitive(self, value):
+    def to_primitive(self, value, with_type=True):
         return value.float_timestamp
 
     def from_primitive(self, value, session=None):
@@ -223,7 +223,7 @@ class StringDescriptor(FieldDescriptor):
 
         return str(value)
 
-    def to_primitive(self, value):
+    def to_primitive(self, value, with_type=True):
         return value.encode("base64")
 
     def from_primitive(self, value, session=None):
@@ -271,8 +271,8 @@ class NestedDescriptor(FieldDescriptor):
 
         raise ValueError("value is not valid.")
 
-    def to_primitive(self, value):
-        result = value.to_primitive()
+    def to_primitive(self, value, with_type=True):
+        result = value.to_primitive(with_type=with_type)
 
         # If we are actually containing a subclass of the nested class then make
         # sure to mark the data with the full class name so it can be properly
@@ -327,10 +327,10 @@ class RepeatedHelper(list):
     def add_update_cb(self, cb):
         self._hooks.append(cb)
 
-    def to_primitive(self):
+    def to_primitive(self, with_type=True):
         result = []
         for x in self:
-            result.append(x.to_primitive())
+            result.append(x.to_primitive(with_type=with_type))
 
         return result
 
@@ -381,8 +381,9 @@ class RepeatedDescriptor(FieldDescriptor):
              for x in value],
             session=session)
 
-    def to_primitive(self, value):
-        return [self.descriptor_obj.to_primitive(x) for x in value]
+    def to_primitive(self, value, with_type=True):
+        return [self.descriptor_obj.to_primitive(
+            x, with_type=with_type) for x in value]
 
     def from_primitive(self, value, session=None):
         if not isinstance(value, (list, tuple)):
@@ -647,6 +648,10 @@ class SerializedObject(object):
             if not self._session._unstrict_serialization:
                 raise ValueError("While validating %s.%s: %s" % (
                     self.__class__.__name__, name, e))
+        except KeyError:
+            raise ValueError("Unable to set member %s in %s: No such field." %
+                             (name, self.__class__.__name__))
+
 
             value = None
         self._data[name] = value
@@ -681,7 +686,8 @@ class SerializedObject(object):
         """Convert ourselves to a dict."""
         result = self._unknowns.copy()
         for k, v in self.iteritems():
-            result[k] = self._descriptors[k].to_primitive(v)
+            result[k] = self._descriptors[k].to_primitive(
+                v, with_type=with_type)
 
         if with_type:
             result["__type__"] = StripImpl(self.__class__.__name__)
