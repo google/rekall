@@ -34,7 +34,6 @@ from rekall.plugins.linux import heap_analysis
 from rekall.plugins.linux import keepassx
 from rekall.plugins.linux import zsh
 
-
 try:
     from rekall.plugins.linux import yarascan
 except (ImportError, OSError):
