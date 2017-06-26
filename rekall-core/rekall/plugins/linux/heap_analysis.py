@@ -270,7 +270,8 @@ class HeapAnalysis(common.LinProcessFilter):
                                       " from the repository."
                                       .format(libc_version_string))
 
-            dist = 'arch'
+            # TODO: dynamic selection of distribution specific profiles
+            dist = 'base'
             libc_profile = self.session.LoadProfile(
                 "glibc/{:s}/{:s}/{:s}".format(dist,
                                               self.profile.metadata("arch"),
