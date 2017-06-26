@@ -3445,6 +3445,7 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
                 pass
 
 
+# TODO: yara support
 class HeapPointerSearch(HeapAnalysis):
     """Searches all chunks for the given string, regex or pointer(s)."""
 
