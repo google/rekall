@@ -129,7 +129,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
         # PDEs and PTEs we must test.
-        for pml4e_index in range(0, 0x200):
+        for pml4e_index in xrange(0, 0x200):
             vaddr = pml4e_index << 39
             if vaddr > end:
                 return
@@ -145,12 +145,12 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                 continue
 
             tmp1 = vaddr
-            for pdpte_index in range(0, 0x200):
-                vaddr = tmp1 | (pdpte_index << 30)
+            for pdpte_index in xrange(0, 0x200):
+                vaddr = tmp1 + (pdpte_index << 30)
                 if vaddr > end:
                     return
 
-                next_vaddr = tmp1 | ((pdpte_index + 1) << 30)
+                next_vaddr = tmp1 + ((pdpte_index + 1) << 30)
                 if start >= next_vaddr:
                     continue
 
@@ -199,11 +199,11 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
         tmp2 = vaddr
         for pde_index in range(0, 0x200):
-            vaddr = tmp2 | (pde_index << 21)
+            vaddr = tmp2 + (pde_index << 21)
             if vaddr > end:
                 return
 
-            next_vaddr = tmp2 | ((pde_index + 1) << 21)
+            next_vaddr = tmp2 + ((pde_index + 1) << 21)
             if start >= next_vaddr:
                 continue
 
@@ -240,11 +240,11 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             if not pte_value & self.valid_mask:
                 continue
 
-            vaddr = tmp3 | i << 12
+            vaddr = tmp3 + i << 12
             if vaddr > end:
                 return
 
-            next_vaddr = tmp3 | ((i + 1) << 12)
+            next_vaddr = tmp3 + ((i + 1) << 12)
             if start >= next_vaddr:
                 continue
 
