@@ -30,6 +30,9 @@ from rekall.plugins.linux import pslist
 from rekall.plugins.linux import pstree
 from rekall.plugins.linux import psxview
 from rekall.plugins.linux import sigscan
+from rekall.plugins.linux import heap_analysis
+from rekall.plugins.linux import keepassx
+from rekall.plugins.linux import zsh
 
 try:
     from rekall.plugins.linux import yarascan
