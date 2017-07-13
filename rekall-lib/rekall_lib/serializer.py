@@ -411,7 +411,7 @@ class RepeatedDescriptor(FieldDescriptor):
 # This dispatches the class implementing as declared type.
 DISPATCHER = dict(
     int=IntDescriptor,
-    str=UnicodeDescriptor,
+    unicode=UnicodeDescriptor,
     str=StringDescriptor,
     bytes=StringDescriptor,
     choices=ChoicesDescriptor,
