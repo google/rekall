@@ -23,15 +23,22 @@
 This module provides the ability to write to Google Cloud Storage in various
 ways.
 """
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import base64
 import contextlib
 import json
 import gzip
 import os
 import rfc822
-import StringIO
-import urllib
+import io
+import urllib.request, urllib.parse, urllib.error
 import tempfile
 import time
 
@@ -106,7 +113,7 @@ class ServiceAccount(common.AgentConfigMixin, serializer.SerializedObject):
 
         # Refresh token at least this often.
         if (self._oauth_token is None or
-            self._oauth_token_age < time.time() - max_lifetime / 2):
+            self._oauth_token_age < time.time() - old_div(max_lifetime, 2)):
             credentials = (service_account_module.
                            ServiceAccountCredentials.
                            from_json_keyfile_dict(
@@ -221,10 +228,10 @@ class ServiceAccount(common.AgentConfigMixin, serializer.SerializedObject):
         components.append("")    # Content_MD5
         components.append("")    # Content_Type
         components.append(str(int(expiration))) # Expiration
-        for k, v in sorted(headers.to_primitive(False).iteritems()):
+        for k, v in sorted(headers.to_primitive(False).items()):
             components.append("%s:%s" % (k, v))
 
-        path = urllib.quote(path, safe="/:")
+        path = urllib.parse.quote(path, safe="/:")
         base_url = "/" + utils.join_path(bucket, path)
 
         components.append(base_url)  # Canonicalized_Resource
@@ -320,7 +327,7 @@ class GCSLocation(location.Location):
         return resp.content
 
     def write_file(self, data, **kwargs):
-        return self.upload_file_object(StringIO.StringIO(data), **kwargs)
+        return self.upload_file_object(io.StringIO(data), **kwargs)
 
     def _upload_direct(self, fd, completion_routine=None, **kwargs):
         url_endpoint, params, headers, _ = self._get_parameters(**kwargs)

@@ -20,6 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import str
+from past.builtins import basestring
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """This module implements collections.
@@ -123,7 +125,7 @@ class GenericSQLiteCollection(CollectionSpec):
 
     _allowed_types = {
         "int": int,
-        "unicode": unicode,  # Unicode data.
+        "unicode": str,  # Unicode data.
         "str": str, # Used for binary data.
         "float": float,
 
@@ -389,7 +391,7 @@ class GenericSQLiteCollection(CollectionSpec):
 
         with self._lock:
             self._cursor.execute(
-                update_sql, kwargs.values() + condition.values())
+                update_sql, list(kwargs.values()) + list(condition.values()))
 
     def __iter__(self):
         return self.query()
@@ -414,7 +416,7 @@ class GenericSQLiteCollection(CollectionSpec):
 
             conditions = []
             query_args = []
-            for k, v in kwargs.iteritems():
+            for k, v in kwargs.items():
                 query_args.append(v)
                 if "?" in k:
                     conditions.append(k)
@@ -443,4 +445,4 @@ class GenericSQLiteCollection(CollectionSpec):
 
         self._session.logging.debug("Query (%s): %s", self.location.to_path(),
                                     query)
-        self._cursor.execute(query, kwargs.values())
+        self._cursor.execute(query, list(kwargs.values()))

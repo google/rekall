@@ -75,7 +75,7 @@ class VFSLs(flows.FlowLauncherAndWaiterMixin,
 
         # More recent collections override older collections.
         for row in vfs_index.query(order_by="timestamp asc"):
-            collection_path_components = filter(None, row["dirname"].split("/"))
+            collection_path_components = [_f for _f in row["dirname"].split("/") if _f]
 
             # e.g. collection_path_components = /home/
             #      path_components = /home/scudette/
@@ -123,7 +123,7 @@ class VFSLs(flows.FlowLauncherAndWaiterMixin,
 
         else:
             for directory in virtual_directories:
-                mode = response_common.Permissions(0755)
+                mode = response_common.Permissions(0o755)
                 yield dict(Path=utils.join_path(path, directory), st_mode=mode)
 
                 if self.plugin_args.recursive:
@@ -169,7 +169,7 @@ class VFSLs(flows.FlowLauncherAndWaiterMixin,
             # 3) path is longer than all StatEntryCollection()'s starting paths
             #    plus their depth.
 
-            path_components = filter(None, path.split("/"))
+            path_components = [_f for _f in path.split("/") if _f]
             for row in self._collect_one_dir(vfs_index, path_components):
                 row["Path"] = renderers.UILink("vfs", row["Path"])
                 yield row

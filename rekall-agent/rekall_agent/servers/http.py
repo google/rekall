@@ -20,20 +20,27 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """A standalone http server for users that do not want to use Google cloud."""
 import base64
-import BaseHTTPServer
+from . import http.server
 import cgi
 import json
 import socket
-import SocketServer
+import socketserver
 import os
-import urlparse
+import urllib.parse
 import tempfile
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from email import utils as email_utils
 
@@ -289,7 +296,7 @@ class HTTPClientPolicy(agent.ClientPolicy):
 
 
 
-class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
+class RekallHTTPServerHandler(http.server.BaseHTTPRequestHandler, object):
     """HTTP handler for receiving client posts."""
     READ_BLOCK_SIZE = 10 * 1024 * 1024
     protocol_version = "HTTP/1.1"
@@ -346,13 +353,13 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
     def _parse_qs(self):
         if "?" in self.path:
             self.base_path, qs = self.path.split("?", 1)
-            self.params = urlparse.parse_qs(qs)
+            self.params = urllib.parse.parse_qs(qs)
         else:
             self.params = {}
             self.base_path = self.path
 
         # base path is a unicode string so we must decode it from self.path.
-        self.base_path = urllib.unquote(self.base_path).decode(
+        self.base_path = urllib.parse.unquote(self.base_path).decode(
             "utf8", "ignore")
 
     def do_GET(self):
@@ -493,7 +500,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             if_modified_since = self.headers.get("If-Modified-Since")
             if if_modified_since:
                 since = email_utils.parsedate(if_modified_since)
-                if since >= time.gmtime(int(generation)/1e6):
+                if since >= time.gmtime(old_div(int(generation),1e6)):
                     self.send_response(304)
                     self.send_header("Content-Length", 0)
                     self.end_headers()
@@ -631,12 +638,12 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
 
     def send_error(self, code, message=None, close=True):
         try:
-            short, long = self.responses[code]
+            short, int = self.responses[code]
         except KeyError:
-            short, long = '???', '???'
+            short, int = '???', '???'
         if message is None:
             message = short
-        explain = long
+        explain = int
         content = (self.error_message_format %
                    {'code': code, 'message': cgi.escape(message),
                     'explain': explain})
@@ -651,7 +658,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             self.wfile.write(content)
 
 
-class RekallHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
+class RekallHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     """The HTTP frontend server."""
 
     allow_reuse_address = True
@@ -672,7 +679,7 @@ class RekallHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         elif version == 6:
             self.address_family = socket.AF_INET6
 
-        BaseHTTPServer.HTTPServer.__init__(
+        http.server.HTTPServer.__init__(
             self, server_address, handler, *args, **kwargs)
 
 

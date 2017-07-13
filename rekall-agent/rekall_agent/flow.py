@@ -148,7 +148,7 @@ class FlowStatus(batch.BatchTicket):
         # Read all the flow objects for the tickets at once before we take the
         # lock.
         flow_ids = []
-        for _, tickets in context.iteritems():
+        for _, tickets in context.items():
             flow_ids.extend([t.flow_id for t in tickets])
 
         flows = {}
@@ -163,7 +163,7 @@ class FlowStatus(batch.BatchTicket):
         common.THREADPOOL.map(
             cls._process_flows,
             [(tickets, client_id, session, flows)
-             for client_id, tickets in context.iteritems()])
+             for client_id, tickets in context.items()])
 
     @staticmethod
     def _process_flows(_args):

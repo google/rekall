@@ -1,4 +1,5 @@
 
+from builtins import object
 from rekall.ui import text
 
 

@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """Test the cloud locations for contacting Google Cloud Storage."""
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
 import os
-import StringIO
+import io
 import shutil
 import tempfile
 import threading
@@ -181,7 +185,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
 
     def _make_file(self):
         # Write 10Mb.
-        infd = StringIO.StringIO()
+        infd = io.StringIO()
         for i in range(2 * 1024):
             tag = "%#16x" % i
             infd.write(1024 / 16 * tag)

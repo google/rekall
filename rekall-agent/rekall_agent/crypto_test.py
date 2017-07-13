@@ -1,4 +1,6 @@
-import StringIO
+from future import standard_library
+standard_library.install_aliases()
+import io
 from rekall import testlib
 from rekall_agent import crypto
 
@@ -21,7 +23,7 @@ class TestWritableAgentFile(testlib.RekallBaseUnitTestCase):
         fd.write_encrypted_data("goodbye world")
         fd.close()
 
-        out_fd = StringIO.StringIO()
+        out_fd = io.StringIO()
         fd2 = crypto.ReadableAgentFile(
             filename, session=self.session,
             readers_private_key=readers_private_key,

@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """File operations.
@@ -169,8 +170,8 @@ class ListDirectoryAction(action.ActionImpl):
 
         for row in glob_plugin.collect():
             result = row["path"]
-            yield dict(dirname=unicode(result.filename.dirname),
-                       filename=unicode(result.filename.basename),
+            yield dict(dirname=str(result.filename.dirname),
+                       filename=str(result.filename.basename),
                        st_mode=result.st_mode,
                        st_mode_str=result.st_mode,
                        st_ino=result.st_ino,

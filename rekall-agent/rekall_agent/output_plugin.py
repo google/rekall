@@ -61,7 +61,7 @@ class MergeHuntCollections(OutputPlugin):
                     collections_by_type.setdefault(collection_type, []).append(
                         (collection, ticket.client_id))
 
-        for collection_type, data in collections_by_type.iteritems():
+        for collection_type, data in collections_by_type.items():
             first_collection = data[0][0]
 
             # Create the destination collection modeled after the first

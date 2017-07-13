@@ -31,6 +31,7 @@ rekall.plugins.response.forensic_artifacts.
 
 """
 
+from past.builtins import basestring
 __author__ = "Michael Cohen <scudette@google.com>"
 from artifacts import definitions
 

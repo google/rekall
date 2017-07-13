@@ -1,3 +1,5 @@
+from builtins import str
+from past.builtins import basestring
 import arrow
 
 from rekall_lib import registry
@@ -15,7 +17,7 @@ class JSONCollectionImpl(collections.JSONCollection):
     """A collection which writes its result as JSON."""
     _allowed_types = {
         "int": int,
-        "unicode": unicode,  # Unicode data.
+        "unicode": str,  # Unicode data.
         "str": str, # Used for binary data.
         "float": float,
 

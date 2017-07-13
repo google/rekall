@@ -17,6 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """Plugins to inspect flows."""
+from past.builtins import basestring
+from builtins import object
 import base64
 import json
 import os
@@ -191,7 +193,7 @@ class SerializedObjectInspectorMixin(object):
             highlight="important" if descriptor.get("user") else "",
             depth=depth)
 
-        for key, value in sorted(dict_obj.iteritems()):
+        for key, value in sorted(dict_obj.items()):
             for row in self._explain(value, depth=depth+1):
                 row["Field"] = ". " + key
                 if descriptor.get("user"):
@@ -221,7 +223,7 @@ class SerializedObjectInspectorMixin(object):
             elif isinstance(value, str):
                 display_value = base64.b64encode(value)
 
-            elif isinstance(value, unicode):
+            elif isinstance(value, str):
                 display_value = value
 
             elif isinstance(value, list):
@@ -645,7 +647,7 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
             # Now create a new collection by type into the output directory.
             for output_location in common.THREADPOOL.imap_unordered(
                     self._dump_collection,
-                    collections_by_type.iteritems()):
+                    iter(collections_by_type.items())):
                 yield dict(Message=output_location.to_path())
 
             yield dict(divider="Exporting files")
@@ -673,7 +675,7 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
             # Now create a new collection by type into the output directory.
             for output_location in common.THREADPOOL.imap_unordered(
                     self._dump_collection,
-                    collections_by_type.iteritems()):
+                    iter(collections_by_type.items())):
                 yield dict(Message=output_location.to_path())
 
             yield dict(divider="Exporting files")

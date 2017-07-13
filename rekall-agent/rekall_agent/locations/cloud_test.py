@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 """Test the cloud locations for contacting Google Cloud Storage."""
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
 import argparse
 import os
-import StringIO
+import io
 import time
 
 from rekall import testlib
@@ -132,7 +137,7 @@ class TestGCS(testlib.RekallBaseUnitTestCase):
 
     def _make_file(self):
         # Write 10Mb.
-        infd = StringIO.StringIO()
+        infd = io.StringIO()
         for i in range(2 * 1024):
             tag = "%#16x" % i
             infd.write(1024 / 16 * tag)
@@ -242,10 +247,10 @@ if __name__ == "__main__":
         CONFIG_FILE = args.config
 
     else:
-        print """
+        print("""
 This test requires a valid GCS configuration.
 
 You can make one with the agent_server_initialize_gcs plugin.
-"""
+""")
 
     testlib.main(argv=["test"] + unknown_args)

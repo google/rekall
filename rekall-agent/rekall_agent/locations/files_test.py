@@ -1,5 +1,7 @@
+from future import standard_library
+standard_library.install_aliases()
 import os
-import StringIO
+import io
 
 from rekall import testlib
 from rekall_agent.config import agent
@@ -84,7 +86,7 @@ class TestFileLocation(testlib.RekallBaseUnitTestCase):
             path_template="{base}.txt")
 
         location_obj.upload_file_object(
-            StringIO.StringIO(self.string1), base="test")
+            io.StringIO(self.string1), base="test")
 
         # Make sure that the new location contains the correct data.
         self.assertEqual(location_obj.read_file(base="test"), self.string1)

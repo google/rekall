@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """Implements file download client actions."""
@@ -47,8 +48,8 @@ class GetFiles(collect.CollectActionImpl):
     def get_files_from_row(self, row):
         """Given a row return all the paths in it."""
         if isinstance(self.collection, files.StatEntryCollection):
-            yield os.path.join(unicode(row["dirname"]),
-                               unicode(row["filename"]))
+            yield os.path.join(str(row["dirname"]),
+                               str(row["filename"]))
 
     def collect(self):
         """Intercept collected rows and detect any files."""

@@ -20,6 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from __future__ import print_function
+from builtins import str
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """This plugin implements the config_updater initialization tool.
@@ -139,7 +141,7 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
                 fd.write(self.server_private_key.to_primitive())
 
             self.server_cert = crypto.MakeCASignedCert(
-                unicode("Rekall Agent Server"),
+                str("Rekall Agent Server"),
                 self.server_private_key,
                 self.ca_cert,
                 ca_private_key,
@@ -262,7 +264,7 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
 
         upload_location.write_file(self._config.signed_manifest.to_json())
 
-        print yaml_utils.safe_dump(self._config.manifest.to_primitive())
+        print(yaml_utils.safe_dump(self._config.manifest.to_primitive()))
 
     def collect(self):
         """This should be an interactive script."""
