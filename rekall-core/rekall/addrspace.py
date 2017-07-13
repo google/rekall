@@ -30,8 +30,12 @@
    Alias for all address spaces
 
 """
+from __future__ import division
+from past.utils import old_div
+from builtins import object
 from rekall_lib import registry
 from rekall_lib import utils
+from future.utils import with_metaclass
 
 
 class Zeroer(object):
@@ -120,10 +124,8 @@ class Run(object):
             self.address_space)
 
 
-class BaseAddressSpace(object):
+class BaseAddressSpace(with_metaclass(registry.MetaclassRegistry, object)):
     """ This is the base class of all Address Spaces. """
-
-    __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
     order = 10
@@ -505,7 +507,7 @@ class CachingAddressSpaceMixIn(object):
         if addr == None:
             return addr
 
-        chunk_number = addr / self.CHUNK_SIZE
+        chunk_number = old_div(addr, self.CHUNK_SIZE)
         chunk_offset = addr % self.CHUNK_SIZE
 
         # Do not cache large reads but still pad them to CHUNK_SIZE.

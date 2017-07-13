@@ -31,6 +31,7 @@
 
 # pylint: disable=protected-access
 
+from builtins import str
 import re
 
 from rekall import scan
@@ -134,7 +135,7 @@ class VAD(common.WinProcessFilter):
         except AttributeError:
             pass
 
-        return unicode(filename)
+        return str(filename)
 
     def collect_vadroot(self, vad_root, task):
         task_as = task.get_process_address_space()

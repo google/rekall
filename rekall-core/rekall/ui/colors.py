@@ -27,6 +27,9 @@ http://en.wikipedia.org/wiki/File:Xterm_256color_chart.svg
 The colorspace conversions are thin wrappers around colorsys, except for
 the code to handle XTerm colors, which is my own work.
 """
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import colorsys
@@ -59,7 +62,7 @@ def ChannelStepFunction(intensity):
 
 
 def GreyscaleStepFunction(intensity):
-    return ArbitraryStepFunction(intensity, xrange(0x8, 0xef, 0xa))
+    return ArbitraryStepFunction(intensity, range(0x8, 0xef, 0xa))
 
 
 # Color-space conversions:
@@ -74,7 +77,7 @@ def RGBToXTerm(red, green, blue):
     # Greyscale starts at xterm 232 and has 12 shades. Black and white are part
     # of the 16-color range at the base of the spectrum.
     if sred == sgreen == sblue:
-        avg = (red + green + blue) / 3
+        avg = old_div((red + green + blue), 3)
         if avg < 0x8:
             return 0
         elif avg > 0xee:
@@ -109,14 +112,14 @@ def XTermToRGB(xterm):
 
 def RGBToHSL(red, green, blue):
     hue, luminosity, saturation = colorsys.rgb_to_hls(
-        float(red) / 0xff, float(green) / 0xff, float(blue) / 0xff)
+        old_div(float(red), 0xff), old_div(float(green), 0xff), old_div(float(blue), 0xff))
 
     return hue, saturation, luminosity
 
 
 def RGBToYIQ(red, green, blue):
     return colorsys.rgb_to_yiq(
-        float(red) / 0xff, float(green) / 0xff, float(blue) / 0xff)
+        old_div(float(red), 0xff), old_div(float(green), 0xff), old_div(float(blue), 0xff))
 
 
 def HSLToRGB(hue, saturation, luminosity):
@@ -167,9 +170,9 @@ def XTermTextForBackground(xterm):
 def BlendRGB(x, y, wx=1, wy=1):
     """Blend RGB colors x and y, optionally using assigned weights wx and wy."""
     t = wx + wy
-    return ((x[0] * wx + y[0] * wy) / t,
-            (x[1] * wx + y[1] * wy) / t,
-            (x[2] * wx + y[2] * wy) / t)
+    return (old_div((x[0] * wx + y[0] * wy), t),
+            old_div((x[1] * wx + y[1] * wy), t),
+            old_div((x[2] * wx + y[2] * wy), t))
 
 
 def HeatToHSL(heat, greyscale=False):

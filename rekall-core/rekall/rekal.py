@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from __future__ import print_function
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 # pylint: disable=protected-access
@@ -72,7 +73,7 @@ class Run(plugin.PrivilegedMixIn, plugin.Command):
         if run is not None:
             script = open(run).read()
 
-        exec script in self.session.locals
+        exec(script, self.session.locals)
 
 
 def main(argv=None):
@@ -85,10 +86,10 @@ def main(argv=None):
 
     def global_arg_cb(global_flags, _):
         if global_flags.version:
-            print "This is Rekall Version %s (%s)" % (
-                constants.VERSION, constants.CODENAME)
+            print("This is Rekall Version %s (%s)" % (
+                constants.VERSION, constants.CODENAME))
 
-            print rekall.get_versions()
+            print(rekall.get_versions())
             sys.exit(0)
 
     plugin_cls, flags = args.parse_args(

@@ -17,7 +17,12 @@
 #
 
 """The module implements the base class for address resolution."""
+from __future__ import division
 
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import re
@@ -136,7 +141,7 @@ class AddressResolverMixin(object):
 
     def NormalizeModuleName(self, module_name):
         if module_name is not None:
-            module_name = unicode(module_name)
+            module_name = str(module_name)
             module_name = re.split(r"[/\\]", module_name)[-1]
 
             return module_name.lower()
@@ -207,7 +212,7 @@ class AddressResolverMixin(object):
 
     def GetAllModules(self):
         self._EnsureInitialized()
-        return self._modules_by_name.values()
+        return list(self._modules_by_name.values())
 
     def get_constant_object(self, name, target=None, **kwargs):
         """Instantiate the named constant with these args.
@@ -385,8 +390,8 @@ class AddressResolverMixin(object):
             elif isinstance(member_obj, obj.Array):
                 # Next lowest index is a whole number of items.
                 item = member_obj[0]
-                next_lowest_index = (
-                    offset - member_obj.obj_offset) / item.obj_size
+                next_lowest_index = old_div((
+                    offset - member_obj.obj_offset), item.obj_size)
                 result += "[%s]" % next_lowest_index
 
                 member_obj = member_obj[next_lowest_index]

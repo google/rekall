@@ -38,7 +38,12 @@ $ rekal -v --profile ntfs -f ~/images/ntfs1-gen2.E01
 ...
 
 """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import array
 import logging
 import re
@@ -111,7 +116,7 @@ ntfs_vtypes = {
         "cluster_size": lambda x: x.m("_cluster_size") * x.sector_size,
 
         # The total number of clusters in the volume
-        "block_count": lambda x: x.m("_volume_size") / x.cluster_size,
+        "block_count": lambda x: old_div(x.m("_volume_size"), x.cluster_size),
 
         "_volume_size":   [40, ["unsigned long"]],
         "_mft_cluster":   [48, ["unsigned long"]],
@@ -682,7 +687,7 @@ class MFT_ENTRY(obj.Struct):
         depth = 0
         while depth < 10:
             filename_record = mft_entry.filename
-            filename = unicode(filename_record.name)
+            filename = str(filename_record.name)
             if filename == ".":
                 break
 
@@ -808,7 +813,7 @@ class NTFS_ATTRIBUTE(obj.Struct):
 
         elif self.type == "$INDEX_ALLOCATION":
             result = []
-            for i in xrange(0, self.size, 0x1000):
+            for i in range(0, self.size, 0x1000):
                 result.append(
                     self.obj_profile.STANDARD_INDEX_HEADER(
                         offset=i, vm=self.data, context=self.obj_context))
@@ -873,7 +878,7 @@ class NTFS_ATTRIBUTE(obj.Struct):
     def owner_MFT(self):
         """The MFT entry containing this entry."""
         # Note that our offset is expressed in terms of the MFT already.
-        return self.obj_offset / 0x400
+        return old_div(self.obj_offset, 0x400)
 
     @utils.safe_property
     def size(self):
@@ -986,7 +991,7 @@ class NTFS(object):
           a tuple of (path, MFT_ENTRY) where path is the case corrected path.
 
         """
-        components = filter(None, re.split(r"[\\/]", path))
+        components = [_f for _f in re.split(r"[\\/]", path) if _f]
         return_path = []
 
         # Always start from the root of the filesystem.

@@ -81,7 +81,7 @@ class LimeAddressSpace(addrspace.RunBasedAddressSpace):
         header = LimeProfile(session=self.session).lime_header(vm=self.base)
         while header.magic == "EMiL":
             self.add_run(header.start, header.obj_end, header.size)
-            header = header.next
+            header = header.__next__
 
     def vtop(self, addr):
         """I have no idea why this is needed.

@@ -19,6 +19,7 @@
 
 """This module implements core memmap/memdump plugins."""
 
+from builtins import object
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall import plugin

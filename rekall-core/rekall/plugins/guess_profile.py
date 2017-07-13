@@ -19,6 +19,9 @@
 
 """This module guesses the current profile using various heuristics."""
 
+from builtins import str
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 # pylint: disable=protected-access
@@ -41,10 +44,8 @@ from rekall.plugins.windows import common as win_common
 from rekall.plugins.overlays.windows import pe_vtypes
 
 
-class DetectionMethod(object):
+class DetectionMethod(with_metaclass(registry.MetaclassRegistry, object)):
     """A baseclass to implement autodetection methods."""
-
-    __metaclass__ = registry.MetaclassRegistry
     name = None
 
     order = 100

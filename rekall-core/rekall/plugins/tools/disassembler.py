@@ -21,6 +21,10 @@
 Provides the primitives needed to disassemble code using capstone.
 """
 
+from builtins import str
+from builtins import zip
+from past.builtins import basestring
+from builtins import object
 import binascii
 import capstone
 import re
@@ -181,7 +185,7 @@ class CapstoneInstruction(Instruction):
 
     @utils.safe_property
     def hexbytes(self):
-        return unicode(binascii.hexlify(self.insn.bytes))
+        return str(binascii.hexlify(self.insn.bytes))
 
     def format_indirect(self, operand, size):
         if size == 1:
@@ -236,7 +240,7 @@ class CapstoneInstruction(Instruction):
 
     def _MatchRule(self, rule, instruction, context):
         if isinstance(rule, dict):
-            for k, v in rule.iteritems():
+            for k, v in rule.items():
                 expected = instruction.get(k)
                 if not self._MatchRule(v, expected, context):
                     return False

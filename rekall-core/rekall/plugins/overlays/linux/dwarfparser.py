@@ -18,6 +18,7 @@
 #
 
 """A parser for dwarf modules which generates vtypes."""
+from builtins import object
 import logging
 
 from elftools import construct
@@ -107,7 +108,7 @@ class DIETag(object):
         if parents:
             self.parent = parents[-1]
 
-        for attr in die.attributes.values():
+        for attr in list(die.attributes.values()):
             self.attributes[attr.name] = attr
 
     @utils.safe_property
@@ -292,7 +293,7 @@ class DW_TAG_member(DIETag):
 
         if 'DW_AT_data_member_location' in self.attributes:
             value = self.attributes['DW_AT_data_member_location'].value
-            if isinstance(value, (int, long)):
+            if isinstance(value, int):
                 self.offset = value
             else:
                 op_code, value = describe_DWARF_expr(value, die.cu.structs)
@@ -483,7 +484,7 @@ class DWARFParser(object):
     def VType(self):
         """Build a vtype for this module's dwarf information."""
         result = {}
-        for type in self.types.values():
+        for type in list(self.types.values()):
             self.session.report_progress("Extracting type %s", type.name)
             # Only structs emit definitions basically.
             type.Definition(result)

@@ -33,16 +33,20 @@ io_manager attribute, which will be used to create new files, or read from
 existing files.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@google.com>"
 
-import StringIO
+import io
 import gzip
 import json
 import time
 import os
 import shutil
-import urllib2
-import urlparse
+import urllib.request, urllib.error, urllib.parse
+import urllib.parse
 import zipfile
 
 from rekall import constants
@@ -67,7 +71,7 @@ class DecodeError(IOError):
     """Raised when unable to decode to the IO Manager."""
 
 
-class IOManager(object):
+class IOManager(with_metaclass(registry.MetaclassRegistry, object)):
     """The baseclass for abstracted IO implementations.
 
     The IO manager classes are responsible for managing access to profiles. A
@@ -79,8 +83,6 @@ class IOManager(object):
     The IO manager may actually store the profile file using some other scheme,
     but that internal scheme is private to itself.
     """
-
-    __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
     order = 100
@@ -468,7 +470,7 @@ class DirectoryIOManager(IOManager):
         # We need to update the file atomically in case someone else is trying
         # to open it right now. Since the files are expected to be fairly small
         # its ok to compress into memory and just write atomically.
-        fd = StringIO.StringIO()
+        fd = io.StringIO()
         with gzip.GzipFile(mode="wb", fileobj=fd) as gzip_fd:
             gzip_fd.write(to_write)
 
@@ -483,11 +485,11 @@ class DirectoryIOManager(IOManager):
 
 # pylint: disable=protected-access
 
-class SelfClosingFile(StringIO.StringIO):
+class SelfClosingFile(io.StringIO):
     def __init__(self, name, manager):
         self.name = name
         self.manager = manager
-        StringIO.StringIO.__init__(self)
+        io.StringIO.__init__(self)
 
     def __enter__(self):
         return self
@@ -626,7 +628,7 @@ class URLManager(IOManager):
             raise IOManagerError("%s supports only reading." %
                                  self.__class__.__name__)
 
-        self.url = urlparse.urlparse(urn)
+        self.url = urllib.parse.urlparse(urn)
         if self.url.scheme not in ("http", "https"):
             raise IOManagerError("%s supports only http protocol." %
                                  self.__class__.__name__)
@@ -642,7 +644,7 @@ class URLManager(IOManager):
     def _GetURL(self, name):
         url = self.url._replace(path="%s/%s/%s" % (
             self.url.path, self.version, name))
-        return urlparse.urlunparse(url)
+        return urllib.parse.urlunparse(url)
 
     def Open(self, name):
         url = self._GetURL(name)
@@ -650,14 +652,14 @@ class URLManager(IOManager):
         try:
             # Rekall repositories always use gzip to compress the files - so
             # first try with the .gz extension.
-            fd = urllib2.urlopen(url + ".gz", timeout=10)
+            fd = urllib.request.urlopen(url + ".gz", timeout=10)
             self.session.logging.debug("Opened url %s.gz" % url)
             return gzip.GzipFile(
-                fileobj=StringIO.StringIO(fd.read(MAX_DATA_SIZE)))
-        except urllib2.HTTPError:
+                fileobj=io.StringIO(fd.read(MAX_DATA_SIZE)))
+        except urllib.error.HTTPError:
             # Try to load the file without the .gz extension.
             self.session.logging.debug("Opened url %s" % url)
-            return urllib2.urlopen(url, timeout=10)
+            return urllib.request.urlopen(url, timeout=10)
 
     def __str__(self):
         return "URL:%s" % self.urn
@@ -665,7 +667,7 @@ class URLManager(IOManager):
 
 def Factory(urn, mode="r", session=None, **kwargs):
     """Try to instantiate the IOManager class."""
-    for cls in sorted(IOManager.classes.values(), key=lambda x: x.order):
+    for cls in sorted(list(IOManager.classes.values()), key=lambda x: x.order):
         try:
             return cls(urn=urn, mode=mode, session=session, **kwargs)
         except IOError:

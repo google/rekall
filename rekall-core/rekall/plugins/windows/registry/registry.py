@@ -22,6 +22,13 @@
 
 We parse registry structures from files or memory.
 """
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
               "by Brendan Dolan-Gavitt")
 
@@ -221,7 +228,7 @@ class HiveAddressSpace(HiveBaseAddressSpace):
             yield "\0" * self.BLOCK_SIZE
 
         length = self.hive.Hive.Storage[0].Length.v()
-        for i in xrange(0, length, self.BLOCK_SIZE):
+        for i in range(0, length, self.BLOCK_SIZE):
             paddr = self.vtop(i)
             if not paddr:
                 self.logging.warn("No mapping found for index {0:x}, "
@@ -246,10 +253,10 @@ class HiveAddressSpace(HiveBaseAddressSpace):
             ci = lambda x: x | 0x80000000
 
         length = self.hive.Hive.Storage[stor].Length.v()
-        total_blocks = length / self.BLOCK_SIZE
+        total_blocks = old_div(length, self.BLOCK_SIZE)
         bad_blocks_reg = 0
         bad_blocks_mem = 0
-        for i in xrange(0, length, self.BLOCK_SIZE):
+        for i in range(0, length, self.BLOCK_SIZE):
             i = ci(i)
             data = None
             paddr = self.vtop(i) - 4
@@ -270,7 +277,7 @@ class HiveAddressSpace(HiveBaseAddressSpace):
 
         if total_blocks:
             print("Total of {0:.2f}% of hive unreadable.".format(
-                ((bad_blocks_reg + bad_blocks_mem) / float(total_blocks)
+                (old_div((bad_blocks_reg + bad_blocks_mem), float(total_blocks))
                 ) * 100))
 
         return (bad_blocks_reg, bad_blocks_mem, total_blocks)
@@ -305,7 +312,7 @@ class _CM_KEY_NODE(obj.Struct):
     def open_subkey(self, subkey_name):
         """Opens our direct child."""
         for subkey in self.subkeys():
-            if unicode(subkey.Name).lower() == subkey_name.lower():
+            if str(subkey.Name).lower() == subkey_name.lower():
                 return subkey
 
         return obj.NoneObject("Couldn't find subkey {0} of {1}",
@@ -313,7 +320,7 @@ class _CM_KEY_NODE(obj.Struct):
 
     def open_value(self, value_name):
         """Opens our direct child."""
-        for value in self.values():
+        for value in list(self.values()):
             if value.Name == value_name:
                 return value
 
@@ -351,7 +358,7 @@ class _CM_KEY_NODE(obj.Struct):
         key = self
         while key:
             try:
-                path.append(unicode(key.Name))
+                path.append(str(key.Name))
             except AttributeError:
                 pass
             key = key.obj_parent
@@ -396,13 +403,13 @@ class _CM_KEY_INDEX(obj.Struct):
             # not care about the hash at all, so we skip every other entry. See
             # http://www.sentinelchicken.com/data/TheWindowsNTRegistryFileFormat.pdf
             key_list = self.List
-            for i in xrange(self.Count * 2):
+            for i in range(self.Count * 2):
                 nk = key_list[i]
                 if nk.Signature == self.NK_SIG:
                     yield nk
 
         elif self.Signature == self.RI_SIG:
-            for i in xrange(self.Count):
+            for i in range(self.Count):
                 # This is a pointer to another _CM_KEY_INDEX
                 for subkey in self.obj_profile.Object(
                         "Pointer32", offset=self.List[i].v(),
@@ -413,7 +420,7 @@ class _CM_KEY_INDEX(obj.Struct):
 
         elif self.Signature == self.LI_SIG:
             key_list = self.List
-            for i in xrange(self.Count):
+            for i in range(self.Count):
                 nk = key_list[i]
                 if nk.Signature == self.NK_SIG:
                     yield nk
@@ -537,7 +544,7 @@ class Registry(object):
         """
         if isinstance(key, basestring):
             # / can be part of the key name...
-            key = filter(None, re.split(r"[\\/]", key))
+            key = [_f for _f in re.split(r"[\\/]", key) if _f]
 
         result = self.root
         for component in key:

@@ -25,6 +25,16 @@
 The Rekall Memory Forensics object system.
 
 """
+from __future__ import division
+from future import standard_library
+import sys
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
+from future.utils import with_metaclass
 __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
               "by AAron Walters and Brendan Dolan-Gavitt with contributions "
               "by Mike Auty")
@@ -37,7 +47,7 @@ import pdb
 import operator
 import os
 import struct
-import StringIO
+import io
 import copy
 
 import traceback
@@ -76,11 +86,11 @@ class ProfileLog(object):
             atexit.register(self._DumpData)
 
     def _MergeData(self, data):
-        for profile, structs in data.items():
+        for profile, structs in list(data.items()):
             if profile not in self.data:
                 self.data[profile] = data[profile]
             else:
-                for c_struct, fields in structs.items():
+                for c_struct, fields in list(structs.items()):
                     if c_struct not in self.data[profile]:
                         self.data[profile][c_struct] = fields
                     else:
@@ -153,27 +163,26 @@ class Curry(object):
         return getattr(self._target, attr)
 
 
-class NoneObject(object):
+class NoneObject(with_metaclass(registry.UniqueObjectIdMetaclass, object)):
     """A magical object which is like None but swallows bad
     dereferences, __getattr__, iterators etc to return itself.
 
     Instantiate with the reason for the error.
     """
-    __metaclass__ = registry.UniqueObjectIdMetaclass
 
     def __init__(self, reason="None Object", *args, **kwargs):
         # Often None objects are instantiated on purpose so its not really that
         # important to see their reason.
         if kwargs.get("log"):
             logging.log(logging.WARN, reason)
-        self.reason = unicode(reason)
+        self.reason = str(reason)
         self.strict = kwargs.get("strict")
         self.args = args
         if self.strict:
             self.bt = ''.join(traceback.format_stack()[:-2])
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __unicode__(self):
         # If we are strict we blow up here
@@ -225,7 +234,7 @@ class NoneObject(object):
     def __bool__(self):
         return False
 
-    def __nonzero__(self):
+    def __bool__(self):
         return False
 
     # Comparisons.
@@ -292,9 +301,7 @@ class ProfileError(Error):
     """Errors in setting the profile."""
 
 
-class BaseObject(object):
-    __metaclass__ = registry.UniqueObjectIdMetaclass
-
+class BaseObject(with_metaclass(registry.UniqueObjectIdMetaclass, object)):
     obj_parent = NoneObject("No parent")
     obj_name = NoneObject("No name")
     obj_producers = None
@@ -385,7 +392,7 @@ class BaseObject(object):
         """Function for writing the object back to disk"""
         pass
 
-    def __nonzero__(self):
+    def __bool__(self):
         """This method is called when we test the truth value of an Object.
 
         In rekall we consider an object to have True truth value only when it is
@@ -492,10 +499,10 @@ class BaseObject(object):
         return NoneObject("No value for {0}", self.obj_name)
 
     def __str__(self):
-        return utils.SmartStr(unicode(self))
+        return utils.SmartStr(str(self))
 
     def __unicode__(self):
-        fd = StringIO.StringIO()
+        fd = io.StringIO()
         ui_renderer = renderer.BaseRenderer.classes["TextRenderer"](
             session=self.obj_session, fd=fd)
         with ui_renderer.start():
@@ -514,7 +521,7 @@ class BaseObject(object):
 
     def __dir__(self):
         """Hide any members with _."""
-        result = self.__dict__.keys() + dir(self.__class__)
+        result = list(self.__dict__.keys()) + dir(self.__class__)
 
         return result
 
@@ -618,10 +625,10 @@ class NativeType(NumericProxyMixIn, BaseObject):
         return self.v()
 
     def __radd__(self, other):
-        return long(other) + self.v()
+        return int(other) + self.v()
 
     def __rsub__(self, other):
-        return long(other) - self.v()
+        return int(other) - self.v()
 
     @utils.safe_property
     def obj_size(self):
@@ -695,7 +702,7 @@ class BitField(NativeType):
             self.obj_type, self.start_bit, self.end_bit, self.obj_name,
             self.v())
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._proxy.v() & self.mask)
 
 
@@ -809,7 +816,7 @@ class Pointer(NativeType):
     def cdecl(self):
         return "Pointer {0}".format(self.v())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """This method is used in comparison operations.
 
         This ideas here is to make it possible to easily write a condition such
@@ -855,7 +862,7 @@ class Pointer(NativeType):
             self.target_size = (self.target_size or
                                 self.obj_profile.Object(self.target).obj_size)
 
-            return (int(self) - int(other)) / self.target_size
+            return old_div((int(self) - int(other)), self.target_size)
 
         return self.__add__(-other)
 
@@ -959,7 +966,7 @@ class Void(Pointer):
         return "Void[{0} {1}] (0x{2:08x})".format(
             self.__class__.__name__, self.obj_name or '', self.v())
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.dereference())
 
 
@@ -1016,7 +1023,7 @@ class Array(BaseObject):
                 **self.target_args).obj_size
 
         if size > 0:
-            self.count = size / self.target_size
+            self.count = old_div(size, self.target_size)
 
     @utils.safe_property
     def obj_size(self):
@@ -1069,7 +1076,7 @@ class Array(BaseObject):
         if not other or self.count != len(other):
             return False
 
-        for i in xrange(self.count):
+        for i in range(self.count):
             if not self[i] == other[i]:
                 return False
 
@@ -1079,7 +1086,7 @@ class Array(BaseObject):
         # Check for slice object
         if isinstance(pos, slice):
             start, stop, step = pos.indices(self.count)
-            return [self[i] for i in xrange(start, stop, step)]
+            return [self[i] for i in range(start, stop, step)]
 
         pos = int(pos)
         offset = self.target_size * pos + self.obj_offset
@@ -1121,7 +1128,7 @@ class PointerArray(Array):
         self._data = struct.unpack(self.format_string, data)
 
     def __iter__(self):
-        for i in xrange(len(self._data)):
+        for i in range(len(self._data)):
             yield self[i]
 
     def __getitem__(self, pos):
@@ -1476,7 +1483,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 # Profiles are the interface for creating/interpreting
 # objects
 
-class ProfileSectionLoader(object):
+class ProfileSectionLoader(with_metaclass(registry.MetaclassRegistry, object)):
     """A loader for a section in the profile JSON file.
 
     The profile json serialization contains a number of sections, each has a
@@ -1484,7 +1491,6 @@ class ProfileSectionLoader(object):
     is initialized, it uses a variety of loaders to handle each section in the
     profile. This allows more complex sections to be introduced and extended.
     """
-    __metaclass__ = registry.MetaclassRegistry
     __abstract = True
     order = 100
 
@@ -1610,7 +1616,7 @@ class DummyAS(object):
         return "\x00" * length
 
 
-class Profile(object):
+class Profile(with_metaclass(registry.MetaclassRegistry, object)):
     """A collection of types relating to a single compilation unit.
 
     Profiles are usually not instantiated directly. Rather, the profiles are
@@ -1627,9 +1633,6 @@ class Profile(object):
 
     # This hold the executable code compiled from the vtypes above.
     types = None
-
-    # This is the base class for all profiles.
-    __metaclass__ = registry.MetaclassRegistry
 
     # This is a dict of constants
     constants = None
@@ -1739,7 +1742,7 @@ class Profile(object):
 
         self._metadata.update(metadata or {})
 
-        self.name = unicode(name)
+        self.name = str(name)
         self.session = session
         if session is None:
             raise RuntimeError("Session must be specified.")
@@ -1874,8 +1877,8 @@ class Profile(object):
         """Add the kwargs as constants for this profile."""
         self.flush_cache()
 
-        for k, v in constants.iteritems():
-            k = intern(str(k))
+        for k, v in constants.items():
+            k = sys.intern(str(k))
             self.constants[k] = v
             if constants_are_addresses:
                 try:
@@ -1895,16 +1898,16 @@ class Profile(object):
 
     def add_reverse_enums(self, **kwargs):
         """Add the kwargs as a reverse enum for this profile."""
-        for k, v in kwargs.iteritems():
-            self.reverse_enums[intern(str(k))] = intern(str(v))
+        for k, v in kwargs.items():
+            self.reverse_enums[sys.intern(str(k))] = sys.intern(str(v))
 
     def add_enums(self, **kwargs):
         """Add the kwargs as an enum for this profile."""
         # Alas JSON converts integer keys to strings.
-        for k, v in kwargs.iteritems():
-            self.enums[intern(str(k))] = enum_definition = {}
-            for enum, name in v.items():
-                enum_definition[intern(str(enum))] = name
+        for k, v in kwargs.items():
+            self.enums[sys.intern(str(k))] = enum_definition = {}
+            for enum, name in list(v.items()):
+                enum_definition[sys.intern(str(enum))] = name
 
     def add_types(self, abstract_types):
         self.flush_cache()
@@ -1917,7 +1920,7 @@ class Profile(object):
         # definitions may have changed as a result of this call, and
         # we store curried objects (which might keep their previous
         # definitions).
-        for k, v in abstract_types.items():
+        for k, v in list(abstract_types.items()):
             if isinstance(v, list):
                 self.vtypes[k] = v
 
@@ -1968,20 +1971,20 @@ class Profile(object):
 
             size, field_description = type_descriptor
 
-            for k, v in field_description.items():
+            for k, v in list(field_description.items()):
                 k = str(k)
 
                 # If the overlay specifies a callable, we place it in the
                 # callable_members dict, and revert back to the vtype
                 # definition.
                 if callable(v):
-                    callable_members[intern(k)] = v
+                    callable_members[sys.intern(k)] = v
 
                     # If the callable is masking an existing field, revert back
                     # to it.
                     original_v = original_type_descriptor[1].get(k)
                     if original_v:
-                        members[intern(k)] = (
+                        members[sys.intern(k)] = (
                             original_v[0], self.list_to_type(k, original_v[1]))
 
                 elif v[0] == None:
@@ -1990,13 +1993,13 @@ class Profile(object):
                         "has a concrete definition for it.",
                         k, type_name)
                 else:
-                    members[intern(str(k))] = (
+                    members[sys.intern(str(k))] = (
                         v[0], self.list_to_type(k, v[1]))
 
             # Allow the class plugins to override the class constructor here
             cls = self.object_classes.get(type_name, Struct)
 
-            self.types[intern(str(type_name))] = self._make_struct_callable(
+            self.types[sys.intern(str(type_name))] = self._make_struct_callable(
                 cls, type_name, members, size, callable_members)
 
     def _make_struct_callable(self, cls, type_name, members, size,
@@ -2024,7 +2027,7 @@ class Profile(object):
         # args:
         # http://stackoverflow.com/questions/938429/scope-of-python-lambda-functions-and-their-parameters/938493#938493
 
-        properties = dict(callable_members=callable_members.keys())
+        properties = dict(callable_members=list(callable_members.keys()))
         for name in set(members).union(callable_members):
 
             # Do not mask hand written methods with autogenerated properties.
@@ -2239,7 +2242,7 @@ class Profile(object):
 
         # Now go over all the fields in the type_member and copy them into the
         # overlay.
-        for k, v in type_member[1].items():
+        for k, v in list(type_member[1].items()):
             if k not in field_overlay:
                 field_overlay[k] = v
             else:
@@ -2399,7 +2402,7 @@ class Profile(object):
 
     def __dir__(self):
         """Support tab completion."""
-        return sorted(self.__dict__.keys() + list(self.known_types) +
+        return sorted(list(self.__dict__.keys()) + list(self.known_types) +
                       dir(self.__class__))
 
     def __getattr__(self, attr):
@@ -2444,7 +2447,7 @@ class Profile(object):
         name = name or type_name
 
         # Ensure we are called correctly.
-        if name.__class__ not in (unicode, str):
+        if name.__class__ not in (str, str):
             raise ValueError("Type name must be a string")
 
         if offset is None:
@@ -2502,7 +2505,7 @@ class Profile(object):
             self.metadata("arch"), self.name, self.__class__.__name__)
 
     def __repr__(self):
-        return unicode(self)
+        return str(self)
 
     def integer_to_address(self, virtual_address):
         return virtual_address & self.constants.get(

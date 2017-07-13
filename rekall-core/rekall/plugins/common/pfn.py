@@ -19,6 +19,7 @@
 
 
 
+from builtins import object
 class PhysicalAddressContext(object):
     """A lazy evaluator for context information around physical addresses."""
 

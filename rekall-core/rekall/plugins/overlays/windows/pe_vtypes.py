@@ -31,6 +31,8 @@ http://code.google.com/p/pefile/
 Version information:
 http://msdn.microsoft.com/en-us/library/windows/desktop/ff468916(v=vs.85).aspx
 """
+from builtins import str
+from builtins import object
 import copy
 import re
 
@@ -269,7 +271,7 @@ pe_overlays = {
                 'IMAGE_SCN_MEM_SHARED':                0x10000000,
                 'IMAGE_SCN_MEM_EXECUTE':               0x20000000,
                 'IMAGE_SCN_MEM_READ':                  0x40000000,
-                'IMAGE_SCN_MEM_WRITE':                 0x80000000L},
+                'IMAGE_SCN_MEM_WRITE':                 0x80000000},
             'target': 'unsigned long'}]],
 
         'execution_flags': lambda x: "%s%s%s" % (
@@ -951,7 +953,7 @@ class PE(object):
                 "VS_VERSIONINFO")
 
             for string in version_info.Strings():
-                yield unicode(string.Key), unicode(string.Value)
+                yield str(string.Key), str(string.Value)
 
     def VersionInformationDict(self):
         return dict(self.VersionInformation())
@@ -1091,7 +1093,7 @@ class Demangler(object):
 
         result = []
         for cap in string.split("?"):
-            for k, v in self.STRING_MANGLE_MAP.items():
+            for k, v in list(self.STRING_MANGLE_MAP.items()):
                 cap = re.sub(k, v, cap)
 
             result.append(cap)
@@ -1157,7 +1159,7 @@ class BasicPEProfile(basic.RelativeOffsetMixin, basic.BasicClasses):
         demangler = Demangler(self._metadata)
         result = {}
 
-        for k, v in constants.iteritems():
+        for k, v in constants.items():
             result[demangler.DemangleName(k)] = v
 
         super(BasicPEProfile, self).add_constants(

@@ -1,3 +1,4 @@
+from __future__ import division
 # Rekall Memory Forensics
 # Copyright (C) 2007,2008 Volatile Systems
 # Copyright (C) 2010,2011,2012 Michael Hale Ligh <michael.ligh@mnin.org>
@@ -18,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from past.utils import old_div
 import logging
 
 
@@ -81,7 +83,7 @@ class tagSHAREDINFO(win32k_core.tagSHAREDINFO):
         if not self.psi.is_valid():
             return False
 
-        return (self.psi.cbHandleTable / self.HeEntrySize ==
+        return (old_div(self.psi.cbHandleTable, self.HeEntrySize) ==
                 self.psi.cHandleEntries)
 
 

@@ -1,3 +1,4 @@
+from __future__ import division
 # Rekall Memory Forensics
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -21,6 +22,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from past.utils import old_div
 import os
 
 from rekall import plugin
@@ -67,7 +69,7 @@ class ImageCopy(plugin.PhysicalASMixin, plugin.Command):
         for i in ['B', 'KB', 'MB', 'GB']:
             if value < 800:
                 return "{0:0.2f} {1:s}".format(value, i)
-            value = value / 1024.0
+            value = old_div(value, 1024.0)
 
         return "{0:0.2f} TB".format(value)
 

@@ -29,6 +29,8 @@ Note that the configuration file is only used in interactive mode. When used as
 a library the configuration file has no effect.
 """
 
+from builtins import str
+from builtins import object
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import collections
@@ -127,7 +129,7 @@ class CommandMetadata(object):
 
     def Metadata(self):
         return dict(requirements=list(self.requirements),
-                    arguments=self.args.values(), name=self.plugin_cls.name,
+                    arguments=list(self.args.values()), name=self.plugin_cls.name,
                     description=self.description)
 
     def ApplyDefaults(self, args):
@@ -136,7 +138,7 @@ class CommandMetadata(object):
         If an option in args is None, we update it with the default value for
         this option.
         """
-        for name, options in self.args.iteritems():
+        for name, options in self.args.items():
             if options.get("dest") == "SUPPRESS":
                 continue
 
@@ -244,11 +246,11 @@ def MergeConfigOptions(state, session):
         config_data = CreateDefaultConfigFile(session)
 
     # First apply the defaults:
-    for name, options in OPTIONS.args.iteritems():
+    for name, options in OPTIONS.args.items():
         if name not in config_data:
             config_data[name] = options.get("default")
 
-    for k, v in config_data.items():
+    for k, v in list(config_data.items()):
         state.Set(k, v)
 
 
@@ -268,6 +270,6 @@ def DeclareOption(*args, **kwargs):
     kwargs["positional"] = False
     default = kwargs.get("default")
     if default is not None and isinstance(default, str):
-        kwargs["default"] = unicode(default)
+        kwargs["default"] = str(default)
 
     OPTIONS.add_argument(*args, **kwargs)

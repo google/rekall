@@ -16,7 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """Miscelaneous information gathering plugins."""
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 __author__ = "Michael Cohen <scudette@google.com>"
 import hashlib
 
@@ -106,7 +110,7 @@ class WinVirtualMap(common.WindowsCommandPlugin):
         range_type = range_start = range_length = 0
 
         for offset in range(system_range_start, 0xffffffff, va_table_size):
-            table_index = (offset - system_range_start) / va_table_size
+            table_index = old_div((offset - system_range_start), va_table_size)
             page_type = system_va_table[table_index]
             if page_type != range_type:
                 if range_type:
@@ -222,7 +226,7 @@ class ImageInfo(common.WindowsCommandPlugin):
         yield ("Time (UTC)", kuser_shared.SystemTime)
 
         # The bias is given in windows file time (i.e. in 100ns ticks).
-        bias = kuser_shared.TimeZoneBias.cast("long long") / 1e7
+        bias = old_div(kuser_shared.TimeZoneBias.cast("long long"), 1e7)
         yield ("Time (Local)", kuser_shared.SystemTime.display(
             utc_shift=-bias))
 
@@ -293,7 +297,7 @@ class WinImageFingerprint(common.AbstractWindowsParameterHook):
             result.append((task_name_offset, name.v()))
 
         return dict(
-            hash=hashlib.sha1(unicode(result).encode("utf8")).hexdigest(),
+            hash=hashlib.sha1(str(result).encode("utf8")).hexdigest(),
             tests=result)
 
 
@@ -331,7 +335,7 @@ class ObjectTree(common.WindowsCommandPlugin):
         try:
             path = self.ResolveSymlinks(path)
             for prefix, drive_letter in self.session.GetParameter(
-                    "drive_letter_device_map").iteritems():
+                    "drive_letter_device_map").items():
                 prefix = self.ResolveSymlinks(prefix)
                 if path.startswith(prefix):
                     return drive_letter + path[len(prefix):]
@@ -398,7 +402,7 @@ class ObjectTree(common.WindowsCommandPlugin):
                 continue
             seen.add(obj_header)
 
-            name = unicode(obj_header.NameInfo.Name)
+            name = str(obj_header.NameInfo.Name)
             obj_type = str(obj_header.get_object_type())
 
             if obj_type == "SymbolicLink":

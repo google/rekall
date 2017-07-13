@@ -148,7 +148,7 @@ class ProfileTest(testlib.RekallBaseUnitTestCase):
         self.assert_(test.ptr32)
 
         # Now dereference a struct.
-        ptr3 = test.next
+        ptr3 = test.__next__
 
         # This struct starts at offset 8.
         self.assertEqual(test.next.v(), 8)

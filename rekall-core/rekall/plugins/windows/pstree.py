@@ -65,7 +65,7 @@ class PSTree(common.WinProcessFilter):
 
         def draw_children(pad, pid):
             """Given a pid output all its children."""
-            for task in sorted(process_dict.values(), key=lambda x: x.pid):
+            for task in sorted(list(process_dict.values()), key=lambda x: x.pid):
                 if task.InheritedFromUniqueProcessId != pid:
                     continue
 
@@ -87,7 +87,7 @@ class PSTree(common.WinProcessFilter):
                     yield x
 
         while process_dict:
-            keys = process_dict.keys()
+            keys = list(process_dict.keys())
             root = self._find_root(process_dict, keys[0])
             for x in draw_children(0, root):
                 yield x

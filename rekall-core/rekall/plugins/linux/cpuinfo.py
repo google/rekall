@@ -23,6 +23,7 @@
 @organization: Digital Forensics Solutions
 """
 
+from builtins import range
 from rekall.plugins.linux import common
 
 class Banner(common.LinuxPlugin):
@@ -64,7 +65,7 @@ class CpuInfo(common.LinuxPlugin):
         bmap = self.profile.Object(
             "unsigned long", offset=cpus, vm=self.kernel_address_space)
 
-        for i in xrange(0, bmap.obj_size):
+        for i in range(0, bmap.obj_size):
             if bmap & (1 << i):
                 yield i
 

@@ -18,6 +18,9 @@
 
 """Rekall's search function."""
 
+from builtins import next
+from builtins import str
+from builtins import object
 __author__ = "Adam Sindelar <adamsh@google.com>"
 import itertools
 
@@ -111,7 +114,7 @@ class FindPlugins(plugin.TypedProfileCommand, plugin.ProfileCommand):
         else:
             pertinent_cls = plugin.TypedProfileCommand
 
-        for plugin_cls in plugin.Command.classes.itervalues():
+        for plugin_cls in plugin.Command.classes.values():
             if not plugin_cls.is_active(self.session):
                 continue
 
@@ -187,7 +190,7 @@ class Collect(plugin.TypedProfileCommand, plugin.ProfileCommand):
                     result.obj_producers = set([producer.name])
                     results[result.indices] = result
 
-        return results.itervalues()
+        return iter(results.values())
 
     def render(self, renderer):
         renderer.table_header([
@@ -397,7 +400,7 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
     def getmembers_runtime(self):
         """Get all available plugins."""
         result = dir(self.session.plugins)
-        result += helpers.EFILTER_SCOPES.keys()
+        result += list(helpers.EFILTER_SCOPES.keys())
 
         return frozenset(result)
 
@@ -557,7 +560,7 @@ class Search(EfilterPlugin):
         """Used to render search results if they are basic dicts."""
         try:
             for row in rows:
-                renderer.table_row(*row.itervalues())
+                renderer.table_row(*iter(row.values()))
         except errors.EfilterError as error:
             self.query_error = error
             return self.render_error(renderer)
@@ -687,7 +690,7 @@ class Explain(EfilterPlugin):
         """Reflect what Search reflects, and also struct types."""
         result = super(Explain, self).getmembers_runtime()
 
-        return set(result) | set(self.session.profile.vtypes.iterkeys())
+        return set(result) | set(self.session.profile.vtypes.keys())
 
     def recurse_expr(self, expr, depth):
         yield expr, depth
@@ -946,7 +949,7 @@ structured.IStructured.implement(
     for_type=utils.AttributeDict,
     implementations={
         structured.resolve: lambda d, m: d.get(m),
-        structured.getmembers_runtime: lambda d: d.keys(),
+        structured.getmembers_runtime: lambda d: list(d.keys()),
     }
 )
 

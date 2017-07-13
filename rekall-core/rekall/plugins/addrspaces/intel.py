@@ -71,7 +71,12 @@ and returns it. This is essentially a noop for any of the other descriptors and
 therefore maintains the same speed benefits.
 
 """
-import StringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+import io
 import struct
 
 from rekall import addrspace
@@ -177,7 +182,7 @@ class DescriptorCollection(object):
 
     def __unicode__(self):
         """Render ourselves into a string."""
-        fd = StringIO.StringIO()
+        fd = io.StringIO()
         ui_renderer = text_renderer.TextRenderer(
             session=self.session, fd=fd)
 
