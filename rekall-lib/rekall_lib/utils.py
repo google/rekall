@@ -24,11 +24,12 @@
 from __future__ import print_function
 from future import standard_library
 standard_library.install_aliases()
+from future.utils import raise_
 from builtins import chr
 from builtins import zip
 from builtins import str
 from builtins import range
-from past.builtins import basestring
+from past.builtins import basestring, long
 from builtins import object
 import builtins
 import pickle
@@ -1022,7 +1023,8 @@ class safe_property(property):
 
             # Retain the original backtrace but re-raise a RuntimeError to
             # prevent the property from calling __getattr__.
-            raise RuntimeError, message, sys.exc_info()[2]
+            traceback = sys.exc_info()[2]
+            raise_(RuntimeError, message, traceback)
 
 
 def EscapeForFilesystem(filename):
