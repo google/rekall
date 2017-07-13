@@ -34,6 +34,8 @@ class. This means that we do not need to go through a special initializating
 step, as soon as a module is imported, the plugin is registered.
 """
 
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 
@@ -76,8 +78,8 @@ class UniqueObjectIdMetaclass(type):
         return res
 
 
-class UniqueObjectIdMixin(object):
-    __metaclass__ = UniqueObjectIdMetaclass
+class UniqueObjectIdMixin(with_metaclass(UniqueObjectIdMetaclass, object)):
+    pass
 
 
 class MetaclassRegistry(UniqueObjectIdMetaclass):
@@ -137,7 +139,7 @@ class MetaclassRegistry(UniqueObjectIdMetaclass):
     @classmethod
     def _install_constructors(mcs, cls):
         def ByName(self, name):
-            for impl in self.classes.values():
+            for impl in list(self.classes.values()):
                 if getattr(impl, "name", None) == name:
                     return impl
 
