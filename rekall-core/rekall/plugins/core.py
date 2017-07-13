@@ -19,6 +19,7 @@
 
 """This module implements core plugins."""
 from __future__ import division
+from future.utils import raise_
 
 from builtins import range
 from past.builtins import basestring
@@ -26,7 +27,6 @@ from builtins import object
 from past.utils import old_div
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import exceptions
 import inspect
 import pdb
 import math
@@ -1126,8 +1126,7 @@ class RaisingTheRoof(plugin.Command):
         self.exception_text = exception_text or "Default exception"
 
     def render(self, renderer):
-        exc_cls = getattr(exceptions, self.exception_class, ValueError)
-        raise exc_cls(self.exception_text)
+        raise_(ValueError(self.exception_text))
 
 
 class TestRaisingTheRoof(testlib.DisabledTest):
