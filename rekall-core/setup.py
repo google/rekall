@@ -68,6 +68,7 @@ install_requires = [
     "rekall-yara == 3.4.0.1",
     "pytsk3 == 20160721",
     "ipaddr",
+    "future",
 
     # Version 2.5.0 is broken with pyinstaller.
     # https://github.com/pyinstaller/pyinstaller/issues/1848

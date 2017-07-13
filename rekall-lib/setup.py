@@ -43,6 +43,7 @@ def find_data_files(source):
 install_requires = [
     "arrow == 0.7.0",
     "sortedcontainers == 1.4.4",
+    "future",
 ]
 
 data_files = (find_data_files("test_data") +

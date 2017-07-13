@@ -49,7 +49,8 @@ install_requires = [
     "cryptography==1.4",
     "filelock==2.0.6",
     "pathlib==1.0.1",
-    "portpicker==1.1.1"
+    "portpicker==1.1.1",
+    "future",
 ]
 
 data_files = (find_data_files("test_data") +
