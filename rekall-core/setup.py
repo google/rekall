@@ -67,7 +67,7 @@ install_requires = [
     "rekall-capstone == 3.0.4.post2",
     "rekall-yara == 3.4.0.1",
     "pytsk3 == 20160721",
-    "ipaddr==2.1.11",
+    "ipaddr",
 
     # Version 2.5.0 is broken with pyinstaller.
     # https://github.com/pyinstaller/pyinstaller/issues/1848
