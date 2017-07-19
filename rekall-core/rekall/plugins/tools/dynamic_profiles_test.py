@@ -1,3 +1,4 @@
+from builtins import object
 import mock
 from rekall import testlib
 from rekall.plugins.tools import dynamic_profiles
@@ -113,5 +114,5 @@ class TestDynamicProfile(testlib.RekallBaseUnitTestCase):
             match = matcher.Match(offset=case.get("offset", 0),
                                   data=case["data"].decode("hex"))
 
-            for k, v in case["expected"].iteritems():
+            for k, v in case["expected"].items():
                 self.assertEqual(match[k], v)

@@ -21,9 +21,19 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """These are various utilities for rekall."""
-import __builtin__
-import cPickle
-import cStringIO
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from future.utils import raise_
+from builtins import chr
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring, long
+from builtins import object
+import builtins
+import pickle
+import io
 import importlib
 import itertools
 import json
@@ -42,11 +52,12 @@ import weakref
 import sortedcontainers
 
 from rekall_lib import registry
+from future.utils import with_metaclass
 
 
 def SmartStr(string, encoding="utf8"):
     """Forces the string to be an encoded byte string."""
-    if type(string) == unicode:
+    if type(string) == str:
         return string.encode("utf8", "ignore")
 
     try:
@@ -59,14 +70,14 @@ def SmartUnicode(string, encoding="utf8"):
     """Forces the string into a unicode object."""
     try:
         # Allow the object to have a __unicode__ method.
-        return unicode(string)
+        return str(string)
     except UnicodeError:
         return str(string).decode(encoding, "ignore")
 
 
 def Hexdump(data, width=16):
     """Hexdump function shared by various plugins """
-    for offset in xrange(0, len(data), width):
+    for offset in range(0, len(data), width):
         row_data = data[offset:offset + width]
         translated_data = [
             x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data]
@@ -137,10 +148,10 @@ class LinkedList(object):
 
     def PopLeft(self):
         """Returns the head node and removes it from the list."""
-        if self.next is self:
+        if self.__next__ is self:
             raise IndexError("Pop from empty list.")
 
-        first_node = self.next
+        first_node = self.__next__
         self.Unlink(first_node)
 
         return first_node.data
@@ -159,25 +170,25 @@ class LinkedList(object):
         """Removes a given node from the list."""
         self.size -= 1
 
-        node.prev.next = node.next
+        node.prev.next = node.__next__
         node.next.prev = node.prev
         node.next = node.prev = None
 
     def __iter__(self):
-        p = self.next
+        p = self.__next__
         while p is not self:
             yield p.data
-            p = p.next
+            p = p.__next__
 
     def __len__(self):
         return self.size
 
     def __str__(self):
-        p = self.next
+        p = self.__next__
         s = []
         while p is not self:
             s.append(str(p.data))
-            p = p.next
+            p = p.__next__
 
         return "[" + ", ".join(s) + "]"
 
@@ -253,14 +264,14 @@ class FastStore(object):
     def ExpireRegEx(self, regex):
         """Expire all the objects with the key matching the regex."""
         reg = re.compile(regex)
-        for key in self._hash.keys():
+        for key in list(self._hash.keys()):
             if reg.match(key):
                 self.ExpireObject(key)
 
     @Synchronized
     def ExpirePrefix(self, prefix):
         """Expire all the objects with the key having a given prefix."""
-        for key in self._hash.keys():
+        for key in list(self._hash.keys()):
             if key.startswith(prefix):
                 self.ExpireObject(key)
 
@@ -294,10 +305,10 @@ class FastStore(object):
         return item
 
     def __iter__(self):
-        return self._hash.iteritems()
+        return iter(list(self._hash.items()))
 
     def keys(self):
-        return self._hash.keys()
+        return list(self._hash.keys())
 
     @Synchronized
     def __contains__(self, key):
@@ -456,11 +467,9 @@ class TempDirectory(object):
         shutil.rmtree(self.name, True)
 
 
-class AttributedString(object):
+class AttributedString(with_metaclass(registry.UniqueObjectIdMetaclass, object)):
     """This is just a container for a string and some metadata."""
     highlights = None
-
-    __metaclass__ = registry.UniqueObjectIdMetaclass
 
     def __init__(self, value, highlights=None, **options):
         self.highlights = highlights
@@ -468,7 +477,7 @@ class AttributedString(object):
         self.options = options
 
     def __unicode__(self):
-        return unicode(self.value)
+        return str(self.value)
 
     def __str__(self):
         return str(self.value)
@@ -540,7 +549,7 @@ class SlottedObject(object):
         return [x for x in dir(self) if not x.startswith("_")]
 
 
-class AttributeDict(dict):
+class AttributeDict(with_metaclass(registry.UniqueObjectIdMetaclass, dict)):
     """A dict that can be accessed via attributes.
 
     This object is very slow due to use of __setstate__. Please consider using
@@ -549,7 +558,6 @@ class AttributeDict(dict):
     dirty = False
 
     _object_id = None
-    __metaclass__ = registry.UniqueObjectIdMetaclass
 
     def __setattr__(self, attr, value):
         try:
@@ -611,7 +619,7 @@ def Invert(dictionary):
 
     Assume the keys and values are unique.
     """
-    return {v:k for k, v in dictionary.items()}
+    return {v:k for k, v in list(dictionary.items())}
 
 
 def PPrint(data, depth=0):
@@ -721,7 +729,7 @@ class SortedCollection(sortedcontainers.SortedDict):
         self[key] = item
 
     def __iter__(self):
-        return self.itervalues()
+        return iter(list(self.values()))
 
     def get_value_smaller_than(self, k):
         for x in self.irange(0, k, reverse=True):
@@ -794,7 +802,7 @@ class RangedCollection(object):
         return key[0], key[1], self.collection[key]
 
     def __iter__(self):
-        for (start, end), data in self.collection.iteritems():
+        for (start, end), data in list(self.collection.items()):
             yield start, end, data
 
     def __reversed__(self):
@@ -835,7 +843,7 @@ class JITIteratorCallable(object):
 class JITIterator(JITIteratorCallable):
     def __init__(self, baseclass):
         super(JITIterator, self).__init__(
-            lambda: (x.name for x in baseclass.classes.values() if x.name))
+            lambda: (x.name for x in list(baseclass.classes.values()) if x.name))
 
 
 def CopyFDs(in_fd, out_fd, length=2**64):
@@ -859,7 +867,7 @@ def CopyAStoFD(in_as, out_fd, start=0, length=2**64,
     blocksize = 1024 * 1024
 
     for run in in_as.get_address_ranges(start=start, end=start+length):
-        for offset in xrange(run.start, run.end, blocksize):
+        for offset in range(run.start, run.end, blocksize):
             to_read = min(blocksize, run.end - offset, length)
             if to_read == 0:
                 break
@@ -889,7 +897,7 @@ def issubclass(obj, cls):    # pylint: disable=redefined-builtin
     Returns:
       True if obj is a subclass of cls and False otherwise.
     """
-    return isinstance(obj, type) and __builtin__.issubclass(obj, cls)
+    return isinstance(obj, type) and builtins.issubclass(obj, cls)
 
 
 def XOR(string1, string2):
@@ -915,14 +923,14 @@ def SafePickle(data):
 
     Does not support recovering instances.
     """
-    return cPickle.dumps(data, -1)
+    return pickle.dumps(data, -1)
 
 def SafeUnpickler(data):
     """An unpickler for serialized tuple/lists/strings etc.
 
     Does not support recovering instances.
     """
-    unpickler = cPickle.Unpickler(cStringIO.StringIO(data))
+    unpickler = pickle.Unpickler(io.StringIO(data))
     unpickler.find_global = None
 
     return unpickler.load()
@@ -950,7 +958,7 @@ def CaseInsensitiveDictLookup(key, dictionary):
     # First try as is.
     result = dictionary.get(key)
     if result is None:
-        for k, v in dictionary.iteritems():
+        for k, v in list(dictionary.items()):
             if k.lower() == key.lower():
                 return v
 
@@ -963,7 +971,7 @@ def TimeIt(f):
             now = time.time()
             return f(self, *args, **kw)
         finally:
-            print "Took %s sec" % (time.time() - now)
+            print("Took %s sec" % (time.time() - now))
 
     return NewFunction
 
@@ -976,14 +984,14 @@ def InternObject(obj):
     """Copies and interns strings in a recursive object."""
     obj_cls = obj.__class__
     if obj_cls is str:
-        return intern(obj)
+        return sys.intern(obj)
 
-    if obj_cls is unicode:
-        return intern(str(obj))
+    if obj_cls is str:
+        return sys.intern(str(obj))
 
     if obj_cls is dict:
         result = {}
-        for k, v in obj.iteritems():
+        for k, v in list(obj.items()):
             k = InternObject(k)
             v = InternObject(v)
             result[k] = v
@@ -1015,7 +1023,8 @@ class safe_property(property):
 
             # Retain the original backtrace but re-raise a RuntimeError to
             # prevent the property from calling __getattr__.
-            raise RuntimeError, message, sys.exc_info()[2]
+            traceback = sys.exc_info()[2]
+            raise_(RuntimeError, message, traceback)
 
 
 def EscapeForFilesystem(filename):

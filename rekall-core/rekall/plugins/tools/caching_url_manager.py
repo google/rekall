@@ -122,7 +122,7 @@ class CachingManager(io_manager.IOManager):
         cache_inventory = self.cache_io_manager.inventory
         modified = False
 
-        for item, metadata in cache_inventory.get("$INVENTORY", {}).items():
+        for item, metadata in list(cache_inventory.get("$INVENTORY", {}).items()):
             upstream_meta = upstream_inventory.get(
                 "$INVENTORY", {}).get(item)
 

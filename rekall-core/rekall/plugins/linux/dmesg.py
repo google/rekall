@@ -22,7 +22,9 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+from __future__ import division
 
+from past.utils import old_div
 from rekall.plugins.linux import common
 
 
@@ -56,7 +58,7 @@ class LinuxDmesg(common.LinuxPlugin):
                 )
 
             for message in dmesg:
-                yield (message.ts_nsec / 1e9, message.facility, message.level,
+                yield (old_div(message.ts_nsec, 1e9), message.facility, message.level,
                        message.message)
 
         else:

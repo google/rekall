@@ -26,6 +26,7 @@
 @contact:      bdolangavitt@wesleyan.edu
 """
 
+from builtins import range
 import struct
 from rekall.plugins.windows.registry import hashdump
 from Crypto import Hash
@@ -57,7 +58,7 @@ def get_lsa_key(sec_registry, bootkey):
     md5 = Hash.MD5.new()
     md5.update(bootkey)
 
-    for _i in xrange(1000):
+    for _i in range(1000):
         md5.update(obf_lsa_key[60:76])
     rc4key = md5.digest()
 
@@ -73,7 +74,7 @@ def decrypt_secret(secret, key):
     Note that key can be longer than 7 bytes."""
     decrypted_data = ''
     j = 0   # key index
-    for i in xrange(0, len(secret), 8):
+    for i in range(0, len(secret), 8):
         enc_block = secret[i:i + 8]
         block_key = key[j:j + 7]
         des_key = hashdump.str_to_key(block_key)
@@ -123,7 +124,7 @@ def get_secrets(sys_registry, sec_registry):
         if not sec_val_key:
             continue
 
-        for enc_secret_value in sec_val_key.values():
+        for enc_secret_value in list(sec_val_key.values()):
             enc_secret = enc_secret_value.Data.dereference_as(
                 "String", length=enc_secret_value.DataLength).v()
 

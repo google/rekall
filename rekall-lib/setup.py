@@ -27,7 +27,7 @@ import os
 from setuptools import find_packages, setup, Command
 
 ENV = {"__file__": __file__}
-exec open("_version.py").read() in ENV
+exec(open("_version.py").read(), ENV)
 VERSION = ENV["get_versions"]()
 
 rekall_description = "Rekall Support Libraries"
@@ -43,6 +43,7 @@ def find_data_files(source):
 install_requires = [
     "arrow == 0.7.0",
     "sortedcontainers == 1.4.4",
+    "future",
 ]
 
 data_files = (find_data_files("test_data") +

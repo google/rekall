@@ -22,6 +22,10 @@
 
 """This module adds support for incident response to Rekall."""
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@google.com>"
 import platform
 import os
@@ -105,7 +109,7 @@ class FileSpec(utils.SlottedObject):
         return ""
 
     def components(self):
-        return filter(None, self.name.split(self.path_sep))
+        return [_f for _f in self.name.split(self.path_sep) if _f]
 
     def os_path(self):
         """Get a path suitable to be used with os APIs."""
@@ -170,7 +174,7 @@ class User(utils.SlottedObject):
         if self.username:
             return u"%s (%s)" % (self.username, self.uid)
         elif self.uid is not None:
-            return unicode(self.uid)
+            return str(self.uid)
 
         return ""
 
@@ -205,7 +209,7 @@ class Group(utils.SlottedObject):
             return u"%s (%s)" % (self.group_name, self.gid)
 
         elif self.gid is not None:
-            return unicode(self.gid)
+            return str(self.gid)
 
         return ""
 
@@ -292,10 +296,9 @@ class FileInformation(utils.SlottedObject):
             pass
 
 
-class Permissions(object):
+class Permissions(with_metaclass(registry.UniqueObjectIdMetaclass, object)):
 
     """An object to represent permissions."""
-    __metaclass__ = registry.UniqueObjectIdMetaclass
 
     # Taken from Python3.3's stat.filemode.
     _filemode_table = (

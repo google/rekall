@@ -79,7 +79,7 @@ class Keepassx(heap_analysis.HeapAnalysis):
 
                 entry_number = 1
 
-                for chunk in chunks_dict.values():
+                for chunk in list(chunks_dict.values()):
 
                     try:
                         # chunks containing refs to password entries typically

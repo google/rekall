@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 import pytsk3
 
 from rekall import addrspace
@@ -223,7 +225,7 @@ class SetPartitionContext(AbstractTSKCommandPlugin):
 
     def SwitchPartition(self, partition=None):
         disk = self.session.GetParameter("disk")
-        if isinstance(partition, (int, long)):
+        if isinstance(partition, int):
             partition = disk.partitions[partition]
 
         message = ("Switching to partition context: {0} "

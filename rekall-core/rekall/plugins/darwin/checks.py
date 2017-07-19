@@ -17,6 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """Plugins for checking internal consistancy of pointers."""
 
+from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
 
 

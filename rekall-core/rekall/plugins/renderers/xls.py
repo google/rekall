@@ -23,6 +23,8 @@
 
 We produce xls (Excel spreadsheet files) with the output from Rekall plugins.
 """
+from builtins import str
+from builtins import range
 import time
 import openpyxl
 
@@ -78,10 +80,10 @@ class XLSObjectRenderer(renderer.ObjectRenderer):
         worksheet.current_column += 1
 
     def GetData(self, value, **options):
-        if isinstance(value, (int, float, long)):
+        if isinstance(value, (int, float)):
             return value
 
-        return unicode(self._GetDelegateObjectRenderer(value).render_row(
+        return str(self._GetDelegateObjectRenderer(value).render_row(
             value, **options))
 
 

@@ -21,7 +21,15 @@
 
 A renderer is used by plugins to produce formatted output.
 """
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
+from future.utils import with_metaclass
 try:
     import curses
     curses.setupterm()
@@ -329,14 +337,12 @@ class Colorizer(object):
                 self.tparm(["sgr0"]))
 
 
-class TextObjectRenderer(renderer_module.ObjectRenderer):
+class TextObjectRenderer(with_metaclass(registry.MetaclassRegistry, renderer_module.ObjectRenderer)):
     """Baseclass for all TextRenderer object renderers."""
 
     # Fall back renderer for all objects.
     renders_type = "object"
     renderers = ["TextRenderer", "WideTextRenderer", "TestRenderer"]
-
-    __metaclass__ = registry.MetaclassRegistry
     DEFAULT_STYLE = "full"
 
     @utils.safe_property
@@ -377,7 +383,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         Return:
           A Cell instance containing the formatted Column header.
         """
-        header_cell = Cell(unicode(name), width=options.get("width", None))
+        header_cell = Cell(str(name), width=options.get("width", None))
 
         if style == "address" and header_cell.width < self.address_size:
             header_cell.rewrap(width=self.address_size, align="c")
@@ -665,10 +671,10 @@ class JoinedCell(BaseCell):
                 child_cell.rewrap(width=adjustment + child_cell.width)
             elif align == "c":
                 self.cells[-1].rewrap(
-                    width=(adjustment / 2) + self.cells[-1].width +
+                    width=(old_div(adjustment, 2)) + self.cells[-1].width +
                     adjustment % 2)
                 self.cells[0].rewrap(
-                    width=(adjustment / 2) + self.cells[0].width)
+                    width=(old_div(adjustment, 2)) + self.cells[0].width)
             else:
                 raise ValueError(
                     "Invalid alignment %s for JoinedCell." % align)
@@ -677,7 +683,7 @@ class JoinedCell(BaseCell):
         for cell in self.cells:
             self._height = max(self.height, cell.height)
 
-        for line_no in xrange(self.height):
+        for line_no in range(self.height):
             parts = []
             for cell in self.cells:
                 try:
@@ -1177,7 +1183,7 @@ class TextTable(renderer_module.BaseTable):
                         max_width * total_width / sum_of_widths,
                         max_width + 1)
 
-                    width = max(width, len(unicode(column.name)))
+                    width = max(width, len(str(column.name)))
                     column.options["width"] = width
 
             # Render the headers now.
@@ -1278,7 +1284,7 @@ class TextRenderer(renderer_module.BaseRenderer):
             self.write("*" * width + "\n")
         else:
             pad_len = width - len(name) - 2  # 1 space on each side.
-            padding = "*" * (pad_len / 2)  # Name is centered.
+            padding = "*" * (old_div(pad_len, 2))  # Name is centered.
 
             self.write("\n{0} {1} {2}\n".format(padding, name, padding))
 

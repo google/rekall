@@ -24,6 +24,7 @@ Rekall uses the argparse module for command line parsing, however this module
 contains so many bugs it might be worth to implement our own parser in future.
 """
 
+from past.builtins import basestring
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
@@ -161,7 +162,7 @@ def _TruncateARGV(argv):
     """
     short_argv = [argv[0]]
     for item in argv[1:]:
-        for plugin_cls in plugin.Command.classes.values():
+        for plugin_cls in list(plugin.Command.classes.values()):
             if plugin_cls.name == item:
                 return short_argv
 
@@ -187,7 +188,7 @@ def ParseGlobalArgs(parser, argv, user_session):
     known_args, unknown_args = parser.parse_known_args(args=argv)
 
     with user_session.state as state:
-        for arg, value in vars(known_args).items():
+        for arg, value in list(vars(known_args).items()):
             # Argparser erroneously parses flags as str objects, but they are
             # really unicode objects.
             if isinstance(value, str):
@@ -287,7 +288,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
         groups[command_metadata.plugin_cls.name] = parser.add_argument_group(
             "Plugin %s options" % command_metadata.plugin_cls.name)
 
-    for name, options in command_metadata.args.iteritems():
+    for name, options in command_metadata.args.items():
         # We need to modify options to feed into argparse.
         options = options.copy()
 
@@ -296,7 +297,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
             options["help"] = argparse.SUPPRESS
 
         # Prevent None getting into the kwargs because it upsets argparser.
-        kwargs = dict((k, v) for k, v in options.items() if v is not None)
+        kwargs = dict((k, v) for k, v in list(options.items()) if v is not None)
         name = kwargs.pop("name", None) or name
 
         # If default is specified we assume the parameter is not required.

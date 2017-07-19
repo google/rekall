@@ -22,6 +22,8 @@
 
 # pylint: disable=protected-access
 
+from past.builtins import execfile
+from builtins import str
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import logging
 import re

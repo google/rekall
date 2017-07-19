@@ -19,10 +19,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 '''Windows NT 5.1 and 5.2 LsaEncryptMemory decryption algorithm.'''
 
+from builtins import range
+from builtins import object
 import struct
 
 
-class XP_DES():
+class XP_DES(object):
     '''NT 5.1 and NT 5.2 lsasrv.dll DES decryption 32 bits implementation.'''
 
     sboxul = [
@@ -300,7 +302,7 @@ class XP_DES():
         return struct.pack('<L', eax) + struct.pack('<L', esi)
 
 
-class XP_DESX():
+class XP_DESX(object):
     '''NT 5.1 and NT 5.2 lsasrv.dll DESX implementation.'''
 
     def __init__(self, desx_key):
@@ -332,7 +334,7 @@ class XP_DESX():
         return struct.pack('<L', edx) + struct.pack('<L', eax)
 
 
-class XP_CBC_DESX():
+class XP_CBC_DESX(object):
     '''NT 5.1 and NT 5.2 lsasrv.dll CBC with DESX partial implementation.'''
 
     def __init__(self, desx_key):
@@ -359,7 +361,7 @@ class XP_CBC_DESX():
         return decrypted, feedback
 
 
-class XP_LsaDecryptMemory():
+class XP_LsaDecryptMemory(object):
 
     def __init__(self, desx_key, feedback):
 

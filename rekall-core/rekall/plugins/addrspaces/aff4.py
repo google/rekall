@@ -30,6 +30,8 @@ For this address space to work:
 pip install pyaff4
 
 """
+from builtins import str
+from builtins import object
 import logging
 import re
 import os
@@ -218,7 +220,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         for (subject, _, value) in self.resolver.QueryPredicate(
                 lexicon.AFF4_STREAM_ORIGINAL_FILENAME):
             # Normalize the filename for case insensitive filesysyems.
-            self.filenames[unicode(value).lower()] = subject
+            self.filenames[str(value).lower()] = subject
 
         # TODO: Deprecate this guessing once all images have the
         # AFF4_STREAM_ORIGINAL_FILENAME attribute.

@@ -84,6 +84,9 @@ Once a renderer is found, it is used to output the cell value.
    used within the renderer they only need to cooperate with the renderer class
    they support.
 """
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import collections
 import gc
 import inspect
@@ -94,6 +97,7 @@ from rekall import config
 from rekall import constants
 from rekall_lib import registry
 from rekall_lib import utils
+from future.utils import with_metaclass
 
 
 config.DeclareOption(
@@ -133,7 +137,7 @@ MRO_RENDERER_CACHE = utils.FastStore(100, lock=True)
 MRO_CACHE = utils.FastStore(100, lock=True)
 
 
-class ObjectRenderer(object):
+class ObjectRenderer(with_metaclass(registry.MetaclassRegistry, object)):
     """Baseclass for all TestRenderer object renderers."""
 
     # Fall back renderer for all objects. This can also be a list or tuple of
@@ -142,8 +146,6 @@ class ObjectRenderer(object):
 
     # These are the renderers supported by this object renderer.
     renderers = []
-
-    __metaclass__ = registry.MetaclassRegistry
 
     # A cache of Renderer, MRO mappings.
     _RENDERER_CACHE = None
@@ -175,7 +177,7 @@ class ObjectRenderer(object):
             # implementation uses the flat class name to select the
             # ObjectRenderer so we can get duplicates but they dont matter).
             result = tuple(collections.OrderedDict.fromkeys(
-                [unicode(x.__name__) for x in item.__mro__]))
+                [str(x.__name__) for x in item.__mro__]))
 
             MRO_CACHE.Put(item.__name__, result)
             return result
@@ -220,7 +222,7 @@ class ObjectRenderer(object):
         if cls._RENDERER_CACHE is None:
             # Do this in a thread safe manner.
             result = {}
-            for object_renderer_cls in cls.classes.values():
+            for object_renderer_cls in list(cls.classes.values()):
                 for impl_renderer in object_renderer_cls.renderers:
                     render_types = object_renderer_cls.renders_type
                     if not isinstance(render_types, (list, tuple)):
@@ -363,7 +365,7 @@ class BaseTable(object):
         pass
 
 
-class BaseRenderer(object):
+class BaseRenderer(with_metaclass(registry.MetaclassRegistry, object)):
     """All renderers inherit from this.
 
     This class defines the only public interface for the rendering system. This
@@ -372,8 +374,6 @@ class BaseRenderer(object):
     directly used by the plugins - otherwise plugins will fail when being
     rendered with different renderer implementations.
     """
-
-    __metaclass__ = registry.MetaclassRegistry
 
     # The user friendly name of this renderer. This is used for selection from
     # command line etc.

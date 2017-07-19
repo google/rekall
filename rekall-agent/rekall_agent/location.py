@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """Location handlers.

@@ -27,6 +27,7 @@
 @contact:      jamie.levy@gmail.com
 @organization: Volatile Systems
 """
+from builtins import str
 import ntpath
 
 from rekall import obj

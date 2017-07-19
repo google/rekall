@@ -10,7 +10,7 @@ class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):
     def to_yaml(cls, dumper, data):
         value = []
         node = yaml.nodes.MappingNode(cls.yaml_tag, value)
-        for key, item in data.iteritems():
+        for key, item in data.items():
             node_key = dumper.represent_data(key)
             node_value = dumper.represent_data(item)
             value.append((node_key, node_value))
@@ -46,7 +46,7 @@ class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):
         """Parse the yaml file into an OrderedDict so we can preserve order."""
         fields = cls.construct_mapping(loader, node, deep=True)
         result = cls()
-        for k, v in fields.items():
+        for k, v in list(fields.items()):
             result[k] = v
 
         return result
@@ -88,10 +88,10 @@ def unicode_representer(_, data):
 def represent_orderedyamldict(dumper, data):
     value = []
 
-    for item_key, item_value in data.items():
+    for item_key, item_value in list(data.items()):
         node_key = dumper.represent_data(item_key)
         if type(item_value) not in [
-                str, unicode, list, dict, OrderedYamlDict, bool, long, int]:
+                str, str, list, dict, OrderedYamlDict, bool, int, int]:
             import pdb; pdb.set_trace()
         node_value = dumper.represent_data(item_value)
 
@@ -101,7 +101,7 @@ def represent_orderedyamldict(dumper, data):
 
 
 PrettyPrinterDumper.add_representer(
-    unicode, unicode_representer)
+    str, unicode_representer)
 
 PrettyPrinterDumper.add_representer(
     str, unicode_representer)

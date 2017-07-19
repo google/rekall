@@ -21,6 +21,9 @@
 This file contains a bunch of plugins which are useful when interactively
 examining a memory image.
 """
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import itertools
 
 # pylint: disable=protected-access
@@ -66,7 +69,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
 
             # If this is the pool header for this allocation it must be big
             # enough to contain it.
-            if pool_header.BlockSize < (offset - o) / pool_alignment + 1:
+            if pool_header.BlockSize < old_div((offset - o), pool_alignment) + 1:
                 continue
 
             #if not pool_header.PoolType.is_valid():
@@ -95,7 +98,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
         result = []
 
         for member in self.session.profile.Array(offset, target="Pointer",
-                                                 count=size/8):
+                                                 count=old_div(size,8)):
             address_info = ["Data:%#x" % member.v()]
             relative_offset = member.obj_offset - offset
             result.append((relative_offset, address_info))

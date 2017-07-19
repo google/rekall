@@ -18,6 +18,10 @@
 #
 #
 
+from builtins import next
+from builtins import range
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import re
 
@@ -28,7 +32,7 @@ from rekall import constants
 from rekall_lib import registry
 
 
-class ScannerCheck(object):
+class ScannerCheck(with_metaclass(registry.MetaclassRegistry, object)):
     """A scanner check is a special class which is invoked on an AS to check
     for a specific condition.
 
@@ -37,8 +41,6 @@ class ScannerCheck(object):
 
     This class is the base class for all checks.
     """
-
-    __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
     def __init__(self, profile=None, address_space=None, session=None,
@@ -238,7 +240,7 @@ class _BufferFragments(object):
         start_index = 0
         end_index = len(self._fragments)
 
-        for x in xrange(start_index, end_index):
+        for x in range(start_index, end_index):
             item = self._fragments[x]
             if isinstance(item, _Padding):
                 expanded_result.append(addrspace.ZEROER.GetZeros(item.length))
@@ -269,9 +271,9 @@ class BufferASGenerator(object):
 
     def __next__(self):
         """Python 3 protocol."""
-        return self.next()
+        return next(self)
 
-    def next(self):
+    def __next__(self):
         """Get the next buffer address space from the generator."""
 
         # Collect the data in this buffer.
@@ -350,10 +352,8 @@ class BufferASGenerator(object):
         return self.buffer_as
 
 
-class BaseScanner(object):
+class BaseScanner(with_metaclass(registry.MetaclassRegistry, object)):
     """Base class for all scanners."""
-
-    __metaclass__ = registry.MetaclassRegistry
 
     progress_message = "Scanning 0x%(offset)08X with %(name)s"
 
@@ -523,7 +523,7 @@ class FastStructScanner(BaseScanner):
 
     def build_checks(self, array_idx, struct_members):
         array_offset = array_idx * self.prototype.obj_size
-        for member, expected_value in struct_members.iteritems():
+        for member, expected_value in struct_members.items():
             self.prototype.SetMember(member, expected_value)
             member_obj = self.prototype.m(member)
             expected_bytes = member_obj.GetData()
@@ -611,7 +611,7 @@ class ScannerGroup(BaseScanner):
         """
         super(ScannerGroup, self).__init__(**kwargs)
         self.scanners = scanners
-        for scanner in scanners.values():
+        for scanner in list(scanners.values()):
             scanner.address_space = self.address_space
 
         # A dict to hold all hits for each scanner.
@@ -626,7 +626,7 @@ class ScannerGroup(BaseScanner):
                           available_length)
 
             # Now feed all the scanners from the same address space.
-            for name, scanner in self.scanners.items():
+            for name, scanner in list(self.scanners.items()):
                 for hit in scanner.scan(offset=offset, maxlen=to_read):
                     # Yield the result as well as cache it.
                     yield name, hit

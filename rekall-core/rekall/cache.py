@@ -1,5 +1,9 @@
-import cPickle
-import cStringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import pickle
+import io
 import os
 import time
 
@@ -26,7 +30,7 @@ class PicklingDirectoryIOManager(io_manager.DirectoryIOManager):
         data = self.renderer.encoder.Encode(data)
 
         try:
-            return cPickle.dumps(data, -1)
+            return pickle.dumps(data, -1)
         except TypeError:
             raise io_manager.EncodeError("Unable to pickle data")
 
@@ -38,7 +42,7 @@ class PicklingDirectoryIOManager(io_manager.DirectoryIOManager):
         recovered.
         """
         now = time.time()
-        unpickler = cPickle.Unpickler(cStringIO.StringIO(raw))
+        unpickler = pickle.Unpickler(io.StringIO(raw))
         unpickler.find_global = None
 
         try:
@@ -78,7 +82,7 @@ class Cache(object):
     def __str__(self):
         """Print the contents somewhat concisely."""
         result = []
-        for k, v in self.data.iteritems():
+        for k, v in self.data.items():
             if isinstance(v, obj.BaseObject):
                 v = repr(v)
 
@@ -135,7 +139,7 @@ class TimedCache(Cache):
         """Print the contents somewhat concisely."""
         result = []
         now = time.time()
-        for k, (v, timestamp) in self.data.items():
+        for k, (v, timestamp) in list(self.data.items()):
             if timestamp + self.expire_time < now:
                 self.data.pop(k)
                 continue
@@ -252,7 +256,7 @@ class FileCache(Cache):
 
         if self.name and self.io_manager:
             # Save to disk the dirty items.
-            for key, item in self.data.iteritems():
+            for key, item in self.data.items():
                 if key in self.dirty or getattr(item, "dirty", False):
                     now = time.time()
                     self.io_manager.StoreData(
@@ -270,7 +274,7 @@ class FileCache(Cache):
             return
 
         session_index = self.io_manager.GetData("sessions/index")
-        for name, tests in session_index.iteritems():
+        for name, tests in session_index.items():
             item = SessionIndex(name, tests)
             if item.Test(address_space):
                 self.SetName(item.name)

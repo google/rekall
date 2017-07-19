@@ -111,7 +111,7 @@ structured.IStructured.implement(
     for_type=LiveProcess,
     implementations={
         structured.resolve: lambda d, m: getattr(d, m, None),
-        structured.getmembers_runtime: lambda d: psutil_fields + d.keys(),
+        structured.getmembers_runtime: lambda d: psutil_fields + list(d.keys()),
     }
 )
 

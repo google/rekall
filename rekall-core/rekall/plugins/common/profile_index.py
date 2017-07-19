@@ -25,7 +25,11 @@ repository has index files that are used to lookup the correct profile quickly,
 based on a limited set of symbols and offsets that are known, or can be easily
 detected, about the image.
 """
+from __future__ import division
 
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
 __author__ = (
     "Michael Cohen <scudette@google.com>",
     "Adam Sindelar <adamsh@google.com>",
@@ -117,14 +121,14 @@ class Index(obj.Profile):
                 "%s matches %d/%d comparison points",
                 profile, count_matched, count_matched + count_unmatched)
 
-            return float(count_matched) / (count_matched + count_unmatched)
+            return old_div(float(count_matched), (count_matched + count_unmatched))
 
         return 0
 
     def IndexHits(self, image_base, address_space=None, minimal_match=1):
         if address_space == None:
             address_space = self.session.GetParameter("default_address_space")
-        for profile, symbols in self.index.iteritems():
+        for profile, symbols in self.index.items():
             match = self._TestProfile(
                 address_space=address_space,
                 image_base=image_base,
@@ -189,7 +193,7 @@ class SymbolOffsetIndex(Index):
             self.session.logging.debug(str(e))
             return []
 
-        for profile, traits in self.traits.iteritems():
+        for profile, traits in self.traits.items():
             matched_traits = 0
 
             for trait in traits:
@@ -220,7 +224,7 @@ class SymbolOffsetIndex(Index):
         symbols = profile["$CONSTANTS"]
         ordered_symbol_list = sorted(
             ["(%s, %d)" % (k, v)
-             for (k, v) in cls.FilterSymbols(symbols).iteritems()])
+             for (k, v) in cls.FilterSymbols(symbols).items()])
 
         hasher = hashlib.sha256()
         hasher.update("|".join(ordered_symbol_list))
@@ -287,11 +291,11 @@ class SymbolOffsetIndex(Index):
         hashes = hashes or {}
         traits = traits or {}
         # Assert all profiles that have hashes have traits as well
-        if not all([profile in hashes.values() for profile in traits]):
+        if not all([profile in list(hashes.values()) for profile in traits]):
             raise ValueError("Not all profiles with traits have hashes")
 
         # Assert all profiles that have traits have hashes as well
-        if not all([profile in traits for profile in hashes.values()]):
+        if not all([profile in traits for profile in list(hashes.values())]):
             raise ValueError("Not all profiles with hashes have traits")
 
         profiles = dict([(profile_id,
@@ -331,7 +335,7 @@ class SymbolOffsetIndex(Index):
         Each trait is a list of tuples of (symbol, offset) that make this
         profile unique within the repository.
         """
-        for profile, traits in self.index.get("$TRAITS").iteritems():
+        for profile, traits in self.index.get("$TRAITS").items():
             yield profile, traits
 
     def RelativizeSymbols(self, symbols, base_symbol=None):
@@ -354,7 +358,7 @@ class SymbolOffsetIndex(Index):
         if not base_value:
             raise ValueError("Symbol %s not found in profile", base_symbol)
         new_symbols = symbols.copy()
-        for symbol, value in new_symbols.iteritems():
+        for symbol, value in new_symbols.items():
             new_symbols[symbol] = value - base_value
         return new_symbols
 
@@ -365,7 +369,7 @@ class LinuxSymbolOffsetIndex(SymbolOffsetIndex):
     @classmethod
     def FilterSymbols(cls, symbols):
         """Filters a dict of symbols, discarding irrelevant ones."""
-        return dict([(k, v) for (k, v) in symbols.iteritems()
+        return dict([(k, v) for (k, v) in symbols.items()
                      if not "." in k and k != "__irf_end"])
 
     @classmethod

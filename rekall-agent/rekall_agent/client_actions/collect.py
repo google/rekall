@@ -28,7 +28,7 @@ class CollectActionImpl(actions.CollectAction):
     """Collect the results of an efilter query into a collection."""
 
     def _get_query(self):
-        for mode, query in self.query.iteritems():
+        for mode, query in self.query.items():
             if self._session.GetParameter(mode):
                 return query
 

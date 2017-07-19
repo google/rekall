@@ -45,7 +45,11 @@ Encase or FTK since they do not understand layered address spaces! For Rekall
 this works because Rekall automatically detects that the EWF file contains an
 ELF core dump and stacks the relevant address spaces.
 """
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
+from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
 import array
 import os
@@ -494,7 +498,7 @@ class EWFFileWriter(object):
             offset=volume_section.obj_end, vm=self.out_as)
 
         volume_header.number_of_chunks = self.chunk_id
-        volume_header.sectors_per_chunk = self.chunk_size / 512
+        volume_header.sectors_per_chunk = old_div(self.chunk_size, 512)
         volume_header.number_of_sectors = (volume_header.number_of_chunks *
                                            volume_header.sectors_per_chunk)
 
@@ -548,7 +552,7 @@ class EWFAcquire(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
                     last_address = runs[0].end
                     block_size = 1024 * 1024
 
-                    for offset in xrange(0, last_address, block_size):
+                    for offset in range(0, last_address, block_size):
                         available_length = min(block_size, last_address-offset)
                         data = self.physical_address_space.read(
                             offset, available_length)

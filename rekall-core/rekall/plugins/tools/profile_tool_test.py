@@ -134,7 +134,7 @@ class BuildSymbolOffsetIndexTest(testlib.RekallBaseUnitTestCase):
                                             session=session.Session())
         # A dict of profile_symbols.
         self.symbols_dict = dict([(x[0], x[1].get("$CONSTANTS"))
-                                  for x in self.raw_profiles.iteritems()])
+                                  for x in self.raw_profiles.items()])
 
     def testFindTraits(self):
         traits = self.build_index._FindTraits(

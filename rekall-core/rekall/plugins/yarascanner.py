@@ -20,6 +20,7 @@
 
 
 """A Rekall Memory Forensics scanner which uses yara."""
+from builtins import object
 import yara
 
 from rekall import scan

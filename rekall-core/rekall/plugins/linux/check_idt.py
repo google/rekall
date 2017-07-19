@@ -25,6 +25,7 @@
 @contact:      atcuno@gmail.com
 @organization:
 """
+from builtins import range
 from rekall import testlib
 from rekall.plugins.linux import common
 
@@ -54,7 +55,7 @@ class CheckIdt(common.LinuxPlugin):
           slot, address, function or module containing this function.
         """
         if check_indexes is None:
-            check_indexes = range(256)
+            check_indexes = list(range(256))
 
         for i in check_indexes:
             entry = table[i]

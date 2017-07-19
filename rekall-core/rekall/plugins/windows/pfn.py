@@ -1,3 +1,4 @@
+from __future__ import division
 # Rekall Memory Forensics
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -25,8 +26,13 @@
 # http://www.reactos.org/wiki/Techwiki:Memory_management_in_the_Windows_XP_kernel#MmPfnDatabase
 
 # pylint: disable=protected-access
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import re
-import StringIO
+import io
 
 from rekall import kb
 from rekall import testlib
@@ -235,11 +241,11 @@ class PtoV(common.WinProcessFilter):
         start_of_page_table = dtb
         size_of_pte = self.session.profile._MMPTE().obj_size
 
-        for name, bit_division in reversed(zip(
-                self.table_names, self.bit_divisions)):
+        for name, bit_division in reversed(list(zip(
+                self.table_names, self.bit_divisions))):
             pte = ptes[name]
-            virtual_address += (
-                ptes[name].obj_offset - start_of_page_table) / size_of_pte
+            virtual_address += old_div((
+                ptes[name].obj_offset - start_of_page_table), size_of_pte)
 
             virtual_address <<= bit_division
 
@@ -403,12 +409,11 @@ class WinRammap(common.WindowsCommandPlugin):
     def summary(self):
         """Return a multistring summary of the result."""
         # We just use the WideTextRenderer to render the records.
-        fd = StringIO.StringIO()
+        fd = io.StringIO()
         with text.WideTextRenderer(session=self.session, fd=fd) as renderer:
             self.render(renderer)
 
-        return filter(None,
-                      re.split(r"(^|\n)\*+\n", fd.getvalue(), re.S | re.M))
+        return [_f for _f in re.split(r"(^|\n)\*+\n", fd.getvalue(), re.S | re.M) if _f]
 
 
 class TestWinRammap(testlib.SimpleTestCase):

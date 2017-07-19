@@ -22,6 +22,11 @@
 # pylint: disable=protected-access
 
 """Common windows overlays and classes."""
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import struct
 from itertools import chain
 
@@ -82,7 +87,7 @@ windows_overlay = {
             target="String",
             target_args=dict(
                 term=None,
-                length=lambda x: x.SizeOfBitMap / 8 + 1
+                length=lambda x: old_div(x.SizeOfBitMap, 8) + 1
             )
         )]],
     }],
@@ -608,7 +613,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
 
     @utils.safe_property
     def name(self):
-        return unicode(self.BaseDllName)
+        return str(self.BaseDllName)
 
     @utils.safe_property
     def size(self):
@@ -621,7 +626,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     @utils.safe_property
     def filename(self):
         object_tree_plugin = self.obj_session.plugins.object_tree()
-        return object_tree_plugin.FileNameWithDrive(unicode(self.FullDllName))
+        return object_tree_plugin.FileNameWithDrive(str(self.FullDllName))
 
     @utils.safe_property
     def end(self):
@@ -658,12 +663,12 @@ class _UNICODE_STRING(obj.Struct):
         else:
             return u''
 
-    def __nonzero__(self):
+    def __bool__(self):
         ## Unicode strings are valid if they point at a valid memory
         return bool(self.Buffer)
 
     def __eq__(self, other):
-        return unicode(self) == utils.SmartUnicode(other)
+        return str(self) == utils.SmartUnicode(other)
 
     def __unicode__(self):
         return self.v().strip("\x00") or u""
@@ -1255,7 +1260,7 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
                 name = u"\\Device\\{0}".format(device_name)
 
         if self.FileName:
-            name += unicode(self.FileName)
+            name += str(self.FileName)
 
         return name
 
@@ -1284,7 +1289,7 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
 
         filename = self.FileName.v(vm=vm)
         if filename:
-            name += unicode(filename)
+            name += str(filename)
 
         return name
 
@@ -1529,14 +1534,14 @@ class _SHARED_CACHE_MAP(obj.Struct):
 class _RTL_BITMAP(obj.Struct):
 
     def __getitem__(self, index):
-        char = ord(self.Buffer[index / 8])
+        char = ord(self.Buffer[old_div(index, 8)])
         return bool(char & 2 ** (index % 8))
 
     def __len__(self):
         return int(self.SizeOfBitMap)
 
     def __iter__(self):
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield self[i]
 
 

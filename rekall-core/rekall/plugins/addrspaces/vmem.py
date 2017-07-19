@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Rekall Memory Forensics
 #
 # Copyright (C) 2012 Nir Izraeli (nirizr at gmail dot com)
@@ -23,6 +24,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import zip
 from rekall import addrspace
 from rekall import obj
 from rekall.plugins.addrspaces import standard
@@ -138,7 +140,7 @@ class _VMWARE_HEADER(obj.Struct):
     def PrintAllTags(self):
         for group in self.Groups:
             for tag in group.Tags:
-                print "%s.%s: %r" % (group.Name, tag.Name, tag.Data)
+                print("%s.%s: %r" % (group.Name, tag.Name, tag.Data))
 
     def GetTags(self, group_name, tag_name):
         result = []

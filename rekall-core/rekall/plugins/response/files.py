@@ -21,7 +21,10 @@
 #
 
 """This module adds arbitrary file reading to Rekall."""
+from __future__ import print_function
 
+from builtins import str
+from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
 import fnmatch
 import hashlib
@@ -120,11 +123,11 @@ class IRHash(common.AbstractIRCommandPlugin):
             if not data:
                 break
 
-            for hasher in hashers.values():
+            for hasher in list(hashers.values()):
                 hasher.update(data)
 
         return [Hash(type=name, value=hasher.digest())
-                for name, hasher in hashers.iteritems()]
+                for name, hasher in hashers.items()]
 
     def collect(self):
         for path in self.plugin_args.paths:
@@ -143,7 +146,7 @@ class Component(object):
         self.component_cache = cache
 
     def stat(self, path):
-        key = unicode(path)
+        key = str(path)
         try:
             return self.component_cache[key]
         except KeyError:
@@ -153,10 +156,10 @@ class Component(object):
             return stat
 
     def __eq__(self, other):
-        return unicode(self) == unicode(other)
+        return str(self) == str(other)
 
     def __hash__(self):
-        return hash(unicode(self))
+        return hash(str(self))
 
     def __str__(self):
         return "%s:%s" % (self.__class__.__name__, self.component)
@@ -408,7 +411,7 @@ class IRGlob(common.AbstractIRCommandPlugin):
 
     def _filter(self, node, path):
         """Path is the pathspec of the path we begin evaluation with."""
-        for component, child_node in node.iteritems():
+        for component, child_node in node.items():
             # Terminal node - yield the result.
             if not child_node:
                 for subpath in component.filter(path):
@@ -450,8 +453,8 @@ def print_component_tree(tree, depth=""):
     if not tree:
         return
 
-    for k, v in tree.iteritems():
-        print "%s %s:" % (depth, k)
+    for k, v in tree.items():
+        print("%s %s:" % (depth, k))
         print_component_tree(v, depth + " ")
 
 

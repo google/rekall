@@ -26,6 +26,7 @@
 Based on the algorithm by Andrew Case but greatly optimised for speed.
 """
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall import scan
@@ -184,7 +185,7 @@ class BashHistory(common.LinProcessFilter):
             hits = sorted(scanner.scan(), key=lambda x: x.timestamp.deref())
             for hit in hits:
                 timestamp = self.profile.UnixTimeStamp(
-                    value=int(unicode(hit.timestamp.deref())[1:]))
+                    value=int(str(hit.timestamp.deref())[1:]))
 
                 yield dict(
                     task=task,

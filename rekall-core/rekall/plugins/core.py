@@ -18,10 +18,15 @@
 #
 
 """This module implements core plugins."""
+from __future__ import division
+from future.utils import raise_
 
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import exceptions
 import inspect
 import pdb
 import math
@@ -60,13 +65,13 @@ class Info(plugin.Command):
         self.verbosity = verbosity
 
     def plugins(self):
-        for name, cls in plugin.Command.classes.items():
+        for name, cls in list(plugin.Command.classes.items()):
             if name:
                 doc = cls.__doc__ or " "
                 yield name, cls.name, doc.splitlines()[0]
 
     def profiles(self):
-        for name, cls in obj.Profile.classes.items():
+        for name, cls in list(obj.Profile.classes.items()):
             if self.verbosity == 0 and not cls.metadata("os"):
                 continue
 
@@ -74,7 +79,7 @@ class Info(plugin.Command):
                 yield name, cls.__doc__.splitlines()[0].strip()
 
     def address_spaces(self):
-        for name, cls in addrspace.BaseAddressSpace.classes.items():
+        for name, cls in list(addrspace.BaseAddressSpace.classes.items()):
             yield dict(name=name, function=cls.name, definition=cls.__module__)
 
     def render(self, renderer):
@@ -167,7 +172,7 @@ class Info(plugin.Command):
             item = self.item
 
         metadata = config.CommandMetadata(item)
-        for x, y in metadata.args.items():
+        for x, y in list(metadata.args.items()):
             # Normalize the option name to use _.
             x = x.replace("-", "_")
 
@@ -455,7 +460,7 @@ class LoadAddressSpace(plugin.Command):
         base_as = base_as
         error = addrspace.AddrSpaceError()
 
-        address_spaces = sorted(addrspace.BaseAddressSpace.classes.values(),
+        address_spaces = sorted(list(addrspace.BaseAddressSpace.classes.values()),
                                 key=lambda x: x.order)
 
         while 1:
@@ -572,7 +577,7 @@ class DirectoryDumperMixin(object):
 
         for run in address_space.get_address_ranges(start=start, end=end):
             out_offset = run.start - start
-            self.session.report_progress("Dumping %s Mb", out_offset / BUFFSIZE)
+            self.session.report_progress("Dumping %s Mb", old_div(out_offset, BUFFSIZE))
             outfd.seek(out_offset)
             i = run.start
 
@@ -1121,8 +1126,7 @@ class RaisingTheRoof(plugin.Command):
         self.exception_text = exception_text or "Default exception"
 
     def render(self, renderer):
-        exc_cls = getattr(exceptions, self.exception_class, ValueError)
-        raise exc_cls(self.exception_text)
+        raise_(ValueError(self.exception_text))
 
 
 class TestRaisingTheRoof(testlib.DisabledTest):

@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Rekall Memory Forensics
 # Copyright (C) 2007,2008 Volatile Systems
 # Copyright (C) 2010,2011,2012 Michael Hale Ligh <michael.ligh@mnin.org>
@@ -17,6 +18,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from builtins import hex
+from builtins import str
 from rekall import obj
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import win32k_core
@@ -57,7 +60,7 @@ class Clipboard(win32k_core.Win32kPluginMixin,
         e2 = obj.NoneObject("Unknown tagCLIP")
 
         # Load tagCLIPDATA handles from all sessions
-        for sid, session in sessions.items():
+        for sid, session in list(sessions.items()):
             handles = {}
             shared_info = self.win32k_profile.get_constant_object(
                 "gSharedInfo",
@@ -107,13 +110,13 @@ class Clipboard(win32k_core.Win32kPluginMixin,
         # Any remaining tagCLIPDATA not matched. This allows us
         # to still find clipboard data if a window station is not
         # found or if pClipData or cNumClipFormats were corrupt
-        for sid in sessions.keys():
+        for sid in list(sessions.keys()):
             handles = session_handles.get(sid, None)
             # No handles in the session
             if not handles:
                 continue
 
-            for handle in handles.values():
+            for handle in list(handles.values()):
                 yield sessions[sid], e1, e2, handle
 
     def collect(self):
@@ -138,7 +141,7 @@ class Clipboard(win32k_core.Win32kPluginMixin,
             if handle and "TEXT" in fmt:
                 clip_data = handle.reference_object().as_string(fmt)
 
-            print handle
+            print(handle)
 
             yield dict(session=session.SessionId,
                        window_station=wndsta.Name,

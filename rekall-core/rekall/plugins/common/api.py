@@ -18,6 +18,7 @@
 #
 
 """Rekall specifies an external API where plugins can be invoked."""
+from past.builtins import basestring
 import copy
 import textwrap
 
@@ -107,7 +108,7 @@ class APIGenerator(plugin.TypedProfileCommand,
 
     def generate_api(self):
         # All plugins are registered with the base plugin.
-        for plugin_name, cls in sorted(self.classes.iteritems()):
+        for plugin_name, cls in sorted(self.classes.items()):
             if not cls.name:
                 continue
 
@@ -151,8 +152,8 @@ class APISessionGenerator(APIGenerator):
 
     def collect(self):
         apis = []
-        for option, api in config.OPTIONS.args.items():
-            for k, v in api.items():
+        for option, api in list(config.OPTIONS.args.items()):
+            for k, v in list(api.items()):
                 if callable(v):
                     api[k] = v()
 

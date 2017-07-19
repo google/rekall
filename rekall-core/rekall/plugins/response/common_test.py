@@ -1,3 +1,4 @@
+from builtins import str
 import mock
 from rekall import testlib
 from rekall.plugins.response import common
@@ -8,7 +9,7 @@ class TestFileSpecs(testlib.RekallBaseUnitTestCase):
     def testFileSpecUnix(self):
         test_obj = common.FileSpec("/usr/bin/ls")
         self.assertEqual(test_obj.basename, "ls")
-        self.assertEqual(unicode(test_obj.dirname), "/usr/bin")
+        self.assertEqual(str(test_obj.dirname), "/usr/bin")
         self.assertEqual(test_obj.components(), ["usr", "bin", "ls"])
         self.assertEqual(test_obj.os_path(), "/usr/bin/ls")
 
@@ -16,11 +17,11 @@ class TestFileSpecs(testlib.RekallBaseUnitTestCase):
         # still refers to the same object.
         test_obj = common.FileSpec("/usr/bin/")
         self.assertEqual(test_obj.basename, "bin")
-        self.assertEqual(unicode(test_obj.dirname), "/usr")
+        self.assertEqual(str(test_obj.dirname), "/usr")
 
         test_obj = common.FileSpec("/")
         self.assertEqual(test_obj.basename, "")
-        self.assertEqual(unicode(test_obj.dirname), "/")
+        self.assertEqual(str(test_obj.dirname), "/")
         self.assertEqual(test_obj.components(), [])
 
     @mock.patch("os.path.sep", "\\")
@@ -28,7 +29,7 @@ class TestFileSpecs(testlib.RekallBaseUnitTestCase):
         """Test windows paths."""
         test_obj = common.FileSpec("c:\\Windows\System32\\notepad.exe", path_sep="\\")
         self.assertEqual(test_obj.basename, "notepad.exe")
-        self.assertEqual(unicode(test_obj.dirname), "c:\\Windows\\System32")
+        self.assertEqual(str(test_obj.dirname), "c:\\Windows\\System32")
         self.assertEqual(test_obj.components(), ["c:", "Windows", "System32",
                                                  "notepad.exe"])
 

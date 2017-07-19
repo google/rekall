@@ -16,6 +16,7 @@ use the CollectAction() to specify exactly the required data.
 
 In this Action we include both the text and data export in each column output.
 """
+from builtins import str
 import logging
 import time
 
@@ -95,9 +96,9 @@ class PluginRenderer(renderer.BaseRenderer):
     def convert_row(self, row):
         """Render the row into the output collection."""
         result = {}
-        for k, v in row.iteritems():
+        for k, v in row.items():
             # Render both text and data export for each object.
-            text_rendering = unicode(self._text_renderer.get_object_renderer(
+            text_rendering = str(self._text_renderer.get_object_renderer(
                 target=v).render_row(v))
             data_export_rendering = self._data_renderer.get_object_renderer(
                 target=v).EncodeToJsonSafe(v)

@@ -47,6 +47,8 @@ When test is run, the baseline files are loaded and copared with present output
 in a specific way.
 
 """
+from builtins import zip
+from builtins import object
 import hashlib
 import logging
 import subprocess
@@ -63,6 +65,7 @@ from rekall import config
 from rekall import plugin
 from rekall import session as rekall_session
 from rekall_lib import registry
+from future.utils import with_metaclass
 
 
 class Tail(threading.Thread):
@@ -96,9 +99,8 @@ class Tail(threading.Thread):
                 sys.stdout.flush()
 
 
-class RekallBaseUnitTestCase(unittest.TestCase):
+class RekallBaseUnitTestCase(with_metaclass(registry.MetaclassRegistry, unittest.TestCase)):
     """Base class for all rekall unit tests."""
-    __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
     # The parameters to run this test with. These parameters are written to the
@@ -185,7 +187,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
         if baseline_commandline:
             baseline_commandline = "- %s" % baseline_commandline
-            for k, v in config_options.items():
+            for k, v in list(config_options.items()):
                 # prepend all global options to the command line.
                 if k.startswith("-"):
                     # This is a boolean flag.
@@ -262,7 +264,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         user_session = rekall_session.InteractiveSession()
         with user_session.state as state:
             config.MergeConfigOptions(state, user_session)
-            for k, v in config_options.items():
+            for k, v in list(config_options.items()):
                 if k.startswith("--"):
                     state.Set(k[2:], v)
 

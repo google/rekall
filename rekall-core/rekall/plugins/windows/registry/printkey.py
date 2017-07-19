@@ -25,6 +25,7 @@
 @contact:      awalters@volatilesystems.com,bdolangavitt@wesleyan.edu
 @organization: Volatile Systems
 """
+from past.builtins import basestring
 import re
 
 from rekall import addrspace
@@ -120,7 +121,7 @@ class PrintKey(registry.RegistryPlugin):
 
                 renderer.format("\n")
                 renderer.format("Values:\n")
-                for value in key.values():
+                for value in list(key.values()):
                     renderer.format("{0:addrpad} ", value.obj_vm.vtop(value))
                     if value.Type == 'REG_BINARY':
                         data = value.DecodedData
@@ -403,7 +404,7 @@ class Services(registry.RegistryPlugin):
                                    ("Value", "value", "[wrap:60]")],
                                   suppress_headers=True)
 
-            for value in service.values():
+            for value in list(service.values()):
                 k = value.Name.v()
                 v = value.DecodedData
                 if value.Type == "REG_BINARY":

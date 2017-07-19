@@ -25,6 +25,8 @@ varies each time, so we need a way to locate the kernel base address in the
 kernel address space.
 """
 
+from builtins import str
+from builtins import range
 __author__ = "Michael Cohen <scudette@google.com>"
 
 from rekall import obj

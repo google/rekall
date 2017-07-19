@@ -19,9 +19,12 @@
 #
 
 """Tests for json encoding/decoding."""
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 import json
 import logging
-import StringIO
+import io
 
 from rekall import testlib
 from rekall.ui import json_renderer
@@ -44,11 +47,11 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
         # collected. If the encoded uses id() to deduplicate it will fail since
         # id() might reuse across GCed objects.
         test_string = ("this_is_a_very_long_sentence" * 10)
-        parts = [test_string[x:x+16] for x in xrange(
+        parts = [test_string[x:x+16] for x in range(
             0, len(test_string), 16)]
         with data_export.DataExportRenderer(
                 session=self.session,
-                output=StringIO.StringIO()).start() as renderer:
+                output=io.StringIO()).start() as renderer:
             utils.WriteHexdump(renderer, test_string)
             rows = []
             for row in renderer.data:

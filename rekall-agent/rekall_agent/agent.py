@@ -20,6 +20,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """This plugin implements the Rekall DFIR agent.
@@ -48,7 +55,7 @@ import socket
 import time
 import traceback
 import threading
-import Queue
+import queue
 
 import psutil
 
@@ -339,7 +346,7 @@ class RekallAgent(common.AbstractAgentCommand):
 
     def __init__(self, *args, **kwargs):
         super(RekallAgent, self).__init__(*args, **kwargs)
-        self._queue = Queue.Queue()
+        self._queue = queue.Queue()
 
     def _run_flow(self, flow_obj):
         # Flow has a condition - we only run the flow if the condition matches.
@@ -543,8 +550,8 @@ class RekallAgent(common.AbstractAgentCommand):
                 self.poll_wait = self._config.client.poll_min
             else:
                 # Slowly drift to slow poll
-                self.poll_wait += (self._config.client.poll_max -
-                                   self._config.client.poll_min) / 10
+                self.poll_wait += old_div((self._config.client.poll_max -
+                                   self._config.client.poll_min), 10)
                 if self.poll_wait > self._config.client.poll_max:
                     self.poll_wait = self._config.client.poll_max
 
@@ -592,5 +599,5 @@ class AgentInfo(common.AbstractAgentCommand):
 
     def collect(self):
         uname = UnameImpl.from_current_system(session=self.session)
-        for k, v in uname.to_primitive().iteritems():
+        for k, v in uname.to_primitive().items():
             yield dict(key=k, value=v)

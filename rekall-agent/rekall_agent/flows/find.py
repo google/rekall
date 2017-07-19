@@ -105,7 +105,7 @@ class FileFinderFlow(collect.CollectFlow):
         column_spec["st_uid"] = "path.st_uid.uid"
         column_spec["st_gid"] = "path.st_gid.gid"
 
-        columns = ["%s as %s" % (v, k) for k, v in column_spec.items()]
+        columns = ["%s as %s" % (v, k) for k, v in list(column_spec.items())]
 
         result = (
             "select %s from glob({globs}, path_sep: {path_sep})" %

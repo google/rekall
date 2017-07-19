@@ -20,6 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from __future__ import print_function
+from builtins import str
 __author__ = "Michael Cohen <scudette@google.com>"
 import json
 import os
@@ -116,12 +118,12 @@ class TestAgent(testlib.RekallBaseUnitTestCase):
 
         flow_data = flow.to_primitive()
         for row in self.session.plugins.run_flow(flow_data):
-            print row
+            print(row)
 
-        print self.temp_directory
+        print(self.temp_directory)
         import pdb; pdb.set_trace()
 
-        print self.session.plugins.run_flow(flow.to_primitive())
+        print(self.session.plugins.run_flow(flow.to_primitive()))
 
 
 if __name__ == "__main__":

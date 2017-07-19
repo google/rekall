@@ -26,6 +26,8 @@ This file provides support for windows Windows 7 SP 0.
 """
 
 # pylint: disable=protected-access
+from builtins import chr
+from builtins import range
 from rekall import addrspace
 from rekall import kb
 from rekall import obj

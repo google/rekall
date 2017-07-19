@@ -20,11 +20,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from future import standard_library
+standard_library.install_aliases()
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """Location handlers for a stand alone HTTP server.
 """
-import cStringIO
+import io
 import hashlib
 import time
 
@@ -200,7 +202,7 @@ class BlobUploaderImpl(HTTPLocationImpl, location.BlobUploader):
 
         # Upload the file to the blob endpoint.
         resp = self.get_requests_session().post(
-            spec.url, files={spec.name: cStringIO.StringIO(data)})
+            spec.url, files={spec.name: io.StringIO(data)})
 
         self._session.logging.debug("Uploaded file: %s (%s bytes)",
                                     spec.url, len(data))

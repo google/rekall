@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """Defines the basic agent configuration system."""
@@ -58,7 +59,7 @@ class ExternalFileMixin(object):
         search_path = session.GetParameter("config_search_path", ["."])
 
         result = {}
-        for k, v in data.iteritems():
+        for k, v in data.items():
             if "@" in k:
                 field_name, filter_name = k.split("@", 1)
                 if filter_name == "env":

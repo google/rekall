@@ -1,3 +1,4 @@
+from __future__ import division
 # Rekall Memory Forensics
 # Copyright (C) 2012 Michael Cohen <scudette@users.sourceforge.net>
 # Copyright (c) 2008 Volatile Systems
@@ -21,6 +22,7 @@
 
 # pylint: disable=protected-access
 
+from past.utils import old_div
 from rekall import obj
 
 from rekall.plugins.overlays.windows import common
@@ -47,7 +49,7 @@ class Ntoskrnl(pe_vtypes.BasicPEProfile):
         # If the version is provided, then just use it.
         try:
             major, minor = profile.metadatas("major", "minor")
-            version = major + minor / 10.0
+            version = major + old_div(minor, 10.0)
             profile.set_metadata("version", version)
 
             return version

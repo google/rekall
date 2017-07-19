@@ -20,6 +20,8 @@
 
 """This module implements base object renderers."""
 
+from builtins import hex
+from builtins import str
 from rekall.ui import renderer as renderer_module
 from rekall.ui import text
 from rekall_lib import utils
@@ -44,11 +46,11 @@ class BaseObjectTextRenderer(text.TextObjectRenderer):
         )
 
     def render_full(self, target, **options):
-        result = text.Cell(unicode(target.v()), **options)
+        result = text.Cell(str(target.v()), **options)
         return result
 
     def render_value(self, target, **_):
-        return text.Cell(unicode(target.v()))
+        return text.Cell(str(target.v()))
 
 
 class StringTextRenderer(BaseObjectTextRenderer):
@@ -82,7 +84,7 @@ class UnixTimestampObjectRenderer(BaseObjectTextRenderer):
             return text.Cell(repr(target))
 
         if target != None:
-            return text.Cell(unicode(target))
+            return text.Cell(str(target))
 
         return text.Cell("-")
 
@@ -108,7 +110,7 @@ class PythonBoolTextRenderer(text.TextObjectRenderer):
     def render_full(self, target, **_):
         color = "GREEN" if target else "RED"
         return text.Cell(
-            value=unicode(target),
+            value=str(target),
             highlights=[(0, -1, color, None)])
 
     render_value = render_full
@@ -145,7 +147,7 @@ class FlagsTextRenderer(BaseObjectTextRenderer):
         return text.Cell(u', '.join(flags))
 
     def render_value(self, target, **_):
-        return text.Cell(unicode(self.v()))
+        return text.Cell(str(self.v()))
 
     def render_compact(self, target, **_):
         lines = self.render_full(target).lines
@@ -247,7 +249,7 @@ class FunctionTextRenderer(BaseObjectTextRenderer):
 
         result = []
         for instruction in target.disassemble():
-            result.append(unicode(table.get_row(
+            result.append(str(table.get_row(
                 instruction.address, instruction.hexbytes, instruction.text)))
 
         return text.Cell("\n".join(result))
@@ -348,7 +350,7 @@ class AttributeDictTextRenderer(text.TextObjectRenderer):
 
     def render_row(self, item, **options):
         result = []
-        for key, value in sorted(item.iteritems()):
+        for key, value in sorted(item.items()):
             result.append(self.table.get_row(key, value))
 
         return text.StackedCell(*result)
