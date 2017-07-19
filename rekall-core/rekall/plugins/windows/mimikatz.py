@@ -18,10 +18,10 @@
 # Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""Emulation of the Mimikatz tool.
+"""Partial emulation of the Mimikatz tool.
 
-This code replicates the algorithm first implemented in the mimikatz tool, which
-can be found here:
+This code replicates the algorithm first implemented in the mimikatz tool,
+which can be found here:
 
 https://github.com/gentilkiwi/mimikatz
 """
@@ -50,17 +50,17 @@ mimikatz_common_overlays = {
         'Value': lambda x: x.Buffer.dereference_as(
             'UnicodeString', target_args=dict(length=x.Length)),
         'Raw': lambda x: x.Buffer.dereference_as(
-            'String', target_args=dict(length=x.Length)).v(),
+            'String', target_args=dict(length=x.Length, term=None)).v(),
         'RawMax': lambda x: x.Buffer.dereference_as(
-            'String', target_args=dict(length=x.MaximumLength)).v(),
+            'String', target_args=dict(length=x.MaximumLength, term=None)).v(),
     }],
     '_LSA_STRING': [None, {
         'Value': lambda x: x.Buffer.dereference_as(
             'String', target_args=dict(length=x.Length)),
         'Raw': lambda x: x.Buffer.dereference_as(
-            'String', target_args=dict(length=x.Length)).v(),
+            'String', target_args=dict(length=x.Length, term=None)).v(),
         'RawMax': lambda x: x.Buffer.dereference_as(
-            'String', target_args=dict(length=x.MaximumLength)).v(),
+            'String', target_args=dict(length=x.MaximumLength, term=None)).v(),
     }],
     '_LUID': [None, {
         'Text': lambda x: '{:08x}:{:08x}'.format(x.HighPart, x.LowPart)
@@ -106,23 +106,30 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
     mimikatz_vtypes = [
         '_LIST_ENTRY', '_LSA_UNICODE_STRING', '_LUID',
         '_LSA_STRING', '_MSV1_0_PRIMARY_CREDENTIAL',
-        '_KIWI_BCRYPT_HANDLE_KEY', '_KIWI_BCRYPT_KEY', '_KIWI_HARD_KEY',
+        '_KIWI_BCRYPT_HANDLE_KEY', '_KIWI_HARD_KEY',
         '_KIWI_MSV1_0_CREDENTIALS', '_KIWI_MSV1_0_PRIMARY_CREDENTIALS',
         '_KIWI_GENERIC_PRIMARY_CREDENTIAL',
-        '_RPCE_CREDENTIAL_KEYCREDENTIAL', '_RPCE_COMMON_TYPE_HEADER',
-        '_RPCE_PRIVATE_HEADER', '_MARSHALL_KEY',
         '_KIWI_MASTERKEY_CACHE_ENTRY', '_FILETIME']
 
     windows_vtypes = ['_SID', '_SID_IDENTIFIER_AUTHORITY', '_GUID']
 
     # TODO: should be special cases (1or2) addressed?
     mimikatz_msv_versioned = {
-        5.1 : '_KIWI_MSV1_0_LIST_51',
-        5.2 : '_KIWI_MSV1_0_LIST_52',
-        6.0 : '_KIWI_MSV1_0_LIST_60',
-        6.1 : '_KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ',
-        6.2 : '_KIWI_MSV1_0_LIST_62',
-        6.3 : '_KIWI_MSV1_0_LIST_63',
+        5.1: '_KIWI_MSV1_0_LIST_51',
+        5.2: '_KIWI_MSV1_0_LIST_52',
+        6.0: '_KIWI_MSV1_0_LIST_60',
+        6.1: '_KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ',
+        6.2: '_KIWI_MSV1_0_LIST_62',
+        6.3: '_KIWI_MSV1_0_LIST_63',
+    }
+
+    mimikatz_key_versioned = {
+        5.1: '_KIWI_BCRYPT_KEY',
+        5.2: '_KIWI_BCRYPT_KEY',
+        6.0: '_KIWI_BCRYPT_KEY',
+        6.1: '_KIWI_BCRYPT_KEY',
+        6.2: '_KIWI_BCRYPT_KEY8',
+        6.3: '_KIWI_BCRYPT_KEY81',
     }
 
     @classmethod
@@ -156,8 +163,13 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
             raise IOError('OS version not supported.')
 
         profile.add_types({
-            'MSV1_0_LIST' : mimikatz_profile.vtypes[
+            'MSV1_0_LIST': mimikatz_profile.vtypes[
                 cls.mimikatz_msv_versioned[version]]
+        })
+
+        profile.add_types({
+            '_KIWI_BCRYPT_KEY': mimikatz_profile.vtypes[
+                cls.mimikatz_key_versioned[version]]
         })
 
         profile.add_classes(_SID=_SID)
@@ -195,36 +207,6 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
                 'LmOwfPassword': [None, ['String', dict(length=16)]],
                 'ShaOwPassword': [None, ['String', dict(length=20)]],
             }],
-            '_MARSHALL_KEY': [None, {
-                'unkId': [None, ['Enumeration', dict(
-                    target='unsigned long',
-                    choices={
-                        0x00010002: 'NTLM',
-                        0x00010003: 'NTLM',
-                        0x00020002: 'SHA1',
-                        0x00030002: 'RootKey',
-                        0x00030003: 'RootKey',
-                        0x00040002: 'DPAPI',
-                        0x00040003: 'DPAPI',
-                    },
-                )]],
-            }],
-            '_RPCE_CREDENTIAL_KEYCREDENTIAL': [
-                # TODO: the object size is wrong, data array takes the first
-                # instance length, not all (different) lengths.
-                lambda x: x.key.obj_offset + x.data.obj_size + x.key.obj_size,
-                {
-                    'key': [None, ['Array', {
-                        'count': lambda x: x.unk0,
-                        'target': '_MARSHALL_KEY'
-                    }]],
-                    'key_data': [lambda x: x.unk1.obj_end + x.key.obj_size, [
-                        'Array', {
-                            'count': lambda x: x.unk0,
-                            'target': 'SIZED_DATA'
-                        }]],
-                }
-            ],
             '_KIWI_MASTERKEY_CACHE_ENTRY': [None, {
                 'List': [0, ['_LIST_ENTRY']],
                 'key': [None, ['String', dict(length=lambda x: x.keySize)]],
@@ -233,9 +215,14 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
 
     def init_crypto(self):
         if self.session.profile.metadata('version') < 6.0:
-            self.init_crypto_nt5()
+            self.decryption_enabled = self.init_crypto_nt5()
         else:
-            self.init_crypto_nt6()
+            self.decryption_enabled = self.init_crypto_nt6()
+        if not self.decryption_enabled:
+            logging.warning('AES:     {}'.format(self.aes_key.encode('hex')))
+            logging.warning('IV:      {}'.format(self.iv.encode('hex')))
+            logging.warning('DES key: {}'.format(self.des_key.encode('hex')))
+            logging.error('Unable to initialize decryption keys!')
 
     def decrypt(self, encrypted):
         if self.session.profile.metadata('version') < 6.0:
@@ -244,7 +231,6 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
             return self.decrypt_nt6(encrypted)
 
     def init_crypto_nt6(self):
-        # TODO: add some checks to alert user if decryption is not possible.
         self.iv = self.get_constant_object(
             'InitializationVector', 'String', length=16, term=None).v()
 
@@ -260,12 +246,25 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
 
         self.des_key = des_handle.key.hardkey.data.v()
 
+        try:
+            cipher = AES.new(self.aes_key, AES.MODE_CFB, self.iv)
+            cipher = DES3.new(self.des_key, DES3.MODE_CBC, self.iv[:8])
+            cipher = None
+            decryption_enabled = True
+        except ValueError as e_ve:
+            decryption_enabled = False
+            logging.warning('init_crypto_nt6 exception {}'.format(e_ve))
+        finally:
+            return decryption_enabled
+
     def decrypt_nt6(self, encrypted):
+        if not self.decryption_enabled:
+            return obj.NoneObject()
+
         cipher = None
         if self.iv:
             if len(encrypted) % 8:
-                if self.aes_key:
-                    cipher = AES.new(self.aes_key, AES.MODE_CFB, self.iv)
+                cipher = AES.new(self.aes_key, AES.MODE_CFB, self.iv)
             else:
                 if self.des_key:
                     cipher = DES3.new(self.des_key, DES3.MODE_CBC, self.iv[:8])
@@ -274,7 +273,6 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
         return obj.NoneObject()
 
     def init_crypto_nt5(self):
-        # TODO: add some checks to alert user if decryption is not possible.
         rc4_key_len = self.get_constant_object(
             'g_cbRandomKey', 'unsigned long').v()
 
@@ -294,7 +292,19 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
             'g_Feedback', target='String',
             target_args=dict(length=8)).v()
 
+        try:
+            cipher = ARC4.new(self.rc4_key)
+            decryption_enabled = True
+        except ValueError as e_ve:
+            decryption_enabled = False
+            logging.warning('init_crypto_nt5 exception {}'.format(e_ve))
+        finally:
+            return decryption_enabled
+
     def decrypt_nt5(self, encrypted):
+        if not self.decryption_enabled:
+            return obj.NoneObject()
+
         cipher = None
         if len(encrypted) % 8:
             if self.rc4_key:
@@ -341,19 +351,6 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
             yield (domain, user_name, 'SHA1',
                    cred_obj.ShaOwPassword.v().encode('hex'))
 
-    def _msv_rpce_credentials(self, data):
-        vm = addrspace.BufferAddressSpace(data=data, session=self.session)
-        cred_obj = self.Object('_RPCE_CREDENTIAL_KEYCREDENTIAL',
-                               profile=self, vm=vm)
-
-        # This seems to be corrupt sometimes.
-        if cred_obj.unk0 > 10:
-            return
-
-        for i in range(0, cred_obj.unk0):
-            yield (cred_obj.key[i].unkId,
-                   cred_obj.key_data[i].data.v().encode('hex'))
-
     def logons(self, lsass_logons):
         for luid, lsass_logon in lsass_logons.iteritems():
             for cred in lsass_logon.Credentials.walk_list('next'):
@@ -367,15 +364,9 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
 
                     if cur_cred_type == u'Primary':
                         for (domain, user_name, secret_type,
-                             secret) in self._msv_primary_credentials(dec_cred):
+                        secret) in self._msv_primary_credentials(dec_cred):
                             yield (luid, cur_cred_type, domain, user_name,
                                    secret_type, secret)
-
-                    elif cur_cred_type == u'CredentialKeys':
-                        for (secret_type,
-                             secret) in self._msv_rpce_credentials(dec_cred):
-                            yield (luid, cur_cred_type, '', '', secret_type,
-                                   secret)
                     else:
                         pass
 
@@ -383,7 +374,10 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
         keys = self.get_constant_object(
             'g_MasterKeyCacheList', target='_LIST_ENTRY')
         for entry in keys.list_of_type('_KIWI_MASTERKEY_CACHE_ENTRY', 'List'):
-            yield (entry.LogonId.Text, '', # TODO: add entry.KeyUid,
+            logonId = entry.LogonId
+            if logonId.HighPart.v() == 0 and logonId.LowPart.v() == 0:
+                continue
+            yield (logonId.Text, '',
                    '', '', 'masterkey',
                    self.decrypt(entry.key.v()).encode('hex'))
 
@@ -429,7 +423,7 @@ class Wdigest(pe_vtypes.BasicPEProfile):
         })
 
     def logons(self):
-        # TODO: if the symbols is wrong? Add a check for the LIST validity.
+        # TODO: if the symbols are wrong? Add a check for the LIST validity.
         logons = self.get_constant_object(
             'l_LogSessList', target='_LIST_ENTRY')
         for entry in logons.list_of_type('_KIWI_WDIGEST_LIST_ENTRY', 'List'):
@@ -511,17 +505,21 @@ class Mimikatz(common.WindowsCommandPlugin):
 
     def collect(self):
         cc = self.session.plugins.cc()
-        # Switch to the lsass process.
         for task in self.session.plugins.pslist(
                 proc_regex='lsass.exe').filter_processes():
             cc.SwitchProcessContext(task)
 
+            lsasrv = None
             lsasrv_module = self.session.address_resolver.GetModuleByName(
                 'lsasrv')
 
-            # lsasrv not mapped in lsass? Weird!
             if lsasrv_module:
                 lsasrv = lsasrv_module.profile
+                if not isinstance(lsasrv, Lsasrv):
+                    logging.warning('Unable to properly initialize lsasrv!')
+                    lsasrv = None
+
+            if lsasrv:
                 lsasrv.init_crypto()
                 lsass_logons = lsasrv.get_lsass_logons()
 
@@ -529,7 +527,6 @@ class Mimikatz(common.WindowsCommandPlugin):
                      secret) in lsasrv.logons(lsass_logons):
 
                     lsass_entry = lsass_logons.get(luid, obj.NoneObject())
-                    # TODO: add timestamp field?
                     yield (luid,
                            lsass_entry.LogonType,
                            lsass_entry.Session,
@@ -541,55 +538,67 @@ class Mimikatz(common.WindowsCommandPlugin):
                            secret_type,
                            secret)
 
+            wdigest = None
             wdigest_module = self.session.address_resolver.GetModuleByName(
                 'wdigest')
 
-            # Wdigest is mapped
             if wdigest_module:
                 wdigest = wdigest_module.profile
-
-                if not wdigest.get_constant('l_LogSessList'):
-                    logging.warning('wdigest not initialized, skipping it.')
+                if not isinstance(wdigest, Wdigest):
+                    logging.warning('Unable to properly initialize wdigest.')
+                    wdigest = None
                 else:
-                    for entry in wdigest.logons():
-                        luid = entry.LocallyUniqueIdentifier.Text
-                        lsass_entry = lsass_logons.get(luid, obj.NoneObject())
+                    if not wdigest.get_constant('l_LogSessList'):
+                        logging.warning('wdigest not initialized, KO.')
+                        wdigest = None
 
-                        yield (luid,
-                               lsass_entry.LogonType,
-                               lsass_entry.Session,
-                               lsass_entry.pSid.deref(),
-                               'wdigest',
-                               '',
-                               entry.Cred.Domaine.Value,
-                               entry.Cred.UserName.Value,
-                               'password',
-                               lsasrv.decrypt(entry.Cred.Password.RawMax))
+            if wdigest:
+                for entry in wdigest.logons():
+                    luid = entry.LocallyUniqueIdentifier.Text
+                    lsass_entry = lsass_logons.get(luid, obj.NoneObject())
 
+                    yield (luid,
+                           lsass_entry.LogonType,
+                           lsass_entry.Session,
+                           lsass_entry.pSid.deref(),
+                           'wdigest',
+                           '',
+                           entry.Cred.Domaine.Value,
+                           entry.Cred.UserName.Value,
+                           'password',
+                           lsasrv.decrypt(entry.Cred.Password.RawMax))
+
+            livessp = None
             livessp_module = self.session.address_resolver.GetModuleByName(
                 'livessp')
+
             if livessp_module:
                 livessp = livessp_module.profile
-
-                if not livessp.get_constant('LiveGlobalLogonSessionList'):
-                    logging.warning('livessp not initializated, skipping it.')
+                if not isinstance(livessp, Livessp):
+                    logging.warning('Unable to properly initialize livessp.')
+                    livessp = None
                 else:
-                    for (luid, info, domain, user_name, secret_type,
-                         enc_secret) in livessp.logons():
-                        lsass_entry = lsass_logons.get(luid, obj.NoneObject())
+                    if not livessp.get_constant('LiveGlobalLogonSessionList'):
+                        logging.warning('livessp not initialized, KO.')
+                        livessp = None
 
-                        yield (luid,
-                               lsass_entry.LogonType,
-                               lsass_entry.Session,
-                               lsass_entry.pSid.deref(),
-                               'livessp',
-                               info,
-                               domain,
-                               user_name,
-                               secret_type,
-                               lsasrv.decrypt(enc_secret))
+            if livessp:
+                for (luid, info, domain, user_name, secret_type,
+                     enc_secret) in livessp.logons():
+                    lsass_entry = lsass_logons.get(luid, obj.NoneObject())
 
-            if lsasrv_module:
+                    yield (luid,
+                           lsass_entry.LogonType,
+                           lsass_entry.Session,
+                           lsass_entry.pSid.deref(),
+                           'livessp',
+                           info,
+                           domain,
+                           user_name,
+                           secret_type,
+                           lsasrv.decrypt(enc_secret))
+
+            if lsasrv:
                 for (luid, info, domain, user_name, secret_type,
                      secret) in lsasrv.master_keys():
                     lsass_entry = lsass_logons.get(luid, obj.NoneObject())
