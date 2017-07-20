@@ -54,6 +54,16 @@ class VADMapMixin(object):
              help="Stop reading at this offset."),
     ]
 
+    table_header = [
+        dict(name='_EPROCESS', type="_EPROCESS", hidden=True),
+        dict(name="Divider", type="Divider"),
+        dict(name="VAddr", style="address"),
+        dict(name="PAddr", style="address", hidden=True),
+        dict(name="length", style="address"),
+        dict(name="type", width=20),
+        dict(name="comment"),
+    ]
+
     def FormatMetadata(self, type, metadata, offset=None):
         result = ""
         if not metadata:
@@ -81,31 +91,10 @@ class VADMapMixin(object):
         _ = task
         return []
 
-    def render_metadata(self, renderer, old_metadata, old_vaddr, type,
-                        offset, length, old_offset):
-        comment = self.FormatMetadata(
-            type, old_metadata, offset=old_offset)
-        if self.plugin_args.verbosity < 5:
-            renderer.table_row(old_vaddr, length, type, comment)
-        else:
-            renderer.table_row(old_vaddr, old_offset, length, type, comment)
-
-    def render(self, renderer):
+    def collect(self):
         for task in self.filter_processes():
-            renderer.section()
-            renderer.format("Pid: {0} {1}\n", task.pid, task.name)
-
-            headers = [
-                ('Virt Addr', 'virt_addr', '[addrpad]'),
-                ('Offset', 'offset', '[addrpad]'),
-                ('Length', 'length', '[addr]'),
-                ('Type', 'type', '20s'),
-                ('Comments', 'comments', "")]
-
-            if self.plugin_args.verbosity < 5:
-                headers.pop(1)
-
-            renderer.table_header(headers)
+            yield dict(_EPROCESS=task,
+                       Divider="Pid: {0} {1}\n".format(task.pid, task.name))
 
             with self.session.plugins.cc() as cc:
                 cc.SwitchProcessContext(task)
@@ -130,8 +119,11 @@ class VADMapMixin(object):
 
                     type = old_metadata.get("type", None)
                     if type:
-                        self.render_metadata(renderer, old_metadata, old_vaddr,
-                                             type, offset, length, old_offset)
+                        comment = self.FormatMetadata(type, old_metadata,
+                                                      vaddr)
+
+                        yield dict(VAddr=vaddr, PAddr=offset, length=length,
+                                   type=type, comment=comment)
 
                     old_metadata = metadata
                     old_vaddr = vaddr
@@ -139,5 +131,6 @@ class VADMapMixin(object):
                     length = 0x1000
 
             if old_metadata:
-                self.render_metadata(renderer, old_metadata, old_vaddr,
-                                     type, offset, length, old_offset)
+                comment = self.FormatMetadata(type, old_metadata, vaddr)
+                yield dict(VAddr=vaddr, PAddr=offset, length=length,
+                           type=type, comment=comment)

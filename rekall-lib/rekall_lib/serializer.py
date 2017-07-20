@@ -698,9 +698,10 @@ class SerializedObject(object):
         return json.dumps(self.to_primitive(), sort_keys=True)
 
     @classmethod
-    def from_json(cls, json_string, session=None):
+    def from_json(cls, json_string, session=None, strict_parsing=False):
         data = json.loads(json_string or "{}")
-        return cls.from_primitive(data, session=session)
+        return unserialize(data, session=session,
+                           strict_parsing=strict_parsing, type=cls)
 
     @classmethod
     def from_primitive(cls, data, session=None):

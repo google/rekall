@@ -26,12 +26,14 @@ __author__ = "Michael Cohen <scudette@google.com>"
 """
 import cStringIO
 import hashlib
+import logging
 import time
 
 from wsgiref import handlers
 
 import requests
 from requests import adapters
+
 from rekall_lib.types import location
 from rekall_lib import crypto
 from rekall_lib import serializer
@@ -140,6 +142,8 @@ class HTTPLocationImpl(common.AgentConfigMixin, location.HTTPLocation):
         if resp.ok:
             return resp.content
 
+        logging.warning("Error: %s", resp.content)
+
         return ""
 
     def add_signature(self, data, url, headers):
@@ -208,16 +212,62 @@ class BlobUploaderImpl(HTTPLocationImpl, location.BlobUploader):
         return self._report_error(None, resp)
 
 
+class Reader(object):
+    """Wrap a file like object in a multi-form boundary."""
+    def __init__(self, fd):
+        self.fd = fd
+        self._boundary = "---------------------------735323031399963166993862150"
+        self._start = (
+            "--" + self._boundary + "\r\n" +
+            'Content-Disposition: form-data; name="file"; filename="a.bin"\r\n' +
+            'Content-Type: application/octet-stream\r\n\r\n')
+        self._start_stream = cStringIO.StringIO(self._start)
+
+        self._end = "\r\n--" + self._boundary + "\r\n\r\n"
+        self._end_stream = cStringIO.StringIO(self._end)
+        self.len = len(self._start) + self.get_len(self.fd) + len(self._end)
+
+    def content_type(self):
+        return str(
+            'multipart/form-data;boundary="{0}"'.format(self._boundary)
+            )
+
+    def get_len(self, fd):
+        """Figure out the total length of fd."""
+        fd.seek(0, 2)
+        res = fd.tell()
+        fd.seek(0)
+        return res
+
+    def read(self, length):
+        to_read = length
+        result = ""
+
+        for fd in (self._start_stream, self.fd, self._end_stream):
+            data = fd.read(to_read)
+            result += data
+            to_read -= len(data)
+            if to_read == 0:
+                return result
+
+        return result
+
+
+
 class FileUploadLocationImpl(HTTPLocationImpl, location.FileUploadLocation):
+
     def upload_file_object(self, fd, file_information=None, **kw):
         """Upload a local file.
 
         Read data from fd. If file_information is provided, then we use this to
         report about the file.
         """
+        reader = Reader(fd)
+
         if file_information is None:
             file_information = location.FileInformation.from_keywords(
                 filename=fd.name,
+                st_size=reader.len,
             )
 
         request = location.FileUploadRequest.from_keywords(
@@ -225,17 +275,28 @@ class FileUploadLocationImpl(HTTPLocationImpl, location.FileUploadLocation):
             file_information=file_information)
 
         url_endpoint, _, headers, _ = self._get_parameters(**kw)
+        data = request.to_json()
+        self.add_signature(data, url_endpoint, headers)
 
         resp = self.get_requests_session().post(
-            url_endpoint, data=request.to_json(),
+            url_endpoint, data=data,
             headers=headers)
 
         if resp.ok:
             response = location.FileUploadResponse.from_json(resp.content)
 
-            # Upload the file to the blob endpoint.
+            # Upload the file to the blob endpoint. This must be a multipart
+            # form with streamed file upload.  TODO: Think about
+            # transfer-encoding gzip. It will be tricky because we need to know
+            # the length. It does not apprear that the AppEngine SDK supports
+            # chunked encoding, but the production server does support it.
+            # https://stackoverflow.com/questions/13127500/does-appengine-blobstore-support-chunked-transfer-encoding-for-uploads-status-4
             self.get_requests_session().post(
-                response.url, files={"file": fd})
+                response.url, data=reader, headers={
+                    "Content-Type": reader.content_type(),
+                    "Content-Length": str(reader.len),
+                }
+            )
 
             self._session.logging.debug("Uploaded file: %s (%s bytes)",
                                         file_information.filename, fd.tell())

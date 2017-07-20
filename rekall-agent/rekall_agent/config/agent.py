@@ -117,9 +117,6 @@ class ClientWriteback(serializer.SerializedObject):
     """
 
     schema = [
-        dict(name="client_id",
-             doc="A unique identifier for the client."),
-
         dict(name="last_flow_time", type="epoch", default=arrow.get(0),
              doc="The create timestamp of the last flow we processed."),
 
@@ -129,6 +126,14 @@ class ClientWriteback(serializer.SerializedObject):
         dict(name="current_flow", type=serializer.SerializedObject,
              doc="The currently running flow.")
     ]
+
+    _client_id = None
+
+    @property
+    def client_id(self):
+        if self._client_id is None:
+            self._client_id = self.private_key.public_key().client_id()
+        return self._client_id
 
 
 class ServerPolicyImpl(ExternalFileMixin,
@@ -161,7 +166,7 @@ class ClientPolicyImpl(ExternalFileMixin,
         return self._writeback
 
     def get_writeback(self):
-        if self._writeback == None  and self.writeback_path:
+        if self._writeback == None and self.writeback_path:
             try:
                 self._session.logging.debug(
                     "Will load writeback from %s", self.writeback_path)
@@ -172,6 +177,8 @@ class ClientPolicyImpl(ExternalFileMixin,
                 self._session.logging.error(
                     "Failed to decode writeback file: %s", e)
                 self._writeback = ClientWriteback(session=self._session)
+                self._writeback.private_key.generate_key()
+                self.save_writeback()
 
         return self._writeback
 
@@ -181,6 +188,11 @@ class ClientPolicyImpl(ExternalFileMixin,
     def save_writeback(self):
         self._session.logging.debug(
             "Updating writeback %s", self.writeback_path)
+        try:
+            os.makedirs(os.path.dirname(self.writeback_path))
+        except (OSError, IOError):
+            pass
+
         with open(self.writeback_path, "wb") as fd:
             fd.write(self._writeback.to_json())
 

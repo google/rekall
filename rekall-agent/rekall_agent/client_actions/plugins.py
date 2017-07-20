@@ -13,10 +13,10 @@ context menu item. It is not supposed to be useful in all processing steps. If
 you want to build a stable pipeline for processing Rekall's output, you should
 use the CollectAction() to specify exactly the required data.
 
-
 In this Action we include both the text and data export in each column output.
 """
 import logging
+import tempfile
 import time
 
 from rekall import plugin
@@ -26,6 +26,44 @@ from rekall.plugins.response import common
 from rekall.ui import text
 from rekall_lib.types import actions
 
+
+class UploaderFileObject(object):
+    """A File like object which uploads itself to the server."""
+    def __init__(self, upload_location, name=None):
+        self.upload_location = upload_location
+        self.name = name
+        self.fd = None
+
+    def __enter__(self):
+        self.fd = tempfile.NamedTemporaryFile()
+        self.len = 0
+        return self
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.flush()
+
+    def seek(self, *args, **kwargs):
+        self.fd.seek(*args, **kwargs)
+
+    def write(self, data):
+        self.fd.write(data)
+
+    def tell(self):
+        return self.fd.tell()
+
+    def read(self, length):
+        data = self.fd.read(length)
+        return data
+
+    def flush(self):
+        """Upload the file."""
+        try:
+            self.fd.seek(0, 2)
+            self.len = self.fd.tell() - 1
+            self.fd.seek(0)
+            self.upload_location.upload_file_object(self)
+        finally:
+            self.fd.close()
 
 
 class LogCapturer(logging.Handler):
@@ -117,14 +155,18 @@ class PluginRenderer(renderer.BaseRenderer):
                 self._flow_obj.file_upload.upload_file_object(fd)
                 self._flow_obj.status.total_uploaded_files += 1
 
+    def open(self, filename, **kwargs):
+        location = self._flow_obj.file_upload
+        if location:
+            self._flow_obj.status.total_uploaded_files += 1
+            return UploaderFileObject(location, filename)
+        else:
+            raise IOError("No upload location")
+
 
 class PluginActionImpl(actions.PluginAction):
 
     def run(self, flow_obj=None):
-        # Make sure to notify the flow status about the collection we are about
-        # to create.
-        flow_obj.status.collection_ids.append(self.collection.id)
-
         plugin_renderer = PluginRenderer(session=self._session,
                                          collection=self.collection,
                                          flow_obj=flow_obj)
@@ -135,17 +177,15 @@ class PluginActionImpl(actions.PluginAction):
                 if plugin_cls == None:
                     raise plugin.PluginError("Unknown plugin")
 
-                plugin_obj = plugin_cls(session=self._session, **self.args)
-                if plugin_obj == None:
-                    raise plugin.PluginError("Plugin not active")
-
                 # Sometimes we dont know all the columns until we actually run
                 # the plugin (For example the Search plugin creates columns
                 # dynamically). It is always safer to run the plugin through the
                 # renderer.
                 self._session.logging.info("Running plugin %s", plugin_cls)
                 now = time.time()
-                plugin_obj.render(plugin_renderer)
-
-                self._session.logging.info("Completed in %s seconds",
-                                           time.time() - now)
+                try:
+                    self._session.RunPlugin(plugin_cls, format=plugin_renderer,
+                                            **self.args)
+                finally:
+                    self._session.logging.info("Completed in %s seconds",
+                                               time.time() - now)

@@ -50,6 +50,9 @@ The below supports path temple interpolations allowing various expansions to be
     def get_client_id(self):
         return self._config.client.writeback.client_id
 
+    def get_last_flow_time(self):
+        return self._config.client.writeback.last_flow_time
+
     def get_nonce(self):
         return self._config.client.nonce
 
@@ -109,26 +112,3 @@ class AbstractAgentCommand(AgentConfigMixin, plugin.TypedProfileCommand,
     mode = "mode_agent"
 
     __args = []
-
-
-class AbstractControllerCommand(AbstractAgentCommand):
-    mode = "mode_controller"
-
-    __abstract = True
-
-    __args = [
-        dict(name="client_id",
-             help="The client_id. If not specified we use the context as set "
-             "by the cc() plugin.")
-    ]
-
-    CLIENT_REQUIRED = False
-
-    def __init__(self, *args, **kwargs):
-        super(AbstractControllerCommand, self).__init__(*args, **kwargs)
-        self.client_id = (self.plugin_args.client_id or
-                          self.session.GetParameter("controller_context") or
-                          None)
-
-        if self.CLIENT_REQUIRED and not self.client_id:
-            raise plugin.PluginError("Client ID is required.")

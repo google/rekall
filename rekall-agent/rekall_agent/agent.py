@@ -44,6 +44,7 @@ results back to the server. The agent goes through the following phases:
 
 import json
 import platform
+import random
 import socket
 import time
 import traceback
@@ -102,10 +103,10 @@ class ResourcesImpl(resources.Resources):
             self.system_time = cpu_times.system - self._start_system_time
             self.wall_time = time.time() - self._start_wall_time
 
-    def to_primitive(self):
+    def to_primitive(self, with_type=True):
         """Freeze the current resources upon serialization."""
         self.update()
-        return super(ResourcesImpl, self).to_primitive(self)
+        return super(ResourcesImpl, self).to_primitive(with_type=with_type)
 
     @property
     def total_time(self):
@@ -201,23 +202,11 @@ class StartupActionImpl(common.AgentConfigMixin, client.StartupAction):
             boot_time=psutil.boot_time(),
             agent_start_time=START_TIME,
             timestamp=time.time(),
+            labels=self._config.client.labels,
             system_info=UnameImpl.from_current_system(session=self._session),
         )
         self._session.logging.debug("Sending client startup message to server.")
         self.location.write_file(message.to_json())
-
-
-class _LocationTracker(object):
-    def __init__(self, location):
-        self.location = location
-        self.last_modified = 0
-
-    def get_data(self):
-        data = self.location.read_file(if_modified_since=self.last_modified)
-        if data:
-            self.last_modified = time.time()
-
-        return data
 
 
 class RunFlow(common.AgentConfigMixin,
@@ -392,7 +381,7 @@ class RekallAgent(common.AbstractAgentCommand):
         flow_obj.ticket.current_action = None
         flow_obj.ticket.send_message()
 
-    def _process_flows(self, flows):
+    def process_flows(self, flows):
         """Process all the flows and report the number that ran."""
         self.sessions_cache = {}
         flows_ran = 0
@@ -402,32 +391,27 @@ class RekallAgent(common.AbstractAgentCommand):
                     continue
 
                 # We already did this flow before.
-                if flow_obj.created_time > self.writeback.last_flow_time:
-                    if (flow_obj.created_time.float_timestamp + flow_obj.ttl <
-                        time.time()):
-                        self.session.logging.debug(
-                            "Ignoreing flow id %s - expired", flow_obj.flow_id)
-                        continue
+                flows_ran += 1
+                now = time.time()
+                self.writeback.current_flow = flow_obj
+                self.writeback.last_flow_time = now
+                self.writeback.current_flow.status.timestamp = now
 
-                    flows_ran += 1
-                    self.writeback.current_flow = flow_obj
-                    self.writeback.current_flow.status.timestamp = time.time()
+                # Sync the writeback in case we crash.
+                self._config.client.save_writeback()
 
-                    # Sync the writeback in case we crash.
+                # Start counting resources from now.
+                self._quota = flow_obj.quota
+                self._quota.start()
+
+                try:
+                    for status in self.session.plugins.run_flow(flow_obj):
+                        self.session.logging.debug("Status: %s", status)
+                finally:
+                    # We ran the flow with no exception - remove
+                    # transaction.
+                    self.writeback.current_flow = None
                     self._config.client.save_writeback()
-
-                    # Start counting resources from now.
-                    self._quota = flow_obj.quota
-                    self._quota.start()
-
-                    try:
-                        for status in self.session.plugins.run_flow(flow_obj):
-                            self.session.logging.debug("Status: %s", status)
-                    finally:
-                        # We ran the flow with no exception - remove
-                        # transaction.
-                        self.writeback.current_flow = None
-                        self._config.client.save_writeback()
 
         finally:
             # Stop measuring quotas.
@@ -437,8 +421,10 @@ class RekallAgent(common.AbstractAgentCommand):
 
     def _read_all_flows(self):
         result = []
-        for data in common.THREADPOOL.imap_unordered(
-                _LocationTracker.get_data, self.jobs_locations):
+        for job_location in self._config.client.get_jobs_queues():
+            data =  job_location.read_file(
+                if_modified_since=self.writeback.last_flow_time.timestamp)
+
             try:
                 if data:
                     job_file = serializer.unserialize(
@@ -517,11 +503,6 @@ class RekallAgent(common.AbstractAgentCommand):
 
             time.sleep(60)
 
-        # Must be done after the startup sequence in case enrollment changes
-        # client id and therefore changes the job queues.
-        self.jobs_locations = [_LocationTracker(x)
-                               for x in self._config.client.get_jobs_queues()]
-
         # If a notifier is specified, we launch it.
         if self._config.client.notifier:
             t = threading.Thread(
@@ -533,7 +514,7 @@ class RekallAgent(common.AbstractAgentCommand):
         while 1:
             flows_ran = 0
             try:
-                flows_ran = self._process_flows(self._read_all_flows())
+                flows_ran = self.process_flows(self._read_all_flows())
             except Exception as e:
                 self.session.logging.exception("Error reading flows.")
 
@@ -548,13 +529,19 @@ class RekallAgent(common.AbstractAgentCommand):
                 if self.poll_wait > self._config.client.poll_max:
                     self.poll_wait = self._config.client.poll_max
 
+                # Add a bit of randomness to stagger client polls.
+                self.poll_wait += random.randint(
+                    0, self._config.client.poll_min)
+
             # Wait a bit for the next poll. The wait may be interrupted by the
             # notifier.
             now = time.time()
+
+            self.writeback.last_flow_time = now
             while 1:
                 try:
                     # If an event was sent by notifier, break immediately,
-                    # unless the event is too soon after then previous event.
+                    # unless the event is too soon after the previous event.
                     if (self._queue.get(block=True, timeout=self.poll_wait) and
                         time.time() > now + 5):
                         break

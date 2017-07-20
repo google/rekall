@@ -4,7 +4,7 @@ import platform
 
 from rekall import addrspace
 from rekall_lib import utils
-
+from rekall.plugins import core
 from rekall.plugins.common import address_resolver
 from rekall.plugins.response import common
 from rekall.plugins.response import processes
@@ -18,6 +18,10 @@ class LiveMap(utils.SlottedObject):
     @utils.safe_property
     def length(self):
         return self.end - self.start
+
+    def __unicode__(self):
+        return "%s %08x-%08x %s" % (
+            self.filename or "", self.start, self.end, self.perms)
 
 
 class IRMaps(processes.APIProcessFilter):
@@ -120,6 +124,41 @@ class IRMaps(processes.APIProcessFilter):
                            filename=maps.filename)
 
 
+class IRVadDump(core.DirectoryDumperMixin, IRMaps):
+    """Dump the VMA memory for a process."""
+
+    name = "vaddump"
+
+    table_header = IRMaps.table_header[:] + [
+        dict(name='dumpfile'),
+    ]
+
+    def collect(self):
+        for data in super(IRVadDump, self).collect():
+            if "proc" not in data:
+                continue
+
+            task = data["proc"]
+            start = data["start"]
+            end = data["end"]
+            filename = "{0}.{1}.{2:08x}-{3:08x}.dmp".format(
+                task.name, task.pid,
+                data["start"], data["end"])
+            data["dumpfile"] = filename
+
+            with self.session.GetRenderer().open(
+                directory=self.dump_dir,
+                filename=filename,
+                mode='wb') as fd:
+                task_space = task.get_process_address_space()
+                try:
+                    self.CopyToFile(task_space, start, end, fd)
+                except OverflowError:
+                    continue
+
+            yield data
+
+
 class LinuxAPIProfile(common.APIBaseProfile):
     """Profile for Linux live analysis."""
 
@@ -137,7 +176,7 @@ class LinuxAPIProfile(common.APIBaseProfile):
 
 
 # Register the profile for Linux.
-common.APIProfile = LinuxAPIProfile
+common.IRProfile = LinuxAPIProfile
 
 
 class LinuxAPIProcessAddressSpace(addrspace.RunBasedAddressSpace):

@@ -134,6 +134,8 @@ class StartupMessage(serializer.SerializedObject):
 
         dict(name="system_info", type=Uname,
              doc="Information about the running system"),
+
+        dict(name="labels", repeated=True),
     ]
 
 

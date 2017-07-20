@@ -40,8 +40,8 @@ from rekall_lib import registry
 from rekall_lib import utils
 
 # Will be registered by OS specific implementations.
-APIProcessAddressSpace = None
-APIProfile = None
+IRProcessAddressSpace = None
+IRProfile = None
 
 
 class APIDummyPhysicalAddressSpace(addrspace.BaseAddressSpace):

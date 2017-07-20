@@ -288,7 +288,7 @@ class WinAPIProcessAddressSpace(addrspace.RunBasedAddressSpace):
         return result.raw
 
 # Register the process AS as a windows one.
-common.APIProcessAddressSpace = WinAPIProcessAddressSpace
+common.IRProcessAddressSpace = WinAPIProcessAddressSpace
 
 
 def is_wow64(proc):
@@ -316,4 +316,4 @@ class WinAPIProfile(common.APIBaseProfile):
 
 
 # Register the profile for windows.
-common.APIProfile = WinAPIProfile
+common.IRProfile = WinAPIProfile

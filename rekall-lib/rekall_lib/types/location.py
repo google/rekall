@@ -97,7 +97,7 @@ class BlobUploader(HTTPLocation):
 class FileInformation(serializer.SerializedObject):
     schema = [
           dict(name="filename"),
-          dict(name="st_size"),
+          dict(name="st_size", type="int"),
       ]
 
 

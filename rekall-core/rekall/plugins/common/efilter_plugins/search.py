@@ -859,17 +859,26 @@ def Struct_getmembers_runtime(item):
     return result
 
 
-# This lets us do struct.member.
+# This lets us do struct.member. If the struct does not have the member, we
+# return a NoneObject. This allows us to gracefully dereference structs with
+# missing fields depending on the profile.
 structured.IStructured.implement(
     for_type=obj.Struct,
     implementations={
-        structured.resolve: lambda x, y: getattr(x, y, None),
+        structured.resolve: lambda x, y: getattr(x, y, obj.NoneObject("")),
         structured.reflect_runtime_member:
             lambda s, m: type(getattr(s, m, None)),
         structured.getmembers_runtime: Struct_getmembers_runtime,
     }
 )
 
+# This lets us recurse into a NoneObject without raising errors.
+structured.IStructured.implement(
+    for_type=obj.NoneObject,
+    implementations={
+        structured.resolve: lambda x, y: x,
+    }
+)
 
 # This lets us do flags.member.
 structured.IStructured.implement(

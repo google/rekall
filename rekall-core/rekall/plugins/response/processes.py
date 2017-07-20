@@ -18,7 +18,9 @@ class _LiveProcess(utils.SlottedObject):
     This is the live equivalent of _EPROCESS.
     """
     __slots__ = ("_proc", "_obj_profile", "session",
-                 "start_time", "pid")
+                 "start_time", "obj_offset", "pid")
+
+    obj_offset = 0
 
     def __init__(self, proc, session=None):
         """Construct a representation of the live process.
@@ -40,7 +42,7 @@ class _LiveProcess(utils.SlottedObject):
         # Delay creation of the profile because it needs to look in the
         # environment which is slow.
         if self._obj_profile is None:
-            self._obj_profile = common.APIProfile(
+            self._obj_profile = common.IRProfile(
                 session=self.session, proc=self)
 
         return self._obj_profile
@@ -78,7 +80,7 @@ class _LiveProcess(utils.SlottedObject):
         return "<Live Process pid=%s>" % self.pid
 
     def get_process_address_space(self):
-        return common.APIProcessAddressSpace(self.pid, session=self.session)
+        return common.IRProcessAddressSpace(self.pid, session=self.session)
 
     def as_dict(self):
         try:

@@ -41,6 +41,14 @@ class FlowStatus(Status):
              doc="The list of files uploaded."),
     ]
 
+class HuntStatus(serializer.SerializedObject):
+    """High level information about the hunt."""
+    schema = [
+        dict(name="total_clients", type="int"),
+        dict(name="total_success", type="int"),
+        dict(name="total_errors", type="int"),
+    ]
+
 
 class Ticket(serializer.SerializedObject):
     """Baseclass for all tickets.
@@ -138,6 +146,18 @@ class CannedFlow(serializer.SerializedObject):
         dict(name="actions", type=actions.Action, repeated=True)
     ]
 
+class LastClientState(serializer.SerializedObject):
+    """Information kept about the last client ping."""
+    schema = [
+        dict(name="timestamp", type="epoch",
+             comment="The last time the client pinged us."),
+        dict(name="latlong",
+             comment="The location from where the request came from."),
+        dict(name="city",
+             comment="The city where the request came from"),
+        dict(name="ip",
+             comment="The IP address where the request came from"),
+    ]
 
 class JobFile(serializer.SerializedObject):
     """The contents of the jobs file.
