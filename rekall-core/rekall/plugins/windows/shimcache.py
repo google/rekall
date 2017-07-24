@@ -46,30 +46,6 @@ from rekall.plugins.windows import common
 
 
 # Add overlays
-shimcache_win7_x64 = {
-    "SHIM_CACHE_ENTRY": [None, {
-        "ListEntry" : [0x0, ["_LIST_ENTRY"]],
-        "Path" : [0x10, ["_UNICODE_STRING"]],
-        "LastModified": [0x20, ["WinFileTime"]],
-        "InsertFlags": [0x28, ["unsigned int"]],
-        "ShimFlags": [0x2c, ["unsigned int"]],
-        "BlobSize": [0x30, ["unsigned long long"]],
-        "BlobBuffer" : [0x38, ["unsigned long"]],
-    }],
-}
-
-shimcache_win7_x86 = {
-    "SHIM_CACHE_ENTRY": [None, {
-        "ListEntry" :[0x0, ["_LIST_ENTRY"]],
-        "Path" : [0x08, ["_UNICODE_STRING"]],
-        "LastModified" : [0x10, ["WinFileTime"]],
-        "InsertFlags": [0x18, ["unsigned int"]],
-        "ShimFlags": [0x1c, ["unsigned int"]],
-        "BlobSize": [0x20, ["unsigned long long"]],
-        "BlobBuffer" : [0x24, ["unsigned long"]],
-    }],
-}
-
 shimcache_xp_x86 = {
     "SHIM_CACHE_HEADER": [None, {
         "Magic": [0, ["unsigned int"]],
@@ -92,6 +68,30 @@ shimcache_xp_x86 = {
         "LastModified" : [0x210, ["WinFileTime"]],
         "FileSize": [0x218, ["long long"]],
         "LastUpdate" : [0x220, ["WinFileTime"]],
+    }],
+}
+
+shimcache_win7_x64 = {
+    "SHIM_CACHE_ENTRY": [None, {
+        "ListEntry" : [0x0, ["_LIST_ENTRY"]],
+        "Path" : [0x10, ["_UNICODE_STRING"]],
+        "LastModified": [0x20, ["WinFileTime"]],
+        "InsertFlags": [0x28, ["unsigned int"]],
+        "ShimFlags": [0x2c, ["unsigned int"]],
+        "BlobSize": [0x30, ["unsigned long long"]],
+        "BlobBuffer" : [0x38, ["unsigned long"]],
+    }],
+}
+
+shimcache_win7_x86 = {
+    "SHIM_CACHE_ENTRY": [None, {
+        "ListEntry" :[0x0, ["_LIST_ENTRY"]],
+        "Path" : [0x08, ["_UNICODE_STRING"]],
+        "LastModified" : [0x10, ["WinFileTime"]],
+        "InsertFlags": [0x18, ["unsigned int"]],
+        "ShimFlags": [0x1c, ["unsigned int"]],
+        "BlobSize": [0x20, ["unsigned long long"]],
+        "BlobBuffer" : [0x24, ["unsigned long"]],
     }],
 }
 
@@ -132,6 +132,27 @@ shimcache_win8_x86 = {
     }],
 }
 
+shimcache_win10_x86 = {
+    "SHIM_CACHE_ENTRY": [None, {
+        "ListEntry" : [0x0, ["_LIST_ENTRY"]],
+        "Path": [0xc, ["_UNICODE_STRING"]],
+        "ListEntryDetail" : [0x14, ["Pointer", dict(
+            target="SHIM_CACHE_ENTRY_DETAIL"
+        )]],
+    }],
+
+    "SHIM_CACHE_ENTRY_DETAIL" : [None, {
+        "LastModified": [0x08, ["WinFileTime"]],
+        "BlobSize": [0x10, ["unsigned long"]],
+        "BlobBuffer": [0x14, ["unsigned long long"]],
+    }],
+
+    "SHIM_CACHE_HANDLE": [0x10, {
+        "eresource": [0x0, ["Pointer", dict(target="_ERESOURCE")]],
+        "avl_table": [0x8, ["Pointer", dict(target="_RTL_AVL_TABLE")]],
+    }],
+}
+
 shimcache_win10_x64 = {
     "SHIM_CACHE_ENTRY": [None, {
         "ListEntry" : [0x0, ["_LIST_ENTRY"]],
@@ -157,17 +178,17 @@ shimcache_win10_x64 = {
 def AddShimProfiles(profile):
     profile = profile.copy()
 
+    # Windows XP 32bit
+    if 5 < profile.metadata("version") < 6:
+        if profile.metadata("arch") == "I386":
+            profile.add_overlay(shimcache_xp_x86)
+
     # Windows 7 uses this constant to store the shimcache.
-    if profile.get_constant("g_ShimCache"):
+    elif profile.get_constant("g_ShimCache"):
         if profile.metadata("arch") == "AMD64":
             profile.add_overlay(shimcache_win7_x64)
         else:
             profile.add_overlay(shimcache_win7_x86)
-
-    # Windows XP:
-    elif 5 < profile.metadata("version") < 6:
-        if profile.metadata("arch") == "I386":
-            profile.add_overlay(shimcache_xp_x86)
 
     # Windows 8 uses a special driver to hold the cache.
     elif profile.get_constant("AhcCacheHandle"):
@@ -176,11 +197,18 @@ def AddShimProfiles(profile):
         else:
             profile.add_overlay(shimcache_win8_x86)
 
-    # Windows 10 uses a special driver to hold the cache.
+    # Windows 8.1 and 10 use a special driver to hold the cache.
     elif profile.session.address_resolver.get_address_by_name("ahcache"):
-        if profile.metadata("arch") == "AMD64":
-            profile.add_overlay(shimcache_win10_x64)
-
+        if profile.metadata("version") < 7:
+            if profile.metadata("arch") == "AMD64":
+                profile.add_overlay(shimcache_win8_x64)
+            else:
+                profile.add_overlay(shimcache_win8_x86)
+        else
+            if profile.metadata("arch") == "AMD64":
+                profile.add_overlay(shimcache_win10_x64)
+            else:
+                profile.add_overlay(shimcache_win10_x86)
     else:
         raise plugin.PluginError("Unable to identify windows version.")
 
@@ -265,6 +293,14 @@ class ShimCacheMem(common.AbstractWindowsCommandPlugin):
                                                profile=self.profile)
         return self.collect_from_avl_table(avl_table)
 
+    def collect_win8_1(self):
+        header_pointer = self.session.address_resolver.get_constant_object(
+            "ahcache!AhcCacheHandle", "Pointer")
+
+        header = header_pointer.dereference_as("SHIM_CACHE_HANDLE",
+                                               profile=self.profile)
+        return self.collect_from_avl_table(header.avl_table)
+
     def collect_win10(self):
         header_pointer = self.session.address_resolver.get_constant_object(
             "ahcache!AhcCacheHandle", "Pointer")
@@ -280,6 +316,7 @@ class ShimCacheMem(common.AbstractWindowsCommandPlugin):
         self.profile = AddShimProfiles(self.session.profile)
         for entry in itertools.chain(self.collect_win10(),
                                      self.collect_win8(),
+                                     self.collect_win8_1(),
                                      self.collect_win7(),
                                      self.collect_xp()):
 
