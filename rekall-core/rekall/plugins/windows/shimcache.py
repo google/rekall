@@ -197,20 +197,18 @@ def AddShimProfiles(profile):
         else:
             profile.add_overlay(shimcache_win8_x86)
 
-    # Windows 8.1 uses a special driver to hold the cache.
-    elif profile.metadata("version") < 7 && profile.session.address_resolver.get_address_by_name("ahcache"):
-        if profile.metadata("arch") == "AMD64":
-            profile.add_overlay(shimcache_win8_x64)
-        else:
-            profile.add_overlay(shimcache_win8_x86)
-
-    # Windows 10 uses a special driver to hold the cache.
-    elif profile.metadata("version") < 9 && profile.session.address_resolver.get_address_by_name("ahcache"):
-        if profile.metadata("arch") == "AMD64":
-            profile.add_overlay(shimcache_win10_x64)
-        else:
-            profile.add_overlay(shimcache_win10_x86)
-
+    # Windows 8.1 and 10 use a special driver to hold the cache.
+    elif profile.session.address_resolver.get_address_by_name("ahcache"):
+        if profile.metadata("version") < 7:
+            if profile.metadata("arch") == "AMD64":
+                profile.add_overlay(shimcache_win8_x64)
+            else:
+                profile.add_overlay(shimcache_win8_x86)
+        else
+            if profile.metadata("arch") == "AMD64":
+                profile.add_overlay(shimcache_win10_x64)
+            else:
+                profile.add_overlay(shimcache_win10_x86)
     else:
         raise plugin.PluginError("Unable to identify windows version.")
 
