@@ -223,7 +223,7 @@ class Reader(object):
             'Content-Type: application/octet-stream\r\n\r\n')
         self._start_stream = cStringIO.StringIO(self._start)
 
-        self._end = "\r\n--" + self._boundary + "\r\n\r\n"
+        self._end = "\r\n--" + self._boundary + "--\r\n\r\n"
         self._end_stream = cStringIO.StringIO(self._end)
         self.len = len(self._start) + self.get_len(self.fd) + len(self._end)
 
@@ -291,16 +291,20 @@ class FileUploadLocationImpl(HTTPLocationImpl, location.FileUploadLocation):
             # the length. It does not apprear that the AppEngine SDK supports
             # chunked encoding, but the production server does support it.
             # https://stackoverflow.com/questions/13127500/does-appengine-blobstore-support-chunked-transfer-encoding-for-uploads-status-4
-            self.get_requests_session().post(
+            resp = self.get_requests_session().post(
                 response.url, data=reader, headers={
                     "Content-Type": reader.content_type(),
                     "Content-Length": str(reader.len),
                 }
             )
 
-            self._session.logging.debug("Uploaded file: %s (%s bytes)",
-                                        file_information.filename, fd.tell())
-
+            if resp.ok:
+                self._session.logging.debug(
+                    "Uploaded file: %s (%s bytes)",
+                    file_information.filename, fd.tell())
+            else:
+                self._session.logging.warn(
+                    "Error uploading file: %s", resp.content)
 
 
 class FirbaseNotifier(HTTPLocationImpl, location.NotificationLocation):

@@ -204,7 +204,7 @@ def AddShimProfiles(profile):
                 profile.add_overlay(shimcache_win8_x64)
             else:
                 profile.add_overlay(shimcache_win8_x86)
-        else
+        else:
             if profile.metadata("arch") == "AMD64":
                 profile.add_overlay(shimcache_win10_x64)
             else:
