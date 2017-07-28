@@ -44,7 +44,7 @@ use [Rekall-Forensic.com](http://www.rekall-forensic.com/)
 
 To install from this git repository you will need to use pip
 --editable and follow the correct order of installation (otherwise pip
-will pull released depedencies which might be older):
+will pull released dependencies which might be older):
 
 ```
 $ virtualenv  /tmp/MyEnv
@@ -118,7 +118,7 @@ In December 2011, a new branch within the Volatility project was created to
 explore how to make the code base more modular, improve performance, and
 increase usability. The modularity allowed Volatility to be used in GRR, making
 memory analysis a core part of a strategy to enable remote live forensics.  As a
-result, both GRR and Volatility would be able to use each others’ strengths.
+result, both GRR and Volatility would be able to use each other's strengths.
 
 Over time this branch has become known as the "scudette" branch or the
 "Technology Preview" branch.  It was always a goal to try to get these changes
