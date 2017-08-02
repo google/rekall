@@ -53,3 +53,4 @@ rekall-forensic*
 .dir-locals.el
 
 *.whl
+.eggs
