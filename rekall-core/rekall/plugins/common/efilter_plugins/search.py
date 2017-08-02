@@ -20,6 +20,8 @@
 
 __author__ = "Adam Sindelar <adamsh@google.com>"
 import itertools
+import re
+import six
 
 from efilter import ast
 from efilter import errors
@@ -34,6 +36,7 @@ from efilter.transforms import infer_type
 
 from efilter.protocols import applicative
 from efilter.protocols import associative
+from efilter.protocols import counted
 from efilter.protocols import repeated
 from efilter.protocols import structured
 
@@ -976,5 +979,95 @@ structured.IStructured.implement(
     implementations={
         structured.resolve: lambda x: None,
         structured.getmembers_runtime: lambda x: [],
+    }
+)
+
+def IAssociative_select(c, idx):
+    try:
+        return c[idx]
+    except IndexError:
+        return obj.NoneObject()
+
+def clear_multimethod(function, type):
+    function._dispatch_table.clear()
+    new_impls = []
+    for impl_type, impl in function.implementations:
+        if impl_type != type:
+            new_impls.append((impl_type, impl))
+    function.implementations = new_impls
+
+def clear_implementations(protocol, method, type):
+    for function in protocol.functions():
+        if function.func_name == method:
+            clear_multimethod(function, type)
+
+# The following are bug fixes to efilter. We replace the default
+# implementations with our own.
+clear_implementations(associative.IAssociative, "select", list)
+clear_implementations(associative.IAssociative, "select", tuple)
+clear_implementations(structured.IStructured, "resolve", dict)
+clear_multimethod(solve.solve, ast.RegexFilter)
+
+@solve.solve.implementation(for_type=ast.RegexFilter)
+def solve_regexfilter(expr, vars):
+    """A Regex filter which can operate on both strings and repeated.
+
+    If any item in the array matches, we return the entire row.
+    """
+    pattern = re.compile(solve.__solve_for_scalar(expr.regex, vars))
+    try:
+        string = solve.__solve_for_scalar(expr.string, vars)
+        return solve.Result(pattern.search(six.text_type(string)), ())
+    except errors.EfilterTypeError:
+        for item in solve.__solve_for_repeated(expr.string, vars):
+            string = unicode(item)
+            match = pattern.search(six.text_type(string))
+            if match:
+                return solve.Result(match, ())
+
+    return solve.Result(match, ())
+
+
+associative.IAssociative.implement(
+    for_types=(list, tuple),
+    implementations={
+        associative.select: IAssociative_select,
+        associative.getkeys_runtime: lambda c: six.moves.range(
+            counted.count(c)),
+    })
+
+# Support named tuples.
+def IStructured_getmembers_runtime(item):
+    # Is it a named tuple? Acts like a dict.
+    if hasattr(item, "_fields"):
+        return item._fields
+
+    try:
+        return structured.getmembers(item[0])
+    except IndexError:
+        return []
+
+
+def IStructured_resolve_list(item, member):
+    # Named tuples.
+    if hasattr(item, "_fields"):
+        return getattr(item, member)
+
+    if len(item) > 0:
+        return structured.resolve(item[0], member)
+
+    return None
+
+structured.IStructured.implement(
+    for_types=(list, tuple),
+    implementations={
+        structured.resolve: IStructured_resolve_list,
+        structured.getmembers_runtime: IStructured_getmembers_runtime,
+    })
+
+structured.IStructured.implement(
+    for_type=dict,
+    implementations={
+        structured.resolve: lambda x, y: x.get(y),
     }
 )

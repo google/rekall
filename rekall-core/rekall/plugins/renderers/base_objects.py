@@ -206,9 +206,47 @@ class PointerTextRenderer(NativeTypeTextRenderer):
 
 class ListRenderer(text.TextObjectRenderer):
     """Renders a list of other objects."""
-    renders_type = ("list", "tuple", "set", "frozenset")
+    renders_type = ("list", "set", "frozenset", "ListRepetition")
+
+    def __init__(self, *args, **kwargs):
+        """We make a sub table for key, values."""
+        super(ListRenderer, self).__init__(*args, **kwargs)
+        self.table = text.TextTable(
+            columns=[
+                dict(name="x"),
+            ],
+            auto_widths=True,
+            renderer=self.renderer,
+            session=self.session)
 
     def render_row(self, target, **options):
+        result = []
+        for i, item in enumerate(target):
+            result.append(self.table.get_row("- %s:" % i))
+            result.append(self.table.get_row(item))
+
+        return text.StackedCell(*result, **options)
+
+
+class TupleRenderer(text.TextObjectRenderer):
+    """Special handling for named tuples."""
+    renders_type = ("tuple", )
+
+    def render_row(self, target, **options):
+        if not target:
+            return None
+
+        if hasattr(target, "_fields"):
+            new_target = {}
+            for field in target._fields:
+                new_target[field] = getattr(target, field)
+
+            object_renderer = self.ForTarget(new_target, self.renderer)(
+                session=self.session, renderer=self.renderer)
+
+            return object_renderer.render_row(new_target, **options)
+
+        result = []
         width = options.pop("width", None)
         result = []
         for item in target:

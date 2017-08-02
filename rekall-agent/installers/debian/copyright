@@ -1,0 +1,13 @@
+Format: http://dep.debian.net/deps/dep5
+Upstream-Name: rekall-agent-debian
+Source: http://www.rekall-forensic.com
+
+Files: *
+Copyright: 2017 Google Inc.
+License: GPL
+
+License: GPL
+ Licensed under the GPL.
+
+ On Debian systems, the complete text of the Apache version 2.0 license
+ can be found in "/usr/share/common-licenses/GPL-2".

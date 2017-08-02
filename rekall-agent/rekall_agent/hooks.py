@@ -79,6 +79,9 @@ class AgentConfigHook(kb.ParameterHook):
         if not config_data:
             return obj.NoneObject("No valid configuration provided in session.")
 
+        # We deliberately do not raise errors for unknown fields in
+        # case the configuration was created in older agent version -
+        # We just ignore unknown fields.
         return serializer.unserialize(
             session=self.session, data=yaml.safe_load(config_data),
             strict_parsing=False)

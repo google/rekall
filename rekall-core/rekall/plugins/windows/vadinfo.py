@@ -138,7 +138,6 @@ class VAD(common.WinProcessFilter):
 
     def collect_vadroot(self, vad_root, task):
         task_as = task.get_process_address_space()
-
         result = []
         for vad in vad_root.traverse():
             # Apply filters if needed.
@@ -154,30 +153,30 @@ class VAD(common.WinProcessFilter):
             if "EXECUTE" in str(vad.u.VadFlags.ProtectionEnum):
                 exe = "Exe"
 
-            result.append((
-                vad, vad.obj_context.get('depth', 0),
+            result.append(dict(
+                VAD=vad,
+                lev=vad.obj_context.get('depth', 0),
 
                 # The vad region itself exists in the process address space.
-                self.profile.Pointer(value=vad.Start, vm=task_as),
-                self.profile.Pointer(value=vad.End, vm=task_as),
-                vad.CommitCharge if vad.CommitCharge < 0x7fffffff else -1,
-                "Private" if vad.u.VadFlags.PrivateMemory > 0 else "Mapped",
-                exe,
-                vad.u.VadFlags.ProtectionEnum,
-                self._get_filename(vad)))
+                start=self.profile.Pointer(value=vad.Start, vm=task_as),
+                end=self.profile.Pointer(value=vad.End, vm=task_as),
+                com=vad.CommitCharge if vad.CommitCharge < 0x7fffffff else -1,
+                type="Private" if vad.u.VadFlags.PrivateMemory > 0 else "Mapped",
+                exe=exe,
+                protect=vad.u.VadFlags.ProtectionEnum,
+                filename=self._get_filename(vad)))
 
         # Sort by start range.
-        result.sort(key=lambda x: x[2].v())
+        result.sort(key=lambda x: x["start"].v())
         return result
 
     def collect(self):
         for task in self.filter_processes():
-            yield [task, task]
+            yield dict(_EPROCESS=task, divider=task)
 
             for row in self.collect_vadroot(task.RealVadRoot, task):
-                result = [task, None]
-                result.extend(row)
-                yield result
+                row["_EPROCESS"] = task
+                yield row
 
 
 class VADMap(pfn.VADMapMixin, common.WinProcessFilter):

@@ -6,7 +6,7 @@ dependent_versions:
 - tools/layout_expert/layout_expert/_version.py
 - rekall-lib/_version.py
 version_data:
-  codename: Gotthard
+  codename: Hurricane Ridge
   post: '0'
-  rc: '0'
-  version: 1.6.2
+  rc: '1'
+  version: 1.7.0

@@ -538,6 +538,11 @@ class RekallAgent(common.AbstractAgentCommand):
             now = time.time()
 
             self.writeback.last_flow_time = now
+
+            # Break early if we are not polling.
+            if not self._config.client.poll:
+                return []
+
             while 1:
                 try:
                     # If an event was sent by notifier, break immediately,

@@ -1,0 +1,4 @@
+etc/rekall-agent.yaml etc/
+etc/init.d/rekall-agent etc/init.d/
+usr/bin/rekall-agent-nanny usr/bin/
+upstart/rekall-agent.conf /etc/init/

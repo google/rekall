@@ -51,3 +51,5 @@ rekall-forensic*
 *LOCAL*
 *REMOTE*
 .dir-locals.el
+
+*.whl

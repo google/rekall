@@ -1,0 +1,3 @@
+./rekall-lib
+./rekall-core
+./rekall-agent

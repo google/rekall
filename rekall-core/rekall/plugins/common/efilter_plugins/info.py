@@ -20,6 +20,7 @@
 from efilter.protocols import structured
 
 from rekall import plugin
+from rekall import obj
 from rekall import session
 from rekall import testlib
 
@@ -34,6 +35,10 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
     __args = [
         dict(name="plugin_name", required=True, positional=True,
              help="A plugin or plugin name to describe."),
+
+        dict(name="args", required=False, default={}, type="dict",
+             help="args to run the plugin with."),
+
         dict(name="max_depth", positional=True, required=False,
              type="IntParser", default=0,
              help="The maximum depth to follow mappings."),
@@ -57,6 +62,9 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
                     Type=self._determine_type_name(type_instance),
                     depth=depth,
                 )
+                if isinstance(type_instance, obj.Pointer):
+                    type_instance = type_instance.dereference()
+
                 for x in self.collect_members(type_instance, depth + 1):
                     yield x
 
@@ -78,6 +86,17 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
 
         return object_type
 
+    def _get_exemplar_row(self, instance):
+        if self.plugin_args.args:
+            for row in instance.collect():
+                # Skip divider rows because they are mostly empty.
+                if isinstance(row, dict) and "divider" in row:
+                    continue
+
+                return row
+
+        return instance.column_types()
+
     def collect(self):
         plugin_name = self.plugin_args.plugin_name
         if isinstance(plugin_name, session.PluginRunner):
@@ -87,14 +106,16 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
         if not plugin_cls:
             raise plugin.PluginError("Please specify a valid plugin.")
 
-        instance = plugin_cls(session=self.session, ignore_required=True)
+        plugin_args = self.plugin_args.args.copy()
+        plugin_args["ignore_required"] = True
+        instance = plugin_cls(session=self.session, **plugin_args)
         table_header = getattr(instance, "table_header", None)
         if not table_header:
             raise plugin.PluginError(
                 "Plugin %s is not a Typed Plugin. It can not be used in "
                 "searches." % plugin_name)
 
-        column_types = instance.column_types()
+        column_types = self._get_exemplar_row(instance)
         for i, column in enumerate(table_header):
             column_name = column["name"]
             if isinstance(column_types, dict):

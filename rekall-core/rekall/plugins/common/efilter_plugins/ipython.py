@@ -44,5 +44,15 @@ class EfilterMagics(magic.Magics):
         else:
             return self._RunPlugin(session, "search", "select " + cell)
 
+    @magic.line_cell_magic
+    def pager(self, line, cell=None):
+        session = self.shell.user_module.session
+        if " " in line:
+            _, line_end = line.split(" ", 1)
+        else:
+            line_end = "less"
+
+        session.SetParameter("pager", line_end)
+
 
 ipython_support.REGISTERED_MAGICS.append(EfilterMagics)

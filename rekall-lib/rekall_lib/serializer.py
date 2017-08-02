@@ -162,7 +162,7 @@ class BoolDescriptor(FieldDescriptor):
         return bool(value)
 
     def get_default(self, session=None):
-        return False
+        return self.descriptor.get("default", False)
 
 
 class FloatDescriptor(FieldDescriptor):

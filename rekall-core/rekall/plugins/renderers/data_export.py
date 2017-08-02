@@ -172,6 +172,27 @@ class DataExportNativeTypeRenderer(DataExportObjectRenderer):
         return item.v()
 
 
+class DataExportTupleRenderer(DataExportObjectRenderer):
+    renders_type = "tuple"
+
+    def EncodeToJsonSafe(self, item, **_):
+        if hasattr(item, "_fields"):
+            result = {}
+            for field in item._fields:
+                member = getattr(item, field)
+                target_obj_renderer = self.DelegateObjectRenderer(member)
+                result[field] = target_obj_renderer.EncodeToJsonSafe(member)
+
+            return result
+
+        result = []
+        for member in item:
+            target_obj_renderer = self.DelegateObjectRenderer(member)
+            result.append(target_obj_renderer.EncodeToJsonSafe(member))
+
+        return result
+
+
 class DataExportRDFValueObjectRenderer(DataExportBaseObjectRenderer):
     renders_type = "RDFValue"
 

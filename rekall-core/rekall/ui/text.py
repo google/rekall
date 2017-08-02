@@ -382,7 +382,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         if style == "address" and header_cell.width < self.address_size:
             header_cell.rewrap(width=self.address_size, align="c")
 
-        self.header_width = max(header_cell.width, len(name))
+        self.header_width = max(header_cell.width, len(unicode(name)))
         header_cell.rewrap(align="c", width=self.header_width)
 
         # Append a dashed line as a table header separator.
@@ -1030,6 +1030,9 @@ class TextColumn(object):
             result = Cell(width=merged_opts.get("width"))
         else:
             result = object_renderer.render_row(target, **merged_opts)
+            if result is None:
+                return
+
             result.colorizer = self.renderer.colorizer
 
         # If we should not wrap we are done.
@@ -1125,7 +1128,7 @@ class TextTable(renderer_module.BaseTable):
             merged_opts = c.options.copy()
             merged_opts.update(options)
             if not merged_opts.get("hidden"):
-                result.append(c.render_row(x, **options))
+                result.append(c.render_row(x, **options) or Cell(""))
 
         return JoinedCell(
             *result, tablesep=self.options.get("tablesep", " "))

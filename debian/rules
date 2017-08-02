@@ -7,4 +7,4 @@ override_dh_strip:
 	dh_strip --exclude=ffi
 
 override_dh_virtualenv:
-	dh_virtualenv --python python2.7 --preinstall 'setuptools>20' --preinstall 'pip>=8.1.1,<9' --preinstall 'wheel'
+	dh_virtualenv --python python2.7 --preinstall 'setuptools>36' --preinstall 'pip>=9.0' --preinstall 'wheel'

@@ -1,0 +1,13 @@
+Building packages for various operating systems.
+================================================
+
+
+Debian
+------
+
+For linux we ship virtualenv packages:
+
+apt-get install libncurses5-dev
+
+1. cd rekall
+2. dpkg-buildpackage

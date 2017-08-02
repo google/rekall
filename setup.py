@@ -90,6 +90,15 @@ commands = dict(
     develop=develop
 )
 
+# This requires an exact version to ensure that installing the meta package
+# pulls in tested dependencies.
+install_requires = [
+    "rekall-agent >= 1.6.0",
+    "rekall-lib >= 1.6.0",
+    "rekall-core >= 1.6.0",
+    "ipython >= 5.0.0, < 6.0",
+]
+
 setup(
     name="rekall",
     version=VERSION["pep440"],
@@ -106,15 +115,7 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
     ],
-
-    # This requires an exact version to ensure that installing the meta package
-    # pulls in tested dependencies.
-    install_requires=[
-        "rekall-agent >= 1.6.0",
-        "rekall-core >= 1.6.0",
-        "ipython >= 5.0.0, < 6.0",
-    ],
-
+    install_requires=install_requires,
     extras_require={
         # The following requirements are needed in Windows.
         ':sys_platform=="win32"': [

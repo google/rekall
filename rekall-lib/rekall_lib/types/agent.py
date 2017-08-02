@@ -203,6 +203,10 @@ class ClientPolicy(serializer.SerializedObject):
         dict(name="labels", repeated=True,
              doc="A set of labels for this client."),
 
+        dict(name="poll", type="bool", default=True,
+             help="If set, the agent will poll the server for new jobs. "
+             "Otherwise the agent will poll once and exit."),
+
         dict(name="poll_min", type="int", default=5,
              doc="How frequently to poll the server."),
 
@@ -210,7 +214,8 @@ class ClientPolicy(serializer.SerializedObject):
              doc="How frequently to poll the server."),
 
         dict(name="notifier", type=location.NotificationLocation,
-             doc="If this is set we use the notifier to also control poll rate."),
+             doc="If this is set we use the notifier to also "
+             "control poll rate."),
 
         dict(name="plugins", type=PluginConfiguration, repeated=True,
              doc="Free form plugin specific configuration."),
@@ -254,3 +259,20 @@ class Configuration(serializer.SerializedObject):
         dict(name="client", type=ClientPolicy,
              doc="The client's configuration."),
     ]
+
+
+class AuditMessage(serializer.SerializedObject):
+    """An audit message written in the audit log."""
+
+    schema = [
+        dict(name="format",
+             doc="Format string to format the audit message."),
+        dict(name="user",
+             doc="The user who made the request."),
+        dict(name="token_id",
+             doc="The token that was used to make this request - if any."),
+
+    ]
+
+    def format_message(self):
+        return self.format % self.to_primitive()

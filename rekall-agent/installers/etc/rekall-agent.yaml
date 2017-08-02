@@ -1,0 +1,25 @@
+# Sample configuration file for the Rekall Agent.
+__type__: Configuration
+client:
+  __type__: GAEClientPolicy
+
+  # Add intrinsic labels to this client here.
+  labels:
+    - All
+    - Linux
+
+  # Set to false to prevent the agent from polling - it will just
+  # exit after a single poll. Note that the nanny will wake it anyway
+  # after 2 minutes so the agent will continue to poll but will be
+  # restarted every 2 minutes. This achieves the smaller possible
+  # resident memory footprint.
+  poll: true
+  poll_min: 60
+  poll_max: 60
+  manifest_location:
+    __type__: HTTPLocation
+    # Change this to point at the deployed server.
+    base: http://127.0.0.1:8080/api/control
+    path_prefix: /manifest
+  # Persistent path to keep the same client.
+  writeback_path: /etc/rekall-agent-writeback.json

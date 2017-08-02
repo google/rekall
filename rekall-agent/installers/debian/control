@@ -1,0 +1,13 @@
+Source: rekall-agent-debian
+Section: misc
+Priority: extra
+Maintainer: The Rekall Team
+Build-Depends: debhelper (>= 7.0.0)
+Standards-Version: 3.9.2
+Homepage: http://www.rekall-forensic.com/
+
+Package: rekall-agent-debian
+Architecture: any
+Depends: lsb-base (>= 3.2-14), rekall-forensic ( >= 1.7.0)
+Description: Rekall Agent Client
+ The Rekall Agent Client

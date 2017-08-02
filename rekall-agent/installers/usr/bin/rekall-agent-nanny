@@ -1,0 +1,12 @@
+#!/bin/bash
+
+MOREARGS=("${@:1}")
+
+# This nanny is used by Linux upstart to throttle the respawn rate of the
+# client in case the client exits immediately.
+while true
+do
+  "${MOREARGS[@]}"
+  /usr/bin/logger --tag Rekall Agent Daemon exited... Waiting 120 seconds before respawn. || true
+  sleep 120
+done
