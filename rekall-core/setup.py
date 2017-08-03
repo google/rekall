@@ -62,7 +62,7 @@ install_requires = [
     "pyelftools == 0.24",
     "pyparsing==2.1.5",
     "pytz == 2016.4",
-    "psutil >= 4.0, < 5.0",
+    "psutil >= 5.0, < 6.0",
     "rekall-capstone == 3.0.4.post2",
     "rekall-yara == 3.4.0.1",
     "pytsk3 == 20160721",

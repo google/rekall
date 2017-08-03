@@ -31,8 +31,11 @@ uploaded. We therefore need to have osqueryi installed somewhere on
 the path.
 """
 import json
+import os
+import platform
 import subprocess
 
+from rekall import resources
 from rekall.plugins.response import common
 
 
@@ -53,13 +56,30 @@ class OSQuery(common.AbstractIRCommandPlugin):
 
     table_header = []
 
+    def try_to_find_osquery(self):
+        extention = ""
+        if platform.system() == "Windows":
+            extention = ".exe"
+
+        try:
+            return resources.get_resource("osqueryi" + extention)
+        except IOError as e:
+            # Maybe it is installed on the system.
+            if  platform.system() == "Windows":
+                result = r"c:\ProgramData\osquery\osqueryi.exe"
+                if os.access(result, os.R_OK):
+                    return result
+
+            raise e
+
     def render(self, renderer):
         osquery_path = self.plugin_args.osquery_path
         if osquery_path == None:
             osquery_path = self.session.GetParameter("osquery_path")
         if osquery_path == None:
-            osquery_path = "osqueryi"
+            osquery_path = self.try_to_find_osquery()
 
+        self.session.logging.debug("Found OSQuery at %s" % osquery_path)
         self.json_result = json.loads(
             subprocess.check_output(
                 [osquery_path, "--json", self.plugin_args.query]))

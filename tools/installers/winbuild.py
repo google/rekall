@@ -146,6 +146,14 @@ def main():
     # Recent versions of Pyinstaller already copy resources they know about.
     copy("rekall-core/resources", "dist/rekal")
 
+    # Copy osqueryi.exe from the default location into the dist. NOTE:
+    # Install osquery using chocolaty
+    # https://chocolatey.org/packages/osquery
+    path = r"c:\ProgramData\osquery\osqueryi.exe"
+    if os.access(path, os.R_OK):
+        print "Copying osquery into the package."
+        copy(path, "dist/rekal")
+
     print "Remove unnecessary crap added by pyinstaller."
     rm("dist/rekal/_MEI")
     rm("dist/rekal/tcl/*")
