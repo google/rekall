@@ -94,11 +94,24 @@ Root: HKCR; Subkey: "RekallForensicFile\shell\open\command"; ValueType: string; 
             rm(fd.name)
 
 
+def copytree(src, dst, symlinks=False, ignore=None):
+    if not os.path.exists(dst):
+        os.makedirs(dst)
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            copytree(s, d, symlinks, ignore)
+        else:
+            if not os.path.exists(d) or os.stat(s).st_mtime - os.stat(d).st_mtime > 1:
+                shutil.copy2(s, d)
+
+
 def copy(src, dst):
     for filename in glob.glob(src):
         dest = os.path.join(dst, os.path.basename(filename))
         if os.path.isdir(filename):
-            shutil.copytree(filename, dest)
+            copytree(filename, dest)
         else:
             shutil.copy(filename, dest)
 
