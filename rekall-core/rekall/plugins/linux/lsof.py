@@ -36,6 +36,20 @@ class Lsof(common.LinProcessFilter):
 
     __name = "lsof"
 
+    table_header = [
+        dict(name="divider", type="Divider"),
+        dict(name="proc", hidden=True),
+        dict(name="file_struct", hidden=True),
+        dict(name="name", width=30),
+        dict(name="pid", width=6, align="r"),
+        dict(name="user", width=8),
+        dict(name="fd", width=4),
+        dict(name="size", width=12),
+        dict(name="offset", width=12),
+        dict(name="node", width=8),
+        dict(name="path"),
+    ]
+
     def get_open_files(self, task):
         """List all the files open by a task."""
         # The user space file descriptor is simply the offset into the fd
@@ -50,23 +64,20 @@ class Lsof(common.LinProcessFilter):
             for file_struct, fd in self.get_open_files(task):
                 yield task, file_struct, fd
 
-    def render(self, renderer):
-
-        renderer.table_header([("Name", "name", "20s"),
-                               ("Pid", "pid", "8"),
-                               ("User", "uid", ">8"),
-                               ("FD", "fd", ">8"),
-                               ("Size", "size", ">12"),
-                               ("Offset", "offset", ">12"),
-                               ("Node", "node", ">8"),
-                               ("Path", "path", "")])
-
-        for (task, file_struct, fd) in self.lsof():
-            renderer.table_row(task.comm, task.pid, task.uid, fd,
-                               file_struct.m("f_path.dentry.d_inode.i_size"),
-                               file_struct.m("f_pos"),
-                               file_struct.m("f_path.dentry.d_inode.i_ino"),
-                               task.get_path(file_struct))
+    def collect(self):
+        for task in self.filter_processes():
+            yield dict(divider=task)
+            for file_struct, fd in self.get_open_files(task):
+                yield dict(proc=task,
+                           name=task.comm,
+                           pid=task.pid,
+                           user=task.uid,
+                           fd=fd,
+                           file_struct=file_struct,
+                           size=file_struct.m("f_path.dentry.d_inode.i_size"),
+                           offset=file_struct.m("f_pos"),
+                           node=file_struct.m("f_path.dentry.d_inode.i_ino"),
+                           path=task.get_path(file_struct))
 
 
 class TestLsof(testlib.SimpleTestCase):

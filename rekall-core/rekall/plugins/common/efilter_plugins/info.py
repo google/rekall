@@ -37,10 +37,11 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
              help="A plugin or plugin name to describe."),
 
         dict(name="args", required=False, default={}, type="dict",
+             positional=True,
              help="args to run the plugin with."),
 
         dict(name="max_depth", positional=True, required=False,
-             type="IntParser", default=0,
+             type="IntParser", default=3,
              help="The maximum depth to follow mappings."),
     ]
 

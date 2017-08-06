@@ -2,6 +2,7 @@
 
 import functools
 import re
+import six
 
 from efilter import query as q
 from efilter import api
@@ -39,6 +40,20 @@ def noncase_search_function(regex, value):
     return bool(re.search(unicode(regex), unicode(value), re.I))
 
 
+def substitute(pattern, repl, target):
+    if target is None:
+        return
+
+    if isinstance(target, (list, tuple)):
+        result = []
+        for item in target:
+            result.append(substitute(pattern, repl, item))
+
+        return result
+    else:
+        return re.sub(pattern, repl, six.text_type(target), re.I)
+
+
 EFILTER_SCOPES = dict(
     hex=api.user_func(
         hex_function, arg_types=[int], return_type=[str]),
@@ -52,6 +67,9 @@ EFILTER_SCOPES = dict(
     regex_search=api.user_func(
         noncase_search_function, arg_types=[unicode, unicode],
         return_type=[bool]),
+
+    concat=api.user_func(lambda *args: "".join(args)),
+    sub=api.user_func(substitute),
 )
 
 

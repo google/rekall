@@ -16,13 +16,64 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""Rekall's search function."""
+"""Rekall's search function.
+
+The following queries should work and not break.
+
+1) On Windows with --live API
+
+* regex match on array of strings - case insensitive.
+
+select proc, proc.environ from pslist() where proc.environ.TMP =~ "temp"
+
+2) Format using the hex() method, using as to name columns.
+
+select hex(VAD.start) as start, hex(VAD.end) as end, Protect from vad(proc_regex: "rekal")
+
+3) Autoselect column names - second column can not clash with first
+column name (should be hex, column 1).
+
+select hex(VAD.start), hex(VAD.end), Protect from vad(proc_regex: "rekal")
+
+4) Timestamp user function - requires a session to be passed (returns UnixTimeStamp).
+
+select timestamp(proc.create_time) from pslist()
+
+5) Yarascan with sub query
+
+select * from file_yara(paths: (select path.filename from glob("c:\windows\*.exe")).filename, yara_expression: "rule r1 {strings: $a = \"Microsoft\" wide condition: any of them}")
+
+6) Parameter interpolations:
+
+a =  "select * from file_yara(paths: ( select path.filename from glob({0})).filename, yara_expression: {1})"
+
+plugins.search(a, query_parameters=[r"c:\windows\*.exe", "rule r1 {strings: $a = \"Microsoft\" wide condition: any of them}"])
+
+7) WMI integration + unknown field:
+
+ select Result.Name, Result.SessionId, Result.foo from wmi("select * from Win32_Process")
+
+ select Result.Name, Result.BootDevice from wmi("select * from Win32_OperatingSystem")
+
+8) Describe WMI dynamic query
+
+describe wmi, dict(query="select * from Win32_Process")
+
+9) Substitute a single string
+
+select sub("Microsoft", "MS", Result.Name) from wmi("select * from Win32_OperatingSystem")
+
+10) Substiture an array
+select sub("rekal", "REKALL", proc.cmdline) from pslist()
+
+"""
 
 __author__ = "Adam Sindelar <adamsh@google.com>"
 import itertools
 import re
 import six
 
+from efilter import api
 from efilter import ast
 from efilter import errors
 from efilter import protocol
@@ -290,6 +341,8 @@ class CommandWrapper(object):
 
             return self.rows
 
+        kwargs = kwargs.copy()
+        kwargs.pop("vars", None)
         self._applied_args = (args, kwargs)
 
         # First time - instantiate the plugin with arguments.
@@ -360,7 +413,7 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
         dict(name="query", required=True, positional=True,
              help="The dotty/EFILTER query to run."),
 
-        dict(name="query_parameters", type="ArrayString",
+        dict(name="query_parameters", type="ArrayString", positional=True,
              help="Positional parameters for parametrized queries."),
     ]
 
@@ -370,6 +423,7 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
         try:
             self.query = q.Query(self.plugin_args.query,
                                  params=self.plugin_args.query_parameters)
+            self.scopes = self._get_scopes()
         except errors.EfilterError as error:
             raise plugin.PluginError("Could not parse your query %r: %s." % (
                 self.plugin_args.query, error))
@@ -383,10 +437,18 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
             raise plugin.PluginError("Could not parse your query %r." % (
                 self.plugin_args.query,))
 
+    def _get_scopes(self):
+        """Builds the scopes for this query."""
+        scopes = helpers.EFILTER_SCOPES.copy()
+        scopes["timestamp"] = api.user_func(
+            lambda x, **_: basic.UnixTimeStamp(value=x, session=self.session),
+            arg_types=[float, int, long])
+        return scopes
+
     # IStructured implementation for EFILTER:
     def resolve(self, name):
         """Find and return a CommandWrapper for the plugin 'name'."""
-        function = helpers.EFILTER_SCOPES.get(name)
+        function = self.scopes.get(name)
         if function:
             return function
 
@@ -400,7 +462,7 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
     def getmembers_runtime(self):
         """Get all available plugins."""
         result = dir(self.session.plugins)
-        result += helpers.EFILTER_SCOPES.keys()
+        result += self.scopes.keys()
 
         return frozenset(result)
 
@@ -456,35 +518,145 @@ structured.IStructured.implicit_dynamic(EfilterPlugin)
 
 
 class Search(EfilterPlugin):
-    """Searches and recombines output of other plugins.
+    """
+    Searches and recombines output of other plugins.
 
     Search allows you to use the EFILTER search engine to filter, transform
     and combine output of most Rekall plugins. The most common use for this
     is running IOCs.
 
-    Some examples that work right now:
-    ==================================
+    ## Some examples
 
-    # Find the process with pid 1:
-    search("select * pslist() where proc.pid == 1")
+    * Find the process with pid 1:
 
-    # Sort lsof output by file descriptor:
-    search("sort(lsof(), fd)") # or:
-    search("select * from lsof() order by fd)")
+      ```
+      select * pslist() where proc.pid == 1
+      ```
 
-    # Filter and sort through lsof in one step:
-    search("select * from lsof() where proc.pid == 1 order by fd)
+    * Sort lsof output by file descriptor:
 
-    # Is there any proc with PID 1, that has a TCPv6 connection and isn't a
-    # dead process?
-    search("(any lsof where (proc.pid == 1 and fileproc.human_type == 'TCPv6'))
-             and not (any dead_procs where (proc.pid == 1))")
+      ```
+      select * from lsof() order by fd
+      ```
 
-    # Note: "ANY" is just a short hand for "SELECT ANY FROM" which does what
-    # it sounds like, and returns True or False depending on whether the
-    # query has any results.
+    * Filter and sort through lsof in one step:
+
+      ```
+      select * from lsof() where proc.name =~ "rekall" order by fd
+      ```
+
+    * Is there any proc with PID 1, that has a TCPv6 connection and
+      isn't a dead process?
+
+      ```
+      search("(any lsof where (proc.pid == 1 and fileproc.human_type == 'TCPv6'))
+      and not (any dead_procs where (proc.pid == 1))")
+      ```
+
+    Note: "ANY" is just a short hand for "SELECT ANY FROM" which does what
+    it sounds like, and returns True or False depending on whether the
+    query has any results.
+
+    You will probably need to use the *describe* plugin to help
+    discover the exact column structure.
+
+
+    * regex match on array of strings - case insensitive.
+
+      ```
+      (Windows)
+      select proc, proc.environ from pslist() where
+        proc.environ.TMP =~ "temp"
+
+      (Linux)
+      select proc, proc.environ from pslist() where
+         proc.environ.PATH =~ "home"
+      ```
+
+    * Format using the hex() method, using *as* to name columns.
+
+      ```
+      (Windows)
+      select hex(VAD.start) as start, hex(VAD.end) as end,
+            Protect from vad(proc_regex: "rekal")
+
+      (Linux)
+      select hex(start) as start, hex(end) as end, filename
+            from maps(proc_regex: "rekall")
+      ```
+
+    * Autoselect column names - second column can not clash with first
+      column name (should be hex, column 1).
+
+      ```
+      (Windows)
+      select hex(VAD.start), hex(VAD.end), Protect
+            from vad(proc_regex: "rekal")
+
+      (Linux)
+      select hex(start), hex(end), filename from maps(proc_regex: "rekall")
+      ```
+    * Timestamp user function
+
+      ```
+        select proc, timestamp(proc.create_time) from pslist()
+      ```
+
+    * Yarascan with sub query
+
+      ```
+        select * from file_yara(
+           paths: (
+            select path.filename from glob(
+                "c:\windows\*.exe")).filename,
+           yara_expression: "rule r1 {strings: $a = \"Microsoft\" wide condition: any of them}")
+      ```
+
+      On Linux:
+      ```
+      select * from file_yara(
+            paths: (
+              select path.filename from glob(
+                 "/home/*/.ssh/*")).filename,
+            yara_expression: "rule r1 {strings: $a = \"ssh-rsa\" condition: any of them}")
+      ```
+
+    * Parameter interpolations:
+
+      ```
+        a =  "select * from file_yara(paths: ( select path.filename from glob({0})).filename, yara_expression: {1})"
+
+        search a, [r"c:\windows\*.exe",
+             "rule r1 {strings: $a = \"Microsoft\" wide condition: any of them}"]
+      ```
+    * WMI integration + unknown field:
+
+      ```
+        select Result.Name, Result.SessionId, Result.foo
+             from wmi("select * from Win32_Process")
+
+        select Result.Name, Result.BootDevice
+             from wmi("select * from Win32_OperatingSystem")
+      ```
+
+    * Describe WMI dynamic query
+
+      ```
+        describe wmi, dict(query="select * from Win32_Process")
+      ```
+
+    * Substitute a single string
+
+      ```
+        select sub("Microsoft", "MS", Result.Name)
+               from wmi("select * from Win32_OperatingSystem")
+      ```
+    * Substiture an array
+
+      ```
+        select sub("rekal", "REKALL", proc.cmdline) from pslist()
+      ```
     """
-
     name = "search"
 
     __args = [
@@ -969,105 +1141,5 @@ structured.IStructured.implement(
     implementations={
         structured.resolve: lambda s, m: getattr(s, m, None),
         structured.getmembers_runtime: lambda d: d.__slots__,
-    }
-)
-
-# If a None appears as a field but we wanted to dereference it we should just
-# ignore the error and propagate the None.
-structured.IStructured.implement(
-    for_type=type(None),
-    implementations={
-        structured.resolve: lambda x: None,
-        structured.getmembers_runtime: lambda x: [],
-    }
-)
-
-def IAssociative_select(c, idx):
-    try:
-        return c[idx]
-    except IndexError:
-        return obj.NoneObject()
-
-def clear_multimethod(function, type):
-    function._dispatch_table.clear()
-    new_impls = []
-    for impl_type, impl in function.implementations:
-        if impl_type != type:
-            new_impls.append((impl_type, impl))
-    function.implementations = new_impls
-
-def clear_implementations(protocol, method, type):
-    for function in protocol.functions():
-        if function.func_name == method:
-            clear_multimethod(function, type)
-
-# The following are bug fixes to efilter. We replace the default
-# implementations with our own.
-clear_implementations(associative.IAssociative, "select", list)
-clear_implementations(associative.IAssociative, "select", tuple)
-clear_implementations(structured.IStructured, "resolve", dict)
-clear_multimethod(solve.solve, ast.RegexFilter)
-
-@solve.solve.implementation(for_type=ast.RegexFilter)
-def solve_regexfilter(expr, vars):
-    """A Regex filter which can operate on both strings and repeated.
-
-    If any item in the array matches, we return the entire row.
-    """
-    pattern = re.compile(solve.__solve_for_scalar(expr.regex, vars))
-    try:
-        string = solve.__solve_for_scalar(expr.string, vars)
-        return solve.Result(pattern.search(six.text_type(string)), ())
-    except errors.EfilterTypeError:
-        for item in solve.__solve_for_repeated(expr.string, vars):
-            string = unicode(item)
-            match = pattern.search(six.text_type(string))
-            if match:
-                return solve.Result(match, ())
-
-    return solve.Result(match, ())
-
-
-associative.IAssociative.implement(
-    for_types=(list, tuple),
-    implementations={
-        associative.select: IAssociative_select,
-        associative.getkeys_runtime: lambda c: six.moves.range(
-            counted.count(c)),
-    })
-
-# Support named tuples.
-def IStructured_getmembers_runtime(item):
-    # Is it a named tuple? Acts like a dict.
-    if hasattr(item, "_fields"):
-        return item._fields
-
-    try:
-        return structured.getmembers(item[0])
-    except IndexError:
-        return []
-
-
-def IStructured_resolve_list(item, member):
-    # Named tuples.
-    if hasattr(item, "_fields"):
-        return getattr(item, member)
-
-    if len(item) > 0:
-        return structured.resolve(item[0], member)
-
-    return None
-
-structured.IStructured.implement(
-    for_types=(list, tuple),
-    implementations={
-        structured.resolve: IStructured_resolve_list,
-        structured.getmembers_runtime: IStructured_getmembers_runtime,
-    })
-
-structured.IStructured.implement(
-    for_type=dict,
-    implementations={
-        structured.resolve: lambda x, y: x.get(y),
     }
 )

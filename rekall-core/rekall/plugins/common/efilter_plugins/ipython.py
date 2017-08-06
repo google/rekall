@@ -14,14 +14,6 @@ class EfilterMagics(magic.Magics):
         return session.RunPlugin(plugin_name, query=line)
 
     @magic.line_cell_magic
-    def search(self, line, cell=None):
-        session = self.shell.user_global_ns["session"]
-        if cell is None:
-            return self._RunPlugin(session, "search", line)
-        else:
-            return self._RunPlugin(session, "search", cell)
-
-    @magic.line_cell_magic
     def SELECT(self, line, cell=None):
         return self._process_select(line, cell)
 
@@ -39,10 +31,8 @@ class EfilterMagics(magic.Magics):
 
     def _process_select(self, line, cell=None):
         session = self.shell.user_module.session
-        if cell is None:
-            return self._RunPlugin(session, "search", "select " + line)
-        else:
-            return self._RunPlugin(session, "search", "select " + cell)
+        return self._RunPlugin(session, "search", "select " + line + (
+            cell or ""))
 
     @magic.line_cell_magic
     def pager(self, line, cell=None):

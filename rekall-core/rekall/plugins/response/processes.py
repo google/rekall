@@ -156,6 +156,39 @@ class APIProcessFilter(common.AbstractAPICommandPlugin):
 
         return result
 
+class APILsof(APIProcessFilter):
+    """A plugin which lists all open files."""
+    name = "lsof"
+
+    table_header = [
+        dict(name="divider", type="Divider"),
+        dict(name="proc", hidden=True),
+        dict(name="file", hidden=True),
+        dict(name="name", width=30),
+        dict(name="pid", width=6, align="r"),
+        dict(name="user", width=8),
+        dict(name="fd", width=4),
+        dict(name="mode", width=4),
+        dict(name="offset", width=12),
+        dict(name="node", width=8),
+        dict(name="path"),
+    ]
+
+    def collect(self):
+        for proc in self.filter_processes():
+            yield dict(divider=proc)
+
+            for fd in (proc.open_files or []):
+                yield dict(file=fd, proc=proc,
+                           name=proc.name,
+                           pid=proc.pid,
+                           user=proc.username,
+                           fd=fd.fd,
+                           offset=fd.position,
+                           path=fd.path,
+                           mode=fd.mode)
+
+
 
 class APIPslist(APIProcessFilter):
     """A live pslist plugin using the APIs."""
