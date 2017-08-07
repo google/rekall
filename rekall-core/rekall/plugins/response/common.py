@@ -89,7 +89,8 @@ class FileSpec(utils.SlottedObject):
             self.path_sep = path_sep or self.default_path_sep
 
         else:
-            raise TypeError("Filename must be a string or file spec.")
+            raise TypeError("Filename must be a string or file spec not %s." % type(
+                filename))
 
     @property
     def dirname(self):

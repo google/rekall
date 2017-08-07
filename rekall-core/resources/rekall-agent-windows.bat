@@ -1,3 +1,5 @@
+echo off
+
 rem This batch script installs Rekall Agent as a windows service using
 rem the nssm tool which was originally downloaded from http://nssm.cc/
 

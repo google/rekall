@@ -86,8 +86,12 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         vm = vm or self.obj_vm
         data = vm.read(self.obj_offset, length)
         if self.term is not None:
-            left, sep, _ = data.partition(self.term)
-            data = left + sep
+            try:
+                left, sep, _ = data.partition(self.term)
+                data = left + sep
+                # We can not split it, just return the full length.
+            except ValueError:
+                pass
 
         return data
 

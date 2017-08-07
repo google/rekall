@@ -56,7 +56,7 @@ install_requires = [
     "PyYAML == 3.11",
     "acora == 2.0",
     "arrow == 0.7.0",
-    "efilter == 1!1.5.2",
+    "rekall-efilter == 1.5.2",
     "intervaltree == 2.1.0",
     "pycrypto == 2.6.1",
     "pyelftools == 0.24",

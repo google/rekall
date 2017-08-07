@@ -40,6 +40,11 @@ class EfilterMagics(magic.Magics):
         if " " in line:
             _, line_end = line.split(" ", 1)
         else:
+            # A bare pager magic with pager already set, means to clear it.
+            if session.GetParameter("pager"):
+                session.SetParameter("pager", None)
+                return
+
             line_end = "less"
 
         session.SetParameter("pager", line_end)

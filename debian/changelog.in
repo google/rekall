@@ -1,0 +1,6 @@
+rekall-forensic (%(version)s) RELEASED; urgency=low
+
+  [ Rekall Team ]
+  * Release %(version)s %(codename)s
+
+ -- Rekall Team <rekall-dev@googlegroups.com>  %(debian_ts)s

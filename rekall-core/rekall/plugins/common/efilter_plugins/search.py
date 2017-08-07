@@ -87,13 +87,13 @@ from efilter.transforms import infer_type
 
 from efilter.protocols import applicative
 from efilter.protocols import associative
-from efilter.protocols import counted
 from efilter.protocols import repeated
 from efilter.protocols import structured
 
 from rekall import obj
 from rekall import plugin
 from rekall import testlib
+from rekall.plugins.response import common
 from rekall.plugins.overlays import basic
 from rekall.plugins.common.efilter_plugins import helpers
 from rekall.ui import identity as identity_renderer
@@ -443,6 +443,14 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
         scopes["timestamp"] = api.user_func(
             lambda x, **_: basic.UnixTimeStamp(value=x, session=self.session),
             arg_types=[float, int, long])
+
+        # This function is used to indicate that the string represents
+        # a filename. This will cause the agent to upload it if the
+        # user requested uploading files.
+        # > select file(path.filename.name).filename.name from glob("/*")
+        scopes["file"] = api.user_func(
+            lambda x: common.FileInformation(session=self.session, filename=x),
+            arg_types=[unicode, str])
         return scopes
 
     # IStructured implementation for EFILTER:

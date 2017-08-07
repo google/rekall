@@ -3,19 +3,4 @@ rekall-forensic (1.7.0) RELEASED; urgency=low
   [ Rekall Team ]
   * Release 1.7.0 Hurricane Ridge
 
- -- Rekall Team <rekall-dev@googlegroups.com>  Fri, 4 August 2017 8:46:37 +0000
-
-
-rekall-forensic (1.6.0) RELEASED; urgency=low
-
-  [ Rekall Team ]
-  * Release 1.6.0 Gotthard
-
- -- Rekall Team <rekall-dev@googlegroups.com>  Fri, 4 November 2016 8:46:37 +0000
-
-rekall-forensic (1.5.3) RELEASED; urgency=low
-
-  [ Rekall Team ]
-  * Release 1.5.3 Etzel
-
- -- Rekall Team <rekall-dev@googlegroups.com>  Wed, 10 August 2016 8:46:37 +0000
+ -- Rekall Team <rekall-dev@googlegroups.com>  Mon, 7 Aug 2017 3:38:43 -0000

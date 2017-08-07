@@ -69,7 +69,7 @@ class IRStat(common.AbstractIRCommandPlugin):
 
     __args = [
         dict(name="paths", positional=True, type="Array",
-             help="Paths to hash."),
+             help="Paths to stat."),
     ]
 
     table_header = [
@@ -123,8 +123,10 @@ class IRHash(common.AbstractIRCommandPlugin):
             for hasher in hashers.values():
                 hasher.update(data)
 
-        return [Hash(type=name, value=hasher.digest())
-                for name, hasher in hashers.iteritems()]
+        for key in list(hashers):
+            hashers[key] = hashers[key].hexdigest()
+
+        return hashers
 
     def collect(self):
         for path in self.plugin_args.paths:

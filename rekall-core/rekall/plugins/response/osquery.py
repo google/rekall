@@ -35,6 +35,9 @@ import os
 import platform
 import subprocess
 
+from distutils import spawn
+
+from rekall import plugin
 from rekall import resources
 from rekall.plugins.response import common
 
@@ -70,6 +73,10 @@ class OSQuery(common.AbstractIRCommandPlugin):
                 if os.access(result, os.R_OK):
                     return result
 
+            else:
+                # Try to find it somewhere on the system.
+                return spawn.find_executable("osqueryi")
+
             raise e
 
     def render(self, renderer):
@@ -78,6 +85,9 @@ class OSQuery(common.AbstractIRCommandPlugin):
             osquery_path = self.session.GetParameter("osquery_path")
         if osquery_path == None:
             osquery_path = self.try_to_find_osquery()
+
+        if not self.plugin_args.query:
+            raise plugin.PluginError("Query must be provided")
 
         self.session.logging.debug("Found OSQuery at %s" % osquery_path)
         self.json_result = json.loads(

@@ -5,7 +5,7 @@
 This program is used to manage versions. Prior to each release, please run it
 with update.
 """
-
+import arrow
 import argparse
 import json
 import os
@@ -138,14 +138,24 @@ def get_versions(version_file="version.yaml"):
 def escape_string(instr):
     return instr.replace('"""', r'\"\"\"')
 
+TEMPLATES = [
+    "debian/changelog.in"
+]
 
-def update(args):
-    if (args.version is None and
-            args.post is None and
-            args.rc is None and
-            args.codename is None):
-        raise AttributeError("You must set something in this release.")
 
+def update_templates(version_data):
+    version_data["debian_ts"] = arrow.utcnow().format(
+        'ddd, D MMM YYYY h:mm:ss Z')
+    for path in TEMPLATES:
+        if not path.endswith(".in"):
+            continue
+
+        target = path[:-3]
+        with open(target, "wb") as outfd:
+            outfd.write(open(path).read() % version_data)
+
+
+def update_version_files(args):
     data, version_path = get_config_file(args.version_file)
     version_data = data["version_data"]
     if args.version:
@@ -179,6 +189,18 @@ def update(args):
 
         with open(version_path, "wb") as fd:
             fd.write(contents)
+
+    update_templates(version_data)
+
+
+def update(args):
+    if (args.version is None and
+            args.post is None and
+            args.rc is None and
+            args.codename is None):
+        raise AttributeError("You must set something in this release.")
+
+    update_version_files(args)
 
 
 def main():

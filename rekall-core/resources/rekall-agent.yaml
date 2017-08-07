@@ -7,7 +7,7 @@ client:
   # Add intrinsic labels to this client here.
   labels:
     - All
-    - Linux
+    - Windows
 
   # Set to false to prevent the agent from polling - it will just
   # exit after a single poll. Note that the nanny will wake it anyway

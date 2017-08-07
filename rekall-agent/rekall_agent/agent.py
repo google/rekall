@@ -569,20 +569,21 @@ class RekallAgent(common.AbstractAgentCommand):
                 pass
 
 
-class AgentInfo(common.AbstractAgentCommand):
+class SystemInfo(plugin.TypedProfileCommand, plugin.Command):
     """Just emit information about the agent.
 
     The output format is essentially key value pairs. This is useful for efilter
     queries.
     """
-    name = "agent_info"
+    name = "system_info"
+    mode = "mode_live"
 
     table_header = [
-        dict(name="key"),
+        dict(name="key", width=20),
         dict(name="value")
     ]
 
     def collect(self):
         uname = UnameImpl.from_current_system(session=self.session)
-        for k, v in uname.to_primitive().iteritems():
+        for k, v in uname.to_primitive(with_type=False).iteritems():
             yield dict(key=k, value=v)

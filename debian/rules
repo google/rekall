@@ -8,3 +8,8 @@ override_dh_strip:
 
 override_dh_virtualenv:
 	dh_virtualenv --python python2.7 --preinstall 'setuptools>36' --preinstall 'pip>=9.0' --preinstall 'wheel'
+
+
+override_dh_prep:
+	echo "Copy osquery into the resources tree"
+	cp /usr/bin/osqueryi rekall-core/resources
