@@ -43,7 +43,7 @@ class Keepassx(heap_analysis.HeapAnalysis):
     __name = "keepassx"
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
+        dict(name="divider", type="Divider"),
         dict(name="task", hidden=True),
         dict(name="entry", width=6),
         dict(name="title", width=26),

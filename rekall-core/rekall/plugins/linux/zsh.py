@@ -39,7 +39,7 @@ class Zsh(heap_analysis.HeapAnalysis):
     __name = "zsh"
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
+        dict(name="divider", type="Divider"),
         dict(name="task", hidden=True),
         dict(name="counter", width=8),
         dict(name="started", width=24),
