@@ -898,13 +898,14 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
                 self.address_map.AddRange(offset, offset + 1, ",".join(comment))
 
         offset = self.offset
-        for offset in range(self.offset, self.offset + to_read,
-                            self.width):
+        end_of_range = self.offset + to_read
+        for offset in range(self.offset, end_of_range, self.width):
+            end_of_line = min(self.width, end_of_range - offset)
             # Add a symbol name for the start of each row.
             hex_data = utils.HexDumpedString(
-                self.plugin_args.address_space.read(offset, self.width),
+                self.plugin_args.address_space.read(offset, end_of_line),
                 highlights=self.address_map.HighlightRange(
-                    offset, offset + self.width, relative=True))
+                    offset, offset + end_of_line, relative=True))
 
             comment = self.address_map.GetComment(offset, offset + self.width)
 
