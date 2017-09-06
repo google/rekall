@@ -3728,29 +3728,14 @@ class HeapReferenceSearch(HeapAnalysis):
                     renderer.write("\n\n")
                     start, length = chunk.start_and_length()
 
-                    # the 'dump' plugin does not stop after length bytes but
-                    # always fills the whole width, which in some cases means
-                    # that bytes from the following chunk are displayed.
-                    # So we calculate an ideal width.
-                    width = 16
-                    if length % 16:
-                        if length % 8:
-                            width = 4
-                        else:
-                            width = 8
-
                     if length % 4:
                         self.session.logging.warn(
                             "The chunk at offset 0x{:x} seems to have "
                             "a length not divisable by 4. This is unexpected "
-                            "and indicates a fundamental error. Also the "
-                            "heaprefs output will most probably contain"
-                            " data from another chunk.".format(chunk.v()))
-
+                            "and indicates a fundamental error.".format(chunk.v()))
 
                     dump = self.session.plugins.dump(
-                        offset=start, length=length, width=width,
-                        rows=int(length/width)+1,
+                        offset=start, length=length,
                         address_map=self.CreateAllocationMap(start, length),
                         address_space=self.process_as)
 
