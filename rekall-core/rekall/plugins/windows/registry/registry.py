@@ -220,6 +220,8 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         else:
             yield "\0" * self.BLOCK_SIZE
 
+        last_paddr = 0
+        read_times = 0
         length = self.hive.Hive.Storage[0].Length.v()
         for i in xrange(0, length, self.BLOCK_SIZE):
             paddr = self.vtop(i)
@@ -229,7 +231,12 @@ class HiveAddressSpace(HiveBaseAddressSpace):
                 data = '\0' * self.BLOCK_SIZE
             else:
                 paddr = paddr - 4
-                data = self.base.read(paddr, self.BLOCK_SIZE)
+                if paddr == last_paddr:
+                    read_times += 1
+                else:
+                    read_times = 0
+                last_paddr = paddr
+                data = self.base.read(paddr + self.BLOCK_SIZE*read_times, self.BLOCK_SIZE)
                 if not data:
                     self.logging.warn("Physical layer returned None for index "
                                  "{0:x}, filling with NULL".format(i))
