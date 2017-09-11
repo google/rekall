@@ -50,6 +50,7 @@ install_requires = [
     "filelock==2.0.6",
     "pathlib==1.0.1",
     "portpicker==1.1.1",
+    "sseclient==0.0.18",
     "future",
 ]
 
