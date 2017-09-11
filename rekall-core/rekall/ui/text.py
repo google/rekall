@@ -1207,7 +1207,7 @@ class UnicodeWrapper(object):
 
     def write(self, data):
         data = utils.SmartUnicode(data).encode(self.encoding, "replace")
-        self.fd.write(data)
+        self.fd.write(data.decode())
 
     def flush(self):
         self.fd.flush()
