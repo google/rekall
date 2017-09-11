@@ -36,11 +36,14 @@ import contextlib
 import json
 import gzip
 import os
-import rfc822
 import io
 import urllib.request, urllib.parse, urllib.error
 import tempfile
 import time
+try:
+    import rfc822
+except ImportError:
+    import rfc822py3 as rfc822
 
 from wsgiref import handlers
 
