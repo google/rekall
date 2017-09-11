@@ -729,21 +729,18 @@ class ArtifactDefinition(_FieldDefinitionValidator):
         try:
             self._LoadDefinition(data)
         except Exception as e:
-            exc_info = sys.exc_info()
-            raise errors.FormatError(
-                "Definition %s: %s" % (self.name, e)), None, exc_info[2]
+            raise errors.FormatError("Definition %s: %s" % (self.name, e)) from e
 
     def set_implementations(self, source_types):
         return self.__class__(self.data, source_types)
 
     def _LoadDefinition(self, data):
         if not isinstance(data, dict):
-            raise errors.FormatError(
-                "Artifact definition must be a dict.")
+            raise errors.FormatError("Artifact definition must be a dict.")
 
         different_keys = set(data) - definitions.TOP_LEVEL_KEYS
         if different_keys:
-            raise errors.FormatError(u'Undefined keys: {}'.format(
+            raise errors.FormatError('Undefined keys: {}'.format(
                 different_keys))
 
         self._LoadFieldDefinitions(data, self._field_definitions)
