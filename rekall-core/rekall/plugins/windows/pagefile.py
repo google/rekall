@@ -585,7 +585,7 @@ class WindowsPagedMemoryMixin(object):
             except RuntimeError:
                 # Sometimes we cant recover the name of the pagefile because it
                 # is paged. We just take a guess here.
-                pagefile_name = ur"c:\pagefile.sys"
+                pagefile_name = "c:\pagefile.sys"
 
             finally:
                 self._resolving_pagefiles = False
