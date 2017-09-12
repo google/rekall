@@ -195,7 +195,8 @@ class SymbolOffsetIndex(Index):
             for trait in traits:
                 # A trait is a list of symbol-offset tuples.
                 match = all([relative_symbols.get(symbol) == offset
-                             for (symbol, offset) in trait])
+                             for (symbol, offset) in trait
+                             if isinstance(symbol, basestring)])
                 if match:
                     matched_traits += 1
 
