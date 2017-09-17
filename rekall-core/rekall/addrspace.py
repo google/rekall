@@ -46,7 +46,7 @@ class Zeroer(object):
         try:
             return self.store.Get(length)
         except KeyError:
-            zeros = "\x00" * length
+            zeros = b"\x00" * length
             self.store.Put(length, zeros)
             return zeros
 
