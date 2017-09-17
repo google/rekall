@@ -247,7 +247,7 @@ class _BufferFragments(object):
             else:
                 expanded_result.append(item)
 
-        return "".join(expanded_result)
+        return b"".join(expanded_result)
 
 
 class BufferASGenerator(object):
