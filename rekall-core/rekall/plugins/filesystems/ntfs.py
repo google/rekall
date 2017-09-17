@@ -383,7 +383,7 @@ class FixupAddressSpace(addrspace.BaseAddressSpace):
         self.fixup_magic = fixup_magic
 
         # We read the entire region into a mutable buffer then apply the fixups.
-        self.buffer = array.array("c", self.base.read(base_offset, length))
+        self.buffer = array.array("b", self.base.read(base_offset, length))
         for i, fixup_value in enumerate(fixup_table):
             fixup_offset = (i+1) * 512 - 2
             if (self.buffer[fixup_offset:fixup_offset+2].tostring() !=
@@ -391,7 +391,7 @@ class FixupAddressSpace(addrspace.BaseAddressSpace):
                 raise NTFSParseError("Fixup error")
 
             self.buffer[fixup_offset:fixup_offset+2] = array.array(
-                "c", fixup_value.v())
+                "b", fixup_value.v())
 
     def read(self, address, length):
         buffer_offset = address - self.base_offset
