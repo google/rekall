@@ -148,10 +148,10 @@ class LinkedList(object):
 
     def PopLeft(self):
         """Returns the head node and removes it from the list."""
-        if self.__next__ is self:
+        if self.next is self:
             raise IndexError("Pop from empty list.")
 
-        first_node = self.__next__
+        first_node = self.next
         self.Unlink(first_node)
 
         return first_node.data
@@ -170,25 +170,25 @@ class LinkedList(object):
         """Removes a given node from the list."""
         self.size -= 1
 
-        node.prev.next = node.__next__
+        node.prev.next = node.next
         node.next.prev = node.prev
         node.next = node.prev = None
 
     def __iter__(self):
-        p = self.__next__
+        p = self.next
         while p is not self:
             yield p.data
-            p = p.__next__
+            p = p.next
 
     def __len__(self):
         return self.size
 
     def __str__(self):
-        p = self.__next__
+        p = self.next
         s = []
         while p is not self:
             s.append(str(p.data))
-            p = p.__next__
+            p = p.next
 
         return "[" + ", ".join(s) + "]"
 
