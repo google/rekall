@@ -116,7 +116,7 @@ class YaraScanMixin(object):
     def generate_hits(self, run):
         for buffer_as in scan.BufferASGenerator(
                 self.session, run.address_space, run.start, run.end):
-            self.session.logging.debug(
+            self.session.report_progress(
                 "Scanning buffer %#x->%#x (length %#x)",
                 buffer_as.base_offset, buffer_as.end(),
                 buffer_as.end() - buffer_as.base_offset)

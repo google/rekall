@@ -370,11 +370,24 @@ class WinDNSCache(common.WindowsCommandPlugin):
         self.cc = self.session.plugins.cc()
         with self.cc:
             cache_hash_table = self.locate_cache_hashtable()
+            buckets = set()
+            entries = set()
             if cache_hash_table:
                 for bucket in cache_hash_table:
+                    if bucket.obj_offset in buckets:
+                        continue
+
+                    buckets.add(bucket.obj_offset)
+
                     for entry in bucket.List.list_of_type_fast(
                             "DNS_HASHTABLE_ENTRY", "List",
                             include_current=True):
+
+                        if entries.obj_offset in buckets:
+                            continue
+
+                        entries.add(bucket.obj_offset)
+
                         name = entry.Name.deref()
 
                         yield dict(Name=name,
