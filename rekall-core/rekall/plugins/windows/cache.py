@@ -29,7 +29,10 @@ References:
 http://www.codemachine.com/article_kernelstruct.html
 
 """
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
 __author__ = "Michael Cohen <scudette@google.com>"
 from rekall import obj
 from rekall import testlib
@@ -184,7 +187,7 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                     shared_cache_map, []).append(vacb)
 
     def _dump_ca(self, ca, out_fd, type, filename, renderer):
-        sectors_per_page = 0x1000 / 512
+        sectors_per_page = old_div(0x1000, 512)
 
         for subsection in ca.FirstSubsection.walk_list("NextSubsection"):
             for i, pte in enumerate(subsection.SubsectionBase):
@@ -256,7 +259,7 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
 
         seen_filenames = set()
         for file_object in self.file_objects:
-            filename = unicode(
+            filename = str(
                 file_object.file_name_with_device()).replace("\\", "_")
 
             if filename in seen_filenames:

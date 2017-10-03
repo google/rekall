@@ -19,6 +19,7 @@
 
 
 
+from builtins import object
 class PhysicalAddressContext(object):
     """A lazy evaluator for context information around physical addresses."""
 
@@ -38,7 +39,7 @@ class PhysicalAddressContext(object):
         if rammap_plugin != None:
             return rammap_plugin.summary()[0]
 
-        return "Phys: %#x" % self.address
+        return u"Phys: %#x" % self.address
 
 
 class VADMapMixin(object):

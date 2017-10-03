@@ -22,6 +22,7 @@ Many win32k structs are undocumented (i.e. are not present in pdb
 symbols). These structures do change a lot between versions of windows. This
 module autodetects the struct layout using various heuristics.
 """
+from builtins import str
 import re
 
 from rekall.plugins.windows import common
@@ -47,10 +48,10 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
 
         overlay = self.GetWin32kOverlay(win32k_profile)
 
-        for struct, definition in overlay.items():
+        for struct, definition in list(overlay.items()):
             yield dict(divider="Struct %s" % struct)
 
-            for field, (offset, field_def) in sorted(definition[1].items(),
+            for field, (offset, field_def) in sorted(list(definition[1].items()),
                                                      key=lambda x: x[1]):
                 yield dict(field=field, offset=offset,
                            definition=str(field_def))
@@ -119,7 +120,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
             stations.add(offset)
 
             self.session.logging.debug("Checking tagWINDOWSTATION at %#x",
-                                       offset)
+                                       int(offset))
             for o, info in self.analyze_struct.GuessMembers(offset, size=0x200):
                 if self._AddField(
                         "Tag:Win", info, "rpwinstaNext", fields,

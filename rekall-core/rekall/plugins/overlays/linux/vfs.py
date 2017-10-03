@@ -22,6 +22,11 @@ This file encapsulates various virtual file system operations for supported
 linux versions. The code is basically copied from the kernel sources of the
 relevant versions.
 """
+from __future__ import division
+from builtins import str
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 import posixpath
 import re
 import math
@@ -75,7 +80,7 @@ class File(object):
         range_start = None
 
         index = 0
-        while index <= (self.size / page_size):
+        while index <= (old_div(self.size, page_size)):
             page = self._radix_tree_lookup(index)
             if page:
                 # Start a new range if previously there was no data.
@@ -127,7 +132,7 @@ class File(object):
         # The RADIX_TREE_MAP_SIZE is the length of the node.slots array.
         self.RADIX_TREE_MAP_SIZE = len(node.slots)
         self.RADIX_TREE_MAP_SHIFT = int(
-            math.log(self.RADIX_TREE_MAP_SIZE) / math.log(2))
+            old_div(math.log(self.RADIX_TREE_MAP_SIZE), math.log(2)))
         self.RADIX_TREE_MAP_MASK = self.RADIX_TREE_MAP_SIZE - 1
 
         if not self._radix_tree_is_indirect_ptr(node):
@@ -188,9 +193,9 @@ class File(object):
 
             # If we are the root pseudofile, we have no name.
             if self.is_root:
-                child_filename = unicode(filename)
+                child_filename = str(filename)
             else:
-                child_filename = self.filename + [unicode(filename)]
+                child_filename = self.filename + [str(filename)]
 
             new_file = File(filename=child_filename,
                             mountpoint=self.mountpoint,
@@ -227,7 +232,7 @@ class MountPoint(object):
                  mount_path="(undefined mount path)",
                  superblock=None, flags=None, session=None):
         self.device = device
-        self.name = unicode(mount_path)
+        self.name = utils.SmartUnicode(mount_path)
         self.sb = superblock
         self.flags = flags
         self.session = session
@@ -292,13 +297,13 @@ class FileName(object):
 
         # This is the normal condition for files.
         else:
-            return re.sub("/+", "/", self.__unicode__())
+            return re.sub(u"/+", u"/", utils.SmartUnicode(self))
 
-    def __unicode__(self):
+    def __str__(self):
         if self.deleted:
-            deleted = " (deleted) "
+            deleted = u" (deleted) "
         else:
-            deleted = ""
+            deleted = u""
 
         return u"%s%s%s" % (self.mount_point,
                             "/".join(self.path_components), deleted)

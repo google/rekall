@@ -66,6 +66,7 @@ can then be subsequently used to dereference the memory image - we can recover
 the _EPROCESS.ImageFileName attribute and print the process name - even though
 the actual name was never encoded.
 """
+from builtins import str
 import arrow
 
 from rekall import addrspace
@@ -93,7 +94,7 @@ class BaseAddressSpaceObjectRenderer(json_renderer.StateBasedObjectRenderer):
         return cls(session=self.session, **value)
 
     def GetState(self, item, **_):
-        result = dict(cls=unicode(item.__class__.__name__))
+        result = dict(cls=utils.SmartUnicode(item.__class__.__name__))
         if item.base is not item:
             result["base"] = item.base
 
@@ -141,7 +142,7 @@ class SlottedObjectObjectRenderer(json_renderer.StateBasedObjectRenderer):
         # Deliberately do not go through the constructor. Use __new__ directly
         # so we can restore object state by assigning to the slots.
         result = utils.SlottedObject.__new__(utils.SlottedObject)
-        for k, v in state.iteritems():
+        for k, v in six.iteritems(state):
             setattr(result, k, v)
 
         return result
@@ -182,7 +183,7 @@ class SessionObjectRenderer(json_renderer.StateBasedObjectRenderer):
         mro = state["mro"].split(":")
         result = session.Session.classes[mro[0]]()
         with result:
-            for k, v in state["state"].iteritems():
+            for k, v in six.iteritems(state["state"]):
                 result.SetParameter(k, v[0])
 
         return result
@@ -239,7 +240,7 @@ class UnixTimestampJsonObjectRenderer(json_renderer.StateBasedObjectRenderer):
 
     def GetState(self, item, **_):
         return dict(epoch=item.v(),
-                    string_value=unicode(item))
+                    string_value=utils.SmartUnicode(item))
 
     def DecodeFromJsonSafe(self, state, options):
         return self.session.profile.UnixTimeStamp(value=state.get("epoch", 0))
@@ -297,7 +298,7 @@ class JsonHexdumpRenderer(json_renderer.StateBasedObjectRenderer):
 
     def GetState(self, item, **options):
         state = super(JsonHexdumpRenderer, self).GetState(item, **options)
-        state["value"] = unicode(item.value.encode("hex"))
+        state["value"] = utils.SmartUnicode(item.value.encode("hex"))
         state["highlights"] = item.highlights
 
         return state
@@ -307,7 +308,7 @@ class JsonInstructionRenderer(json_renderer.StateBasedObjectRenderer):
     renders_type = "Instruction"
 
     def GetState(self, item, **_):
-        return dict(value=unicode(item))
+        return dict(value=utils.SmartUnicode(item))
 
 
 class JsonEnumerationRenderer(json_renderer.StateBasedObjectRenderer):
@@ -315,7 +316,7 @@ class JsonEnumerationRenderer(json_renderer.StateBasedObjectRenderer):
     renders_type = ["Enumeration", "BitField"]
 
     def GetState(self, item, **_):
-        return dict(enum=unicode(item),
+        return dict(enum=utils.SmartUnicode(item),
                     value=int(item))
 
     def Summary(self, item, **_):

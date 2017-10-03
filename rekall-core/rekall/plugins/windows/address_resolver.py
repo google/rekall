@@ -18,6 +18,7 @@
 
 """The module implements the windows specific address resolution plugin."""
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import re
 
@@ -265,7 +266,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
     @staticmethod
     def NormalizeModuleName(module_name):
-        result = unicode(module_name)
+        result = str(module_name)
         result = re.split(r"[/\\]", result)[-1]
 
         # Drop the file extension.
@@ -366,7 +367,7 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
 
     @staticmethod
     def NormalizeModuleName(module_name):
-        result = unicode(module_name)
+        result = str(module_name)
         result = re.split(r"[/\\]", result)[-1]
 
         # The kernel is treated specially - just like windbg.
@@ -439,8 +440,8 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
 
     def __str__(self):
         self._EnsureInitialized()
-        return "<%s: %s@%#x>" % (self.__class__.__name__, self.pe_profile.name,
-                                 self.image_base)
+        return u"<%s: %s@%#x>" % (self.__class__.__name__, self.pe_profile.name,
+                                  self.image_base)
 
 
 class TestWindowsAddressResolver(testlib.DisabledTest):

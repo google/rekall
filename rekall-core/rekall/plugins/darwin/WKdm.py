@@ -27,7 +27,11 @@ Scott F. Kaplan -- sfkaplan@cs.utexas.edu
 
 from September 1997.
 """
+from __future__ import division
 
+from builtins import next
+from builtins import range
+from past.utils import old_div
 __author__ = "Andreas Moser <amoser@google.com>"
 
 import itertools
@@ -82,7 +86,7 @@ HASH_LOOKUP_TABLE_CONTENTS = [
 
 def WK_pack_2bits(source_buf):
     res = []
-    it = itertools.izip(*([iter(source_buf)] * 16))
+    it = zip(*([iter(source_buf)] * 16))
     for (in1, in2, in3, in4, in5, in6, in7, in8,
          in9, in10, in11, in12, in13, in14, in15, in16) in it:
         res.extend([
@@ -103,7 +107,7 @@ def WK_pack_2bits(source_buf):
 
 def WK_pack_4bits(source_buf):
     res = []
-    it = itertools.izip(*([iter(source_buf)] * 8))
+    it = zip(*([iter(source_buf)] * 8))
     for in1, in2, in3, in4, in5, in6, in7, in8 in it:
         res.extend([
             in1 + (in5 << 4),
@@ -122,7 +126,7 @@ def WK_pack_4bits(source_buf):
 def WK_pack_3_tenbits(source_buf):
 
     packed_input = []
-    for in1, in2, in3 in itertools.izip(*([iter(source_buf)] * 3)):
+    for in1, in2, in3 in zip(*([iter(source_buf)] * 3)):
         packed_input.append(in1 | (in2 << 10) | (in3 << 20))
 
     return packed_input
@@ -146,7 +150,7 @@ and3_sh6 = []
 and_f = []
 sh4_and_f = []
 
-for i in xrange(256):
+for i in range(256):
     and3_sh0.append((i >> 0) & 3)
     and3_sh2.append((i >> 2) & 3)
     and3_sh4.append((i >> 4) & 3)
@@ -157,7 +161,7 @@ for i in xrange(256):
 def WK_unpack_2bits(input_buf):
 
     output = []
-    for in1, in2, in3, in4 in itertools.izip(*([iter(input_buf)] * 4)):
+    for in1, in2, in3, in4 in zip(*([iter(input_buf)] * 4)):
         output.extend([
             and3_sh0[in1], and3_sh0[in2], and3_sh0[in3], and3_sh0[in4],
             and3_sh2[in1], and3_sh2[in2], and3_sh2[in3], and3_sh2[in4],
@@ -175,7 +179,7 @@ def WK_unpack_2bits(input_buf):
 
 def WK_unpack_4bits(input_buf):
     output = []
-    for in1, in2, in3, in4 in itertools.izip(*([iter(input_buf)] * 4)):
+    for in1, in2, in3, in4 in zip(*([iter(input_buf)] * 4)):
         output.extend([
             and_f[in1],
             and_f[in2],
@@ -194,7 +198,7 @@ def WK_unpack_4bits(input_buf):
 
 def WK_unpack_3_tenbits(input_buf):
     output = []
-    for in1, in2, in3, in4 in itertools.izip(*([iter(input_buf)] * 4)):
+    for in1, in2, in3, in4 in zip(*([iter(input_buf)] * 4)):
         output.extend([
             in1 & 0x3FF, (in1 >> 10) & 0x3FF, (in1 >> 20) & 0x3FF,
             in2 & 0x3FF, (in2 >> 10) & 0x3FF, (in2 >> 20) & 0x3FF,
@@ -206,7 +210,7 @@ def WK_unpack_3_tenbits(input_buf):
 
 def WKdm_compress(src_buf):
     dictionary = []
-    for _ in xrange(DICTIONARY_SIZE):
+    for _ in range(DICTIONARY_SIZE):
         dictionary.append((1, 0))
     hashLookupTable = HASH_LOOKUP_TABLE_CONTENTS
 
@@ -219,12 +223,12 @@ def WKdm_compress(src_buf):
     # Holds words.
     full_patterns = []
 
-    input_words = struct.unpack("I" * (len(src_buf) / 4), src_buf)
+    input_words = struct.unpack("I" * (len(src_buf), 4) // src_buf)
 
     for input_word in input_words:
 
         # Equivalent to >> 10.
-        input_high_bits = input_word / 1024
+        input_high_bits = input_word // 1024
         dict_location = hashLookupTable[input_high_bits % 256]
         dict_word, dict_high = dictionary[dict_location]
 
@@ -244,12 +248,12 @@ def WKdm_compress(src_buf):
 
         dictionary[dict_location] = (input_word, input_high_bits)
 
-    qpos_start = len(full_patterns) + TAGS_AREA_OFFSET + (len(src_buf) / 64)
+    qpos_start = len(full_patterns) + TAGS_AREA_OFFSET + (len(src_buf) // 64)
 
     packed_tags = WK_pack_2bits(tempTagsArray)
 
     num_bytes_to_pack = len(tempQPosArray)
-    num_packed_words = math.ceil(num_bytes_to_pack / 8.0)
+    num_packed_words = math.ceil(old_div(num_bytes_to_pack, 8.0))
     num_source_bytes = int(num_packed_words * 8)
 
     tempQPosArray += [0] * (num_source_bytes - len(tempQPosArray))
@@ -258,7 +262,7 @@ def WKdm_compress(src_buf):
 
     low_start = qpos_start + int(num_packed_words)
 
-    num_packed_words = len(tempLowBitsArray) / 3
+    num_packed_words = old_div(len(tempLowBitsArray), 3)
     # Align to 3 tenbits.
     while len(tempLowBitsArray) % 3:
         tempLowBitsArray.append(0)
@@ -307,19 +311,19 @@ def _WKdm_decompress(src_buf, qpos_start, low_start, low_end, header_size):
 
     lowbits_str = src_buf[low_start * 4:low_end * 4]
     num_lowbits_bytes = len(lowbits_str)
-    num_lowbits_words = num_lowbits_bytes / 4
+    num_lowbits_words = old_div(num_lowbits_bytes, 4)
     num_packed_lowbits = num_lowbits_words * 3
 
     rem = len(lowbits_str) % 16
     if rem:
         lowbits_str += "\x00" * (16 - rem)
 
-    packed_lowbits = struct.unpack("I" * (len(lowbits_str) / 4), lowbits_str)
+    packed_lowbits = struct.unpack("I" * (old_div(len(lowbits_str), 4)), lowbits_str)
 
     tempLowBitsArray = WK_unpack_3_tenbits(packed_lowbits)[:num_packed_lowbits]
 
     patterns_str = src_buf[256 + header_size:qpos_start * 4]
-    full_patterns = struct.unpack("I" * (len(patterns_str) / 4), patterns_str)
+    full_patterns = struct.unpack("I" * (old_div(len(patterns_str), 4)), patterns_str)
 
     p_tempQPosArray = iter(tempQPosArray)
     p_tempLowBitsArray = iter(tempLowBitsArray)
@@ -332,18 +336,18 @@ def _WKdm_decompress(src_buf, qpos_start, low_start, low_end, header_size):
         if tag == ZERO_TAG:
             output.append(0)
         elif tag == EXACT_TAG:
-            output.append(dictionary[p_tempQPosArray.next()])
+            output.append(dictionary[next(p_tempQPosArray)])
         elif tag == PARTIAL_TAG:
 
-            dict_idx = p_tempQPosArray.next()
-            temp = ((dictionary[dict_idx] / 1024) * 1024)
-            temp += p_tempLowBitsArray.next()
+            dict_idx = next(p_tempQPosArray)
+            temp = ((old_div(dictionary[dict_idx], 1024)) * 1024)
+            temp += next(p_tempLowBitsArray)
 
             dictionary[dict_idx] = temp
             output.append(temp)
         elif tag == MISS_TAG:
-            missed_word = p_full_patterns.next()
-            dict_idx = hashLookupTable[(missed_word / 1024) % 256]
+            missed_word = next(p_full_patterns)
+            dict_idx = hashLookupTable[(old_div(missed_word, 1024)) % 256]
             dictionary[dict_idx] = missed_word
             output.append(missed_word)
 
@@ -354,5 +358,3 @@ def _WKdm_decompress(src_buf, qpos_start, low_start, low_end, header_size):
                 return None
 
     return struct.pack("I" * len(output), *output)
-
-

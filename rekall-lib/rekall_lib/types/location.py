@@ -1,3 +1,4 @@
+from builtins import object
 from rekall_lib import serializer
 
 

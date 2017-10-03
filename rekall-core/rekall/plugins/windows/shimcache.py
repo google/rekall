@@ -39,6 +39,7 @@ https://github.com/fireeye/Volatility-Plugins.git
 and the paper:
 https://www.fireeye.com/blog/threat-research/2015/10/shim_shady_live_inv/shim-shady-part-2.html
 """
+from builtins import str
 import itertools
 
 from rekall import plugin
@@ -249,7 +250,7 @@ class ShimCacheMem(common.AbstractWindowsCommandPlugin):
                 process_owner = section.Segment.u1.CreatingProcess.deref()
                 va = section.Segment.u2.FirstMappedVa.v()
 
-                if unicode(process_owner.name).lower() != u"winlogon.exe":
+                if str(process_owner.name).lower() != u"winlogon.exe":
                     continue
 
                 # Switch to that process's context.

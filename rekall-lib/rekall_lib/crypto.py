@@ -57,7 +57,7 @@ class RSAPublicKey(serializer.SerializedObject):
         digest = SHA256.new(self.to_primitive()).hexdigest()
         return "<%s (%s)>" % (self.__class__.__name__, digest)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._value)
 
 
@@ -96,7 +96,7 @@ class RSAPrivateKey(serializer.SerializedObject):
         signer = PKCS1_v1_5.new(self._value)
         return signer.sign(hash)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._value)
 
 

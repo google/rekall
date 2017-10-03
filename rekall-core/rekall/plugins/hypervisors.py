@@ -1,5 +1,7 @@
 """Implements scanners and plugins to find hypervisors in memory."""
 
+from builtins import filter
+from builtins import object
 from itertools import groupby
 import struct
 
@@ -177,8 +179,8 @@ class VirtualMachine(object):
 
     def __init__(self, host_rip=None, ept=None, parent=None, name=None,
                  session=None):
-        self.ept = long(ept)
-        self.host_rip = long(host_rip)
+        self.ept = int(ept)
+        self.host_rip = int(host_rip)
         self.parent = parent
         self.name = name
         self.base_session = session
@@ -213,7 +215,7 @@ class VirtualMachine(object):
     @utils.safe_property
     def num_cores(self):
         """The number of virtual cores of this VM."""
-        valid_vmcss = filter(self.is_valid_vmcs, self.vmcss)
+        valid_vmcss = list(filter(self.is_valid_vmcs, self.vmcss))
         # Count only unique VPIDs if the hypervisor uses them.
         uniq_vpids = set([v.VPID for v in valid_vmcss])
         if len(uniq_vpids) != 1:
@@ -349,10 +351,10 @@ class VirtualMachine(object):
           UnrelatedVmcsError if the VMCS doesn't match the VM's HOST_RIP or EPT.
         """
         if self.host_rip == None:
-            self.host_rip = long(vmcs.HOST_RIP)
+            self.host_rip = int(vmcs.HOST_RIP)
 
         if self.ept == None:
-            self.ept = long(vmcs.m("EPT_POINTER_FULL"))
+            self.ept = int(vmcs.m("EPT_POINTER_FULL"))
 
         if self.host_rip != vmcs.HOST_RIP:
             raise UnrelatedVmcsError("VMCS HOST_RIP differ from the VM's")
@@ -519,7 +521,7 @@ class VirtualMachine(object):
         self.vmcs_validation.pop(vmcs, None)
 
     def __str__(self):
-        return "VirtualMachine(Hypervisor=%#X, EPT=%#X)" % (
+        return u"VirtualMachine(Hypervisor=%#X, EPT=%#X)" % (
             self.host_rip, self.ept)
 
 
@@ -594,15 +596,15 @@ class VmScan(plugin.PhysicalASMixin,
         # core because more page tables would have to be maintained for the
         # same VM.
         for host_rip, rip_vmcs_list in groupby(
-                sorted(all_vmcs, key=lambda x: long(x.HOST_RIP)),
-                lambda x: long(x.HOST_RIP)):
+                sorted(all_vmcs, key=lambda x: int(x.HOST_RIP)),
+                lambda x: int(x.HOST_RIP)):
 
             sorted_rip_vmcs_list = sorted(
-                rip_vmcs_list, key=lambda x: long(x.m("EPT_POINTER_FULL")))
+                rip_vmcs_list, key=lambda x: int(x.m("EPT_POINTER_FULL")))
 
             for ept, rip_ept_vmcs_list in groupby(
                     sorted_rip_vmcs_list,
-                    lambda x: long(x.m("EPT_POINTER_FULL"))):
+                    lambda x: int(x.m("EPT_POINTER_FULL"))):
 
                 vm = VirtualMachine(host_rip=host_rip, ept=ept,
                                     session=self.session)

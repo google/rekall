@@ -28,6 +28,8 @@ This module implements the fast module scanning
 @organization: Volatile Systems
 """
 # pylint: disable=protected-access
+from future import standard_library
+standard_library.install_aliases()
 from rekall.plugins.windows import common
 from rekall_lib import utils
 

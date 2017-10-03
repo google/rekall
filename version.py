@@ -5,6 +5,7 @@
 This program is used to manage versions. Prior to each release, please run it
 with update.
 """
+from __future__ import print_function
 import arrow
 import argparse
 import json
@@ -36,7 +37,7 @@ def get_version_file_path(version_file="version.yaml"):
         return os.path.join(subprocess.check_output(
             ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.PIPE,
             cwd=MY_DIR,
-        ).strip(), version_file)
+        ).decode("utf-8").strip(), version_file)
     except (OSError, subprocess.CalledProcessError):
         return None
 
@@ -98,7 +99,7 @@ def tag_version_data(version_data, version_path="version.yaml"):
 '''
 
 ENV = {"__file__": __file__}
-exec _VERSION_CODE in ENV
+exec(_VERSION_CODE, ENV)
 is_tree_dirty = ENV["is_tree_dirty"]
 number_of_commit_since = ENV["number_of_commit_since"]
 get_current_git_hash = ENV["get_current_git_hash"]
@@ -126,7 +127,7 @@ def get_config_file(version_file="version.yaml"):
     version_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), version_file)
 
-    return yaml.load(open(version_path).read()), version_path
+    return yaml.load(open(version_path, "rt").read()), version_path
 
 
 def get_versions(version_file="version.yaml"):
@@ -151,8 +152,8 @@ def update_templates(version_data):
             continue
 
         target = path[:-3]
-        with open(target, "wb") as outfd:
-            outfd.write(open(path).read() % version_data)
+        with open(target, "wt") as outfd:
+            outfd.write(open(path, "rt").read() % version_data)
 
 
 def update_version_files(args):
@@ -171,7 +172,7 @@ def update_version_files(args):
         version_data["codename"] = args.codename
 
     # Write the updated version_data into the file.
-    with open(version_path, "wb") as fd:
+    with open(version_path, "wt") as fd:
         fd.write(yaml.safe_dump(data, default_flow_style=False))
 
     # Should not happen but just in case...
@@ -187,7 +188,7 @@ def update_version_files(args):
         if not os.path.relpath(version_path, current_dir):
             raise TypeError("Dependent version path is outside tree.")
 
-        with open(version_path, "wb") as fd:
+        with open(version_path, "wt") as fd:
             fd.write(contents)
 
     update_templates(version_data)
@@ -233,7 +234,7 @@ def main():
 
     elif args.command == "version":
         version_data, version_path = get_versions(args.version_file)
-        print "Scanning %s:\n%s" % (version_path, version_data)
+        print("Scanning %s:\n%s" % (version_path, version_data))
 
 
 if __name__ == "__main__":

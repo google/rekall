@@ -36,7 +36,11 @@ Communication Systems 2015 [1]
 
 http://www.rekall-forensic.com/docs/References/Papers/p1138-cohen.pdf
 """
+from __future__ import division
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 __author__ = "Michael Cohen <scudette@google.com>"
 import struct
 
@@ -212,8 +216,8 @@ class WindowsFileMappingDescriptor(intel.AddressTranslationDescriptor):
 
                 # Find the virtual address.
                 size_of_pte = self.session.profile.get_obj_size("_MMPTE")
-                relative_offset = (
-                    self.pte_address - vad.FirstPrototypePte.v()) / size_of_pte
+                relative_offset = old_div((
+                    self.pte_address - vad.FirstPrototypePte.v()), size_of_pte)
 
                 virtual_address = (
                     relative_offset * 0x1000 + vad.Start + self.page_offset)
@@ -427,7 +431,7 @@ class WindowsPagedMemoryMixin(object):
     def _get_available_PTEs(self, pte_table, vaddr, start=0, end=2**64):
         """Scan the PTE table and yield address ranges which are valid."""
         tmp = vaddr
-        for i in xrange(0, len(pte_table)):
+        for i in range(0, len(pte_table)):
             pfn = i << 12
             pte_value = pte_table[i]
 
@@ -581,7 +585,7 @@ class WindowsPagedMemoryMixin(object):
             except RuntimeError:
                 # Sometimes we cant recover the name of the pagefile because it
                 # is paged. We just take a guess here.
-                pagefile_name = ur"c:\pagefile.sys"
+                pagefile_name = u"c:\\pagefile.sys"
 
             finally:
                 self._resolving_pagefiles = False
@@ -819,8 +823,8 @@ class Pagefiles(common.WindowsCommandPlugin):
     ]
 
     def collect(self):
-        for pf_num, (pf_name, pf) in self.session.GetParameter(
-                "pagefiles").items():
+        for pf_num, (pf_name, pf) in list(self.session.GetParameter(
+                "pagefiles").items()):
             pf = self.profile._MMPAGING_FILE(pf)
             yield (pf, pf_num, pf.Size * 0x1000, pf_name)
 

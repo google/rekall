@@ -90,7 +90,7 @@ class Live(plugin.TypedProfileCommand,
     def __str__(self):
         # The default __str__ form will run the plugin which will drop into a
         # shell!
-        return "Live Plugin"
+        return u"Live Plugin"
 
     def __enter__(self):
         self.live()

@@ -17,8 +17,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from past.builtins import basestring
 import gzip
 import os
+import six
 
 from rekall import constants
 from rekall import io_manager
@@ -38,7 +40,7 @@ class IOManagerTest(testlib.RekallBaseUnitTestCase):
 
         # Create a new repository in the temp directory.
         self.version = constants.PROFILE_REPOSITORY_VERSION
-        for filename, data in self.DATA.iteritems():
+        for filename, data in six.iteritems(self.DATA):
             path = os.path.join(self.temp_directory, self.version,
                                 filename)
 

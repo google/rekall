@@ -21,7 +21,9 @@
 1) Support for Crash Dump files.
 2) Support for Kernel Debugger Data Block and related structures.
 """
+from __future__ import division
 
+from past.utils import old_div
 import copy
 
 from rekall import obj
@@ -316,7 +318,7 @@ vtypes64 = {
         'Pages': [0x30, ['unsigned long long']],
 
         'Bitmap': [0x38, ['Array', dict(
-            count=lambda x: x.Pages/32 + 1,
+            count=lambda x: old_div(x.Pages,32) + 1,
             target="unsigned int",
             )]],
         }],

@@ -24,14 +24,18 @@
 @contact:      brendandg@gatech.edu
 @organization: Georgia Institute of Technology
 """
+from __future__ import division
 # pylint: disable=protected-access
 
+from builtins import str
+from past.utils import old_div
 from rekall import obj
 
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.linux import vfs
 
 from rekall_lib import utils
+import six
 
 
 linux_overlay = {
@@ -687,7 +691,7 @@ class dentry(obj.Struct):
             path_components = [component] + path_components
             dentry_ = dentry_.d_parent
 
-        result = '/'.join(filter(None, path_components))
+        result = '/'.join([_f for _f in path_components if _f])
 
         if result.startswith(("socket:", "pipe:")):
             if result.find("]") == -1:
@@ -728,7 +732,7 @@ class task_struct(obj.Struct):
             # Kernel 3.17 changes how start_time is stored. Now it's
             # in nsecs monotonic or boot based.
             start_timespec = self.obj_profile.timespec()
-            start_timespec.tv_sec = self.m("start_time") / 1000000000
+            start_timespec.tv_sec = old_div(self.m("start_time"), 1000000000)
             start_timespec.tv_nsec = self.m("start_time") % 1000000000
             boot_time = self.obj_profile.getboottime()
             start_time = self.obj_profile.UnixTimeStamp(
@@ -781,10 +785,10 @@ class timespec(obj.Struct):
     CLOCK_TICK_RATE = PIT_TICK_RATE = 1193182
 
     # LATCH is used in the interval timer and ftape setup.
-    LATCH = ((CLOCK_TICK_RATE + HZ/2) / HZ)
+    LATCH = (old_div((CLOCK_TICK_RATE + old_div(HZ,2)), HZ))
 
     # HZ is the requested value. ACTHZ is actual HZ
-    ACTHZ = (CLOCK_TICK_RATE / LATCH)
+    ACTHZ = (old_div(CLOCK_TICK_RATE, LATCH))
 
     # TICK_NSEC is the time between ticks in nsec assuming real ACTHZ
     TICK_NSEC = 1000000 * 1000 /  ACTHZ
@@ -820,7 +824,7 @@ class timespec(obj.Struct):
         Based on set_normalized_timespec:
           http://lxr.free-electrons.com/source/kernel/time.c?v=3.11#L358
         """
-        sec = self.tv_sec + self.tv_nsec / self.NSEC_PER_SEC
+        sec = self.tv_sec + old_div(self.tv_nsec, self.NSEC_PER_SEC)
         nsec = self.tv_nsec % self.NSEC_PER_SEC
 
         result = self.obj_profile.timespec()
@@ -877,11 +881,11 @@ class PermissionFlags(basic.Flags):
 class kgid_t(obj.Struct):
     """Newer kernels use this struct instead of an int."""
 
-    def __unicode__(self):
-        return unicode(self.val)
+    def __str__(self):
+        return utils.SmartUnicode(self.val)
 
     def __long__(self):
-        return long(self.val)
+        return int(self.val)
 
 
 class kuid_t(kgid_t):
@@ -920,7 +924,7 @@ class page(obj.Struct):
         # To find the physical address of a given page, we need to find its
         # index within the array which corresponds to the Page Frame Number
         # and shift it left by the PAGE_SIZE.
-        pfn = (self.obj_offset - mem_map) / self.obj_size
+        pfn = old_div((self.obj_offset - mem_map), self.obj_size)
         phys_offset = pfn << 12
         return phys_offset
 
@@ -1037,7 +1041,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
 
     def add_kernel_config_options(self, **kwargs):
         """Add the kwargs as kernel config options for this profile."""
-        for k, v in kwargs.iteritems():
+        for k, v in six.iteritems(kwargs):
             self.kernel_config_options[k] = v
 
     def get_kernel_config(self, config_option):
@@ -1109,7 +1113,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
             ts.tv_sec = 0
             ts.tv_nsec = 0
         else:
-            tv_sec = nsec / timespec.NSEC_PER_SEC
+            tv_sec = old_div(nsec, timespec.NSEC_PER_SEC)
             rem = nsec % timespec.NSEC_PER_SEC
             ts.tv_sec = tv_sec
 
@@ -1184,15 +1188,15 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
 
         http://lxr.free-electrons.com/source/kernel/time/time.c?v=3.17#L703
         """
-        NSEC_PER_SEC = 1000000000L
+        NSEC_PER_SEC = 1000000000
         USER_HZ = 100
 
         if NSEC_PER_SEC % USER_HZ == 0:
-            return x / (NSEC_PER_SEC / USER_HZ)
+            return old_div(x, (old_div(NSEC_PER_SEC, USER_HZ)))
         elif USER_HZ % 512 == 0:
-            return ((x * USER_HZ) / 512) / (NSEC_PER_SEC / 512)
+            return old_div((old_div((x * USER_HZ), 512)), (old_div(NSEC_PER_SEC, 512)))
         else:
-            return (x*9) / ((9 * NSEC_PER_SEC + (USER_HZ/2)) / USER_HZ)
+            return old_div((x*9), (old_div((9 * NSEC_PER_SEC + (old_div(USER_HZ,2))), USER_HZ)))
 
 
 # Legacy for old profiles

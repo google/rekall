@@ -114,7 +114,11 @@ customized the precise pid to test for in the test configuation file:
 pid = 2536
 
 """
+from __future__ import print_function
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
@@ -265,12 +269,12 @@ exit 0
         defaults["--format"] = "test"
 
         # Interpolate parameters in dicts from the config.
-        for test_config in config.values():
+        for test_config in list(config.values()):
             if not isinstance(test_config, dict):
                 continue
 
             # For each test config interpolate the parameter if it is a string.
-            for k, v in test_config.items():
+            for k, v in list(test_config.items()):
                 merged_config = defaults.copy()
                 merged_config.update(test_config)
 
@@ -315,8 +319,8 @@ exit 0
 
         output_filename = os.path.join(self.test_directory, plugin_cls.__name__)
 
-        with open(output_filename, "wb") as baseline_fd:
-            baseline_fd.write(json.dumps(baseline_data, indent=4))
+        with open(output_filename, "wt") as baseline_fd:
+            baseline_fd.write(json.dumps(baseline_data, indent=4, sort_keys=True))
             self.renderer.table_row(
                 plugin_cls.__name__,
                 utils.AttributedString("REBUILD", [(0, -1, "YELLOW", None)]),
@@ -335,15 +339,16 @@ exit 0
         shutil.rmtree(self.temp_directory, True)
 
         # Write the json summary of the results.
-        with open(os.path.join(self.output_dir, "results"), "wb") as fd:
-            json.dump(dict(passes=self.successes, fails=self.failures), fd)
+        with open(os.path.join(self.output_dir, "results"), "wt") as fd:
+            json.dump(dict(passes=self.successes, fails=self.failures),
+                      fd, sort_keys=True)
 
     def GenerateInlineTests(self, config):
         """Builds tests defined inline in the config file."""
         result = []
         config = copy.deepcopy(config)
 
-        for k, v in config.get("InlineTests", {}).items():
+        for k, v in list(config.get("InlineTests", {}).items()):
             config["DEFAULT"]["script"] = v
             result.append(type(
                 k, (testlib.InlineTest,),
@@ -366,7 +371,7 @@ exit 0
         # Get the disabled tests.
         disabled = config.pop("disabled", [])
 
-        for x, y in flags.items():
+        for x, y in list(flags.items()):
             if x.startswith("--"):
                 kwargs[x[2:]] = y
 
@@ -375,7 +380,7 @@ exit 0
         # A map of all the specialized tests which are defined. Only include
         # those classes which are active for the currently selected profile.
         plugins_with_test = set()
-        for _, cls in testlib.RekallBaseUnitTestCase.classes.items():
+        for _, cls in list(testlib.RekallBaseUnitTestCase.classes.items()):
             if cls.is_active(s):
                 result.append(cls)
 
@@ -384,7 +389,7 @@ exit 0
                     plugins_with_test.add(plugin_name)
 
         # Now generate tests automatically for all other plugins.
-        for cls in plugin.Command.classes.values():
+        for cls in list(plugin.Command.classes.values()):
             if cls.name in plugins_with_test:
                 continue
 
@@ -409,6 +414,7 @@ exit 0
 
     def RunTests(self):
         if not os.access(self.FLAGS.config, os.R_OK):
+            import pdb; pdb.set_trace()
             logging.error("Config file %s not found.", self.FLAGS.config)
             sys.exit(-1)
 
@@ -459,11 +465,12 @@ exit 0
                 self.test_directory, plugin_cls.__name__)
 
             try:
-                data = open(baseline_filename, "rb").read()
+                data = open(baseline_filename, "rt").read()
                 # Strip possible preamble:
                 data = data[data.find("{"):]
                 baseline_data = json.loads(data)
-            except Exception:
+            except Exception as e:
+                logging.error("Can not open baseline file: %s", e)
                 baseline_data = None
 
             # Should we build the baseline or test against it?
@@ -538,7 +545,7 @@ exit 0
 
             # Store the current run someplace for closer inspection.
             output_path = os.path.join(self.output_dir, plugin_cls.__name__)
-            with open(output_path, "wb") as fd:
+            with open(output_path, "wt") as fd:
                 baseline_filename = os.path.join(
                     self.test_directory, plugin_cls.__name__)
 
@@ -551,10 +558,10 @@ exit 0
                             plugin_cls.__module__,
                             plugin_cls.__name__))))
 
-                fd.write(json.dumps(current_run, indent=4))
+                fd.write(json.dumps(current_run, indent=4, sort_keys=True))
 
             # Make the output executable.
-            os.chmod(output_path, 0770)
+            os.chmod(output_path, 0o770)
 
             if result.wasSuccessful():
                 self.renderer.table_row(
@@ -566,7 +573,7 @@ exit 0
 
             else:
                 diff_path = output_path + ".diff"
-                with open(diff_path, "wb") as diff_fd:
+                with open(diff_path, "wt") as diff_fd:
                     subprocess.call(
                         ["diff", "-y", "--width", "200",
                          output_path, baseline_filename],

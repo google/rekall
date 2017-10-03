@@ -80,6 +80,9 @@ into overlays.
 }
 """
 
+from builtins import str
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import re
@@ -89,10 +92,8 @@ from rekall import obj
 from rekall import utils
 
 
-class DynamicParser(object):
+class DynamicParser(with_metaclass(registry.MetaclassRegistry, object)):
     """A dynamic profile processor base class."""
-
-    __metaclass__ = registry.MetaclassRegistry
 
     def calculate(self, session):
         """Returns the expected value or a NoneObject."""
@@ -127,7 +128,7 @@ class Disassembler(DynamicParser):
         self.max_separation = max_separation
 
     def __str__(self):
-        return "Disassemble %s" % self.start
+        return u"Disassemble %s" % self.start
 
     def CompileRule(self, rule):
         """Convert the rule into a regular expression.
@@ -210,7 +211,7 @@ class Disassembler(DynamicParser):
             # The capture variables in this rule only.
             rule_capture_vars_values = {}
 
-            for k, v in rule_context[item].iteritems():
+            for k, v in rule_context[item].items():
                 var_name = k.rsplit("_", 1)[0]
 
                 # If this var is previously known, this match must be the same
@@ -276,7 +277,7 @@ class Disassembler(DynamicParser):
                 (self.start, self.length, self.end))
 
         except KeyError:
-            disassembly = unicode(session.plugins.dis(
+            disassembly = str(session.plugins.dis(
                 offset=self.start, branch=True,
                 length=self.length, end=self.end))
 
@@ -328,11 +329,11 @@ class DynamicProfile(obj.Profile):
 def GenerateOverlay(session, dynamic_definition):
     """Parse the definition and generate an overlay from it."""
     overlay = {}
-    for type_name, definition in dynamic_definition.items():
+    for type_name, definition in list(dynamic_definition.items()):
         type_overlay = {}
         overlay[type_name] = [None, type_overlay]
 
-        for field_name, attempts in definition.items():
+        for field_name, attempts in list(definition.items()):
             parsers = []
             for (parser_name, kwargs) in attempts:
                 kwargs = kwargs.copy()

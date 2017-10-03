@@ -1,4 +1,5 @@
 """A build script for windows installation."""
+from __future__ import print_function
 from rekall import constants
 
 import glob
@@ -142,20 +143,20 @@ def main():
                            "level rekall source tree.")
 
     # Clean the build and dist directories.
-    print "Cleaning build directories."
+    print("Cleaning build directories.")
 
     shutil.rmtree("build", True)
     shutil.rmtree("dist", True)
 
-    print "Building with Pyinstaller"
+    print("Building with Pyinstaller")
     subprocess.call(["pyinstaller", "--onedir", "-y", "-i",
                      "resources/rekall.ico",
                      "tools/installers/rekal.py"])
 
-    print "Copy missing DLLs."
+    print("Copy missing DLLs.")
     subprocess.call(["python", "tools/installers/copy_dlls.py"])
 
-    print "Copy resources into the package."
+    print("Copy resources into the package.")
     # Recent versions of Pyinstaller already copy resources they know about.
     copy("rekall-core/resources", "dist/rekal")
 
@@ -164,10 +165,10 @@ def main():
     # https://chocolatey.org/packages/osquery
     path = r"c:\ProgramData\osquery\osqueryi.exe"
     if os.access(path, os.R_OK):
-        print "Copying osquery into the package."
+        print("Copying osquery into the package.")
         copy(path, "dist/rekal")
 
-    print "Remove unnecessary crap added by pyinstaller."
+    print("Remove unnecessary crap added by pyinstaller.")
     rm("dist/rekal/_MEI")
     rm("dist/rekal/tcl/*")
     rm("dist/rekal/tk/*")

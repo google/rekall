@@ -46,7 +46,7 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
         # Fail quickly if this is not an EWF file.
         self.as_assert(self.base != None, "No base address space provided")
 
-        self.as_assert(self.base.read(0, 6) == "\x45\x56\x46\x09\x0D\x0A",
+        self.as_assert(self.base.read(0, 6) == b"\x45\x56\x46\x09\x0D\x0A",
                        "EWF signature not present")
 
         # Now try to open it as an ewf file.

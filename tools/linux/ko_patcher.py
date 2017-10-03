@@ -5,6 +5,7 @@
 This is a hack that rewrites kernel modules such that they can be loaded on
 kernels they were not compiled for.
 """
+from __future__ import print_function
 
 __author__ = "Andreas Moser"
 import logging

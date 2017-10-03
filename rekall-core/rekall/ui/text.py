@@ -21,7 +21,15 @@
 
 A renderer is used by plugins to produce formatted output.
 """
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
+from future.utils import with_metaclass
 try:
     import curses
     curses.setupterm()
@@ -300,14 +308,14 @@ class Colorizer(object):
         for capability in capabilities:
             term_string = curses.tigetstr(capability)
             if term_string is not None:
-                term_string = re.sub(r"\$\<[^>]+>", "", term_string)
+                term_string = re.sub(b"\$\<[^>]+>", "", term_string)
                 break
 
         try:
             return curses.tparm(term_string, *args)
         except Exception as e:
             self.logging.debug("Unable to set tparm: %s" % e)
-            return ""
+            return b""
 
     def Render(self, target, foreground=None, background=None):
         """Decorate the string with the ansii escapes for the color."""
@@ -318,25 +326,23 @@ class Colorizer(object):
 
         escape_seq = ""
         if background:
-            escape_seq += self.tparm(
-                ["setab", "setb"], self.COLOR_MAP[background])
+            escape_seq += utils.SmartUnicode(self.tparm(
+                ["setab", "setb"], self.COLOR_MAP[background]))
 
         if foreground:
-            escape_seq += self.tparm(
-                ["setaf", "setf"], self.COLOR_MAP[foreground])
+            escape_seq += utils.SmartUnicode(self.tparm(
+                ["setaf", "setf"], self.COLOR_MAP[foreground]))
 
         return (escape_seq + utils.SmartUnicode(target) +
-                self.tparm(["sgr0"]))
+                utils.SmartUnicode(self.tparm(["sgr0"])))
 
 
-class TextObjectRenderer(renderer_module.ObjectRenderer):
+class TextObjectRenderer(with_metaclass(registry.MetaclassRegistry, renderer_module.ObjectRenderer)):
     """Baseclass for all TextRenderer object renderers."""
 
     # Fall back renderer for all objects.
     renders_type = "object"
     renderers = ["TextRenderer", "WideTextRenderer", "TestRenderer"]
-
-    __metaclass__ = registry.MetaclassRegistry
     DEFAULT_STYLE = "full"
 
     @utils.safe_property
@@ -377,12 +383,12 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         Return:
           A Cell instance containing the formatted Column header.
         """
-        header_cell = Cell(unicode(name), width=options.get("width", None))
+        header_cell = Cell(str(name), width=options.get("width", None))
 
         if style == "address" and header_cell.width < self.address_size:
             header_cell.rewrap(width=self.address_size, align="c")
 
-        self.header_width = max(header_cell.width, len(unicode(name)))
+        self.header_width = max(header_cell.width, len(str(name)))
         header_cell.rewrap(align="c", width=self.header_width)
 
         # Append a dashed line as a table header separator.
@@ -555,7 +561,7 @@ class BaseCell(object):
     def __iter__(self):
         return iter(self.lines)
 
-    def __unicode__(self):
+    def __str__(self):
         return u"\n".join(self.lines)
 
     @utils.safe_property
@@ -647,7 +653,7 @@ class JoinedCell(BaseCell):
         contents_width = max(0, contents_width - len(self.tablesep))
 
         if self.width_explicit or self.width is None:
-            self._width = max(self.width, contents_width)
+            self._width = max(self.width or 0, contents_width)
         else:
             self._width = self.width
 
@@ -665,10 +671,10 @@ class JoinedCell(BaseCell):
                 child_cell.rewrap(width=adjustment + child_cell.width)
             elif align == "c":
                 self.cells[-1].rewrap(
-                    width=(adjustment / 2) + self.cells[-1].width +
+                    width=(old_div(adjustment, 2)) + self.cells[-1].width +
                     adjustment % 2)
                 self.cells[0].rewrap(
-                    width=(adjustment / 2) + self.cells[0].width)
+                    width=(old_div(adjustment, 2)) + self.cells[0].width)
             else:
                 raise ValueError(
                     "Invalid alignment %s for JoinedCell." % align)
@@ -677,7 +683,7 @@ class JoinedCell(BaseCell):
         for cell in self.cells:
             self._height = max(self.height, cell.height)
 
-        for line_no in xrange(self.height):
+        for line_no in range(self.height):
             parts = []
             for cell in self.cells:
                 try:
@@ -854,7 +860,7 @@ class Cell(BaseCell):
             bold = rule.get("bold")
 
             if offset <= start <= limit + adjust:
-                escape_seq = ""
+                escape_seq = b""
                 if fg is not None:
                     if isinstance(fg, basestring):
                         fg = self.colorizer.COLOR_MAP[fg]
@@ -873,16 +879,16 @@ class Cell(BaseCell):
                     escape_seq += self.colorizer.tparm(["bold"])
 
                 insert_at = start - offset + adjust
-                line = line[:insert_at] + escape_seq + line[insert_at:]
+                line = line[:insert_at] + utils.SmartUnicode(escape_seq) + line[insert_at:]
 
                 adjust += len(escape_seq)
-                last_highlight = escape_seq
+                last_highlight = utils.SmartUnicode(escape_seq)
 
             if offset <= end <= limit + adjust:
-                escape_seq = self.colorizer.tparm(["sgr0"])
+                escape_seq = utils.SmartUnicode(self.colorizer.tparm(["sgr0"]))
 
                 insert_at = end - offset + adjust
-                line = line[:insert_at] + escape_seq + line[insert_at:]
+                line = line[:insert_at] + utils.SmartUnicode(escape_seq) + line[insert_at:]
 
                 adjust += len(escape_seq)
                 last_highlight = None
@@ -891,7 +897,7 @@ class Cell(BaseCell):
         # know what's being rendered to our right. We will resume
         # last_highlight on next line.
         if last_highlight:
-            line += self.colorizer.tparm(["sgr0"])
+            line += utils.SmartUnicode(self.colorizer.tparm(["sgr0"]))
         return line, last_highlight
 
     def rebuild(self):
@@ -1180,7 +1186,7 @@ class TextTable(renderer_module.BaseTable):
                         max_width * total_width / sum_of_widths,
                         max_width + 1)
 
-                    width = max(width, len(unicode(column.name)))
+                    width = max(width, len(str(column.name)))
                     column.options["width"] = width
 
             # Render the headers now.
@@ -1203,7 +1209,7 @@ class UnicodeWrapper(object):
         self.encoding = encoding
 
     def write(self, data):
-        data = utils.SmartUnicode(data).encode(self.encoding, "replace")
+        data = utils.SmartUnicode(data)
         self.fd.write(data)
 
     def flush(self):
@@ -1281,7 +1287,7 @@ class TextRenderer(renderer_module.BaseRenderer):
             self.write("*" * width + "\n")
         else:
             pad_len = width - len(name) - 2  # 1 space on each side.
-            padding = "*" * (pad_len / 2)  # Name is centered.
+            padding = "*" * (old_div(pad_len, 2))  # Name is centered.
 
             self.write("\n{0} {1} {2}\n".format(padding, name, padding))
 
@@ -1462,7 +1468,7 @@ class TextRenderer(renderer_module.BaseRenderer):
             return
 
         # Wipe the last message.
-        self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
+        self.progress_fd.write(u"\r" + u" " * self.last_message_len + u"\r")
         self.progress_fd.flush()
 
     def open(self, directory=None, filename=None, mode="rb"):
@@ -1472,11 +1478,11 @@ class TextRenderer(renderer_module.BaseRenderer):
         if directory is None:
             directory, filename = os.path.split(filename)
 
-        filename = utils.SmartStr(filename) or "Unknown%s" % self._object_id
+        filename = utils.SmartUnicode(filename) or "Unknown%s" % self._object_id
 
         # Filter the filename for illegal chars.
         filename = re.sub(
-            r"[^a-zA-Z0-9_.@{}\[\]\- ]",
+            "[^a-zA-Z0-9_.@{}\[\]\- ]",
             lambda x: "%" + x.group(0).encode("hex"),
             filename)
 

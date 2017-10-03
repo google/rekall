@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@google.com>"
 
 
@@ -29,7 +30,7 @@ class FileSpec_Text(text.TextObjectRenderer):
 
     def render_row(self, target, width=None, **_):
         if target.filesystem == "API":
-            return text.Cell(unicode(target.name), width=width)
+            return text.Cell(str(target.name), width=width)
 
         else:
             return text.Cell(u"%s (%s)" % (target.name, target.filesystem),
@@ -51,7 +52,7 @@ class UserTextObjectRenderer(text.TextObjectRenderer):
     def render_row(self, item, **_):
         if item.username:
             return text.Cell(u"%s (%s)" % (item.username, item.uid))
-        return text.Cell(unicode(item.uid))
+        return text.Cell(str(item.uid))
 
 
 class GroupTextObjectRenderer(text.TextObjectRenderer):
@@ -60,7 +61,7 @@ class GroupTextObjectRenderer(text.TextObjectRenderer):
     def render_row(self, item, **_):
         if item.group_name:
             return text.Cell(u"%s (%s)" % (item.group_name, item.gid))
-        return text.Cell(unicode(item.gid))
+        return text.Cell(str(item.gid))
 
 
 class DataExportFileSpecObjectRenderer(

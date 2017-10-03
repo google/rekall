@@ -27,8 +27,13 @@ http://msdn.microsoft.com/en-us/library/jj665697.aspx
 https://github.com/libyal/reviveit/
 https://github.com/sleuthkit/sleuthkit/blob/develop/tsk/fs/ntfs.c
 """
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.utils import old_div
 import array
-import cStringIO
+import io
 import logging
 import struct
 
@@ -45,7 +50,7 @@ def get_displacement(offset):
 
 
 DISPLACEMENT_TABLE = array.array(
-    'B', [get_displacement(x) for x in xrange(8192)])
+    'B', [get_displacement(x) for x in range(8192)])
 
 COMPRESSED_MASK = 1 << 15
 SIGNATURE_MASK = 3 << 12
@@ -62,8 +67,8 @@ def decompress_data(cdata, logger=None):
         lznt1_logger = logger.getChild("lznt1")
     # Change to DEBUG to turn on module level debugging.
     lznt1_logger.setLevel(logging.ERROR)
-    in_fd = cStringIO.StringIO(cdata)
-    output_fd = cStringIO.StringIO()
+    in_fd = io.BytesIO(cdata)
+    output_fd = io.BytesIO()
     block_end = 0
 
     while in_fd.tell() < len(cdata):
@@ -101,7 +106,7 @@ def decompress_data(cdata, logger=None):
 
                         # Pad the data to make it fit.
                         if 0 < len(data) < symbol_length:
-                            data = data * (symbol_length / len(data) + 1)
+                            data = data * (old_div(symbol_length, len(data)) + 1)
                             data = data[:symbol_length]
 
                         output_fd.seek(0, 2)

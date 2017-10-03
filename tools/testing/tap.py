@@ -20,6 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from __future__ import print_function
 import argparse
 import collections
 import json
@@ -44,9 +45,9 @@ def RunTests(configuation, timestamp):
     for path in configs:
         args = [test_prog, "-c", os.path.join(path, "tests.config"),
                 "--output_dir", timestamp, "--control", control]
-        print "Running test %s" % " ".join(args)
+        print("Running test %s" % " ".join(args))
         res = subprocess.call(args)
-        print "Test returned status ", res
+        print("Test returned status ", res)
 
         if res != 0:
             result = res

@@ -258,11 +258,11 @@ def InitializeWindows8Profile(profile):
     # Windows 8 changes many of the pool tags. These come from windbg's
     # pooltag.txt.
     profile.add_constants(dict(
-        DRIVER_POOLTAG="Driv",
-        EPROCESS_POOLTAG="Proc",
-        FILE_POOLTAG="File",
-        SYMLINK_POOLTAG="Symb",
-        MODULE_POOLTAG="MmLd",
-        MUTANT_POOLTAG="Muta",
-        THREAD_POOLTAG='Thre',
+        DRIVER_POOLTAG=b"Driv",
+        EPROCESS_POOLTAG=b"Proc",
+        FILE_POOLTAG=b"File",
+        SYMLINK_POOLTAG=b"Symb",
+        MODULE_POOLTAG=b"MmLd",
+        MUTANT_POOLTAG=b"Muta",
+        THREAD_POOLTAG=b'Thre',
         ))

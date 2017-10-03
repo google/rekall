@@ -45,8 +45,12 @@ Encase or FTK since they do not understand layered address spaces! For Rekall
 this works because Rekall automatically detects that the EWF file contains an
 ELF core dump and stacks the relevant address spaces.
 """
+from __future__ import division
+
+from builtins import range
 
 __author__ = "Michael Cohen <scudette@google.com>"
+
 import array
 import os
 import struct
@@ -63,7 +67,7 @@ from rekall_lib import utils
 
 EWF_TYPES = dict(
     ewf_file_header_v1=[0x0d, {
-        'EVF_sig': [0, ['Signature', dict(value="EVF\x09\x0d\x0a\xff\x00")]],
+        'EVF_sig': [0, ['Signature', dict(value=b"EVF\x09\x0d\x0a\xff\x00")]],
 
         'fields_start': [8, ['byte']],
         'segment_number': [9, ['unsigned short int']],
@@ -71,7 +75,7 @@ EWF_TYPES = dict(
         }],
 
     ewf_file_header_v2=[None, {
-        'EVF_sig': [0, ['Signature', dict(value="EVF2\x0d\x0a\x81\x00")]],
+        'EVF_sig': [0, ['Signature', dict(value=b"EVF2\x0d\x0a\x81\x00")]],
 
         'major_version': [9, ['byte']],
         'minor_version': [10, ['byte']],
@@ -347,7 +351,7 @@ class EWFFile(object):
         # Most read operations are very short and will not need to merge chunks
         # at all. In that case concatenating strings is much faster than storing
         # partial reads into a list and join()ing them.
-        result = ''
+        result = b''
         available_length = length
 
         while available_length > 0:
@@ -494,7 +498,7 @@ class EWFFileWriter(object):
             offset=volume_section.obj_end, vm=self.out_as)
 
         volume_header.number_of_chunks = self.chunk_id
-        volume_header.sectors_per_chunk = self.chunk_size / 512
+        volume_header.sectors_per_chunk = old_div(self.chunk_size, 512)
         volume_header.number_of_sectors = (volume_header.number_of_chunks *
                                            volume_header.sectors_per_chunk)
 
@@ -548,7 +552,7 @@ class EWFAcquire(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
                     last_address = runs[0].end
                     block_size = 1024 * 1024
 
-                    for offset in xrange(0, last_address, block_size):
+                    for offset in range(0, last_address, block_size):
                         available_length = min(block_size, last_address-offset)
                         data = self.physical_address_space.read(
                             offset, available_length)

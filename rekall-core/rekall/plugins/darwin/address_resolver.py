@@ -18,10 +18,13 @@
 
 """The module implements an OSX specific address resolution plugin."""
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall.plugins.common import address_resolver
 from rekall.plugins.darwin import common
+
+from rekall_lib import utils
 
 
 class KModModule(address_resolver.Module):
@@ -31,7 +34,7 @@ class KModModule(address_resolver.Module):
         self.kmod = kmod
         start = kmod.address.v()
         super(KModModule, self).__init__(
-            name=unicode(kmod.name),
+            name=utils.SmartUnicode(kmod.name),
             start=start,
             end=start + kmod.size.v(),
             **kwargs)

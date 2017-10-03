@@ -18,7 +18,7 @@ class _LiveProcess(utils.SlottedObject):
     This is the live equivalent of _EPROCESS.
     """
     __slots__ = ("_proc", "_obj_profile", "session",
-                 "start_time", "obj_offset", "pid")
+                 "start_time", "pid")
 
     obj_offset = 0
 
@@ -113,7 +113,7 @@ structured.IStructured.implement(
     for_type=LiveProcess,
     implementations={
         structured.resolve: lambda d, m: getattr(d, m, None),
-        structured.getmembers_runtime: lambda d: set(psutil_fields + d.keys()),
+        structured.getmembers_runtime: lambda d: set(psutil_fields + list(d.keys())),
     }
 )
 

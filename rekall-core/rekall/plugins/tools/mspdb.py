@@ -81,7 +81,12 @@ The closest thing to official documentation can be found here:
 http://pierrelib.pagesperso-orange.fr/exec_formats/MS_Symbol_Type_v1.0.pdf
 
 """
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import glob
@@ -91,7 +96,7 @@ import os
 import platform
 import subprocess
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from rekall import addrspace
 from rekall import plugin
@@ -137,7 +142,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
             debug = data_directory.AddressOfRawData.dereference_as(
                 "CV_RSDS_HEADER")
 
-            if debug.Signature != "RSDS":
+            if debug.Signature != b"RSDS":
                 self.session.logging.error("PDB stream %s not supported.",
                                            debug.Signature)
                 return
@@ -169,10 +174,10 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
             url += "/%s/%s/%s.pd_" % (pdb_filename, guid, basename)
 
             self.session.report_progress("Trying to fetch %s\n", url)
-            request = urllib2.Request(url, None, headers={
+            request = urllib.request.Request(url, None, headers={
                 'User-Agent': self.USER_AGENT})
 
-            url_handler = urllib2.urlopen(request)
+            url_handler = urllib.request.urlopen(request)
             with utils.TempDirectory() as temp_dir:
                 compressed_output_file = os.path.join(
                     temp_dir, "%s.pd_" % basename)
@@ -229,7 +234,7 @@ class TestFetchPDB(testlib.DisabledTest):
 
 def Pages(length, page_size):
     """Calculate the number of pages required to store a stream."""
-    num_pages = length / page_size
+    num_pages = length // page_size
     if length % page_size:
         num_pages += 1
 
@@ -303,7 +308,7 @@ mspdb_overlays = {
     # The file header. We only support newer versions.
     "_PDB_HEADER_700": [None, {
         "abSignature": [None, ["Signature", dict(
-            value="Microsoft C/C++ MSF 7.00\r\n\x1ADS\0\0\0"
+            value=b"Microsoft C/C++ MSF 7.00\r\n\x1ADS\0\0\0"
         )]],
 
         # Total number of pages in the root stream.
@@ -720,7 +725,7 @@ class _PDB_HEADER_700(obj.Struct):
         for idx in self.adIndexPages:
             for page_number in self.obj_profile.Array(
                     offset=idx * self.dPageBytes, vm=self.obj_vm,
-                    target="unsigned int", count=self.dPageBytes / 4):
+                    target="unsigned int", count=self.dPageBytes // 4):
                 result.append(int(page_number))
                 if len(result) >= self.root_pages:
                     return result
@@ -872,7 +877,7 @@ class PDBParser(object):
         self.profile = self.session.LoadProfile("mspdb")
         self._TYPE_ENUM_e = self.profile.get_enum("_TYPE_ENUM_e")
         self._TYPE_ENUM_e = dict(
-            (int(x), y) for x, y in self._TYPE_ENUM_e.items())
+            (int(x), y) for x, y in list(self._TYPE_ENUM_e.items()))
 
         self.address_space = standard.FileAddressSpace(
             filename=filename, session=self.session)
@@ -959,7 +964,7 @@ class PDBParser(object):
 
         omap_array = self.profile.Array(
             vm=omap_address_space,
-            count=omap_stream.size / self.profile.get_obj_size("_OMAP_DATA"),
+            count=omap_stream.size // self.profile.get_obj_size("_OMAP_DATA"),
             max_count=omap_stream.size,
             target="_OMAP_DATA")
 
@@ -1055,7 +1060,7 @@ class PDBParser(object):
         self.fixups.append(definition)
 
     def Structs(self):
-        for key, value in self.lookup.iteritems():
+        for key, value in self.lookup.items():
             # Ignore the forward references.
             if ((value.type_enum == "LF_STRUCTURE" or
                  value.type_enum == "LF_UNION") and
@@ -1194,9 +1199,9 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
                 if target_args.get("target") == "UnicodeString":
                     defintion[0] = "UnicodeString"
                     defintion[1] = dict(
-                        length=target_args.get("size") / 2
+                        length=target_args.get("size") // 2
                     )
-                elif target_args.has_key("size"):
+                elif "size" in target_args:
                     # Work out the array target size.
                     array_target = target_args.get("target")
                     target_size = self.NATIVE_TYPE_SIZE.get(array_target)
@@ -1215,7 +1220,7 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
 
                     # Replace the size with a count.
                     target_args["count"] = target_args.pop(
-                        "size") / target_size
+                        "size") // target_size
 
         return vtypes
 
@@ -1246,11 +1251,11 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
             # Demangle all constants.
             demangler = pe_vtypes.Demangler(self.metadata)
             constants = {}
-            for name, value in self.tpi.constants.iteritems():
+            for name, value in self.tpi.constants.items():
                 constants[demangler.DemangleName(name)] = value
 
             functions = {}
-            for name, value in self.tpi.functions.iteritems():
+            for name, value in self.tpi.functions.items():
                 functions[demangler.DemangleName(name)] = value
 
             vtypes = self.PostProcessVTypes(vtypes)

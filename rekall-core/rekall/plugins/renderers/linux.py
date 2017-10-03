@@ -18,6 +18,7 @@
 
 """This module implements renderers specific to Linux structures."""
 
+from builtins import str
 import os
 
 from rekall.ui import json_renderer
@@ -26,13 +27,15 @@ from rekall.plugins.addrspaces import amd64
 from rekall.plugins.renderers import base_objects
 from rekall.plugins.renderers import data_export
 
+from rekall_lib import utils
+
 
 class kuid_t_TextObjectRenderer(text.TextObjectRenderer):
     renders_type = "kuid_t"
     renderers = ["TextRenderer", "TestRenderer", "WideTextRenderer"]
 
     def render_row(self, target, **_):
-        return text.Cell(unicode(target))
+        return text.Cell(utils.SmartUnicode(target))
 
 class kgid_t_TextObjectRenderer(kuid_t_TextObjectRenderer):
     renders_type = "kgid_t"

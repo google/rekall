@@ -30,8 +30,12 @@
    Alias for all address spaces
 
 """
+from __future__ import division
+from past.utils import old_div
+from builtins import object
 from rekall_lib import registry
 from rekall_lib import utils
+from future.utils import with_metaclass
 
 
 class Zeroer(object):
@@ -42,7 +46,7 @@ class Zeroer(object):
         try:
             return self.store.Get(length)
         except KeyError:
-            zeros = "\x00" * length
+            zeros = b"\x00" * length
             self.store.Put(length, zeros)
             return zeros
 
@@ -120,10 +124,8 @@ class Run(object):
             self.address_space)
 
 
-class BaseAddressSpace(object):
+class BaseAddressSpace(with_metaclass(registry.MetaclassRegistry, object)):
     """ This is the base class of all Address Spaces. """
-
-    __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
     order = 10
@@ -380,15 +382,12 @@ class BaseAddressSpace(object):
         """Obtain metadata about this address space."""
         return getattr(cls, "_%s__%s" % (cls.__name__, name), default)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.__class__.__name__
 
-    def __str__(self):
-        return utils.SmartStr(self)
-
     def __repr__(self):
-        return "<%s @ %#x %s>" % (
-            self.__class__.__name__, hash(self), self.name)
+        return u"<%s @ %#x %s>" % (
+            self.__class__.__name__, id(self), self.name)
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
@@ -460,7 +459,7 @@ class BufferAddressSpace(BaseAddressSpace):
 
     def __repr__(self):
         return "<%s @ %#x %s [%#X-%#X]>" % (
-            self.__class__.__name__, hash(self), self.name,
+            self.__class__.__name__, id(self), self.name,
             self.base_offset, self.end())
 
     def __len__(self):
@@ -484,7 +483,7 @@ class CachingAddressSpaceMixIn(object):
     def read(self, addr, length):
         addr, length = int(addr), int(length)
 
-        result = ""
+        result = b""
         while length > 0:
             data = self.read_partial(addr, length)
             if not data:
@@ -505,7 +504,7 @@ class CachingAddressSpaceMixIn(object):
         if addr == None:
             return addr
 
-        chunk_number = addr / self.CHUNK_SIZE
+        chunk_number = addr // self.CHUNK_SIZE
         chunk_offset = addr % self.CHUNK_SIZE
 
         # Do not cache large reads but still pad them to CHUNK_SIZE.
@@ -584,7 +583,7 @@ class PagedReader(BaseAddressSpace):
 
         addr, length = int(addr), int(length)
 
-        result = ''
+        result = b''
 
         while length > 0:
             buf = self._read_chunk(addr, length)
@@ -744,8 +743,8 @@ class AddrSpaceError(Error):
         self.reasons.append((driver, reason))
 
     def __str__(self):
-        result = Error.__str__(self) + "\nTried to open image as:\n"
+        result = u"%s: \nTried to open image as:\n" % Error.__str__(self)
         for k, v in self.reasons:
-            result += " {0}: {1}\n".format(k, v)
+            result += u" {0}: {1}\n".format(k, v)
 
         return result

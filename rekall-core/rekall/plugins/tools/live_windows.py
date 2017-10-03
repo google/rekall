@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """A plugin to install relevant kernel modules to enable live analysis.
@@ -161,7 +162,7 @@ class Live(plugin.TypedProfileCommand,
 
         try:
             win32service.StartService(self.hSvc, [])
-        except win32service.error, e:
+        except win32service.error as e:
             self.session.logging.debug("%s: will try to continue", e)
 
         try:

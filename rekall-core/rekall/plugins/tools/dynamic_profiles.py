@@ -25,6 +25,7 @@
 A Dynamic profile is a way of discovering certain parameters via running a
 matching signature.
 """
+from builtins import object
 from rekall import obj
 from rekall.plugins.tools import disassembler
 
@@ -73,7 +74,7 @@ class DisassembleMatcher(object):
             # The capture variables in this rule only.
             rule_capture_vars_values = {}
 
-            for k, v in rule_context[item].iteritems():
+            for k, v in rule_context[item].items():
                 var_name = k.rsplit("_", 1)[0]
 
                 # Only consider variables (start with $).
@@ -231,7 +232,7 @@ class DynamicConstantProfileLoader(obj.ProfileSectionLoader):
 
     def LoadIntoProfile(self, session, profile, constants):
         """Parse the constants detectors and make callables."""
-        for constant_name, rules in constants.items():
+        for constant_name, rules in list(constants.items()):
             detectors = []
 
             # Each constant can have several different detectors.
@@ -276,7 +277,7 @@ class DisassembleStructMatcher(DisassembleConstantMatcher):
             # Match succeeded - create a new overlay for the Struct.
             overlay = {self.name: [None, {}]}
             fields = overlay[self.name][1]
-            for field, field_args in self.args["fields"].iteritems():
+            for field, field_args in self.args["fields"].items():
                 fields[field] = [result["$" + field], field_args]
 
             # This should never happen?
@@ -303,7 +304,7 @@ class DynamicStructProfileLoader(obj.ProfileSectionLoader):
     def LoadIntoProfile(self, session, profile, data):
         """Parse the constants detectors and make callables."""
         overlay = {}
-        for struct_name, signatures in data.items():
+        for struct_name, signatures in list(data.items()):
             detectors = {}
 
             # Each field can have several different detectors.

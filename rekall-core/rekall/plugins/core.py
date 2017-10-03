@@ -18,15 +18,20 @@
 #
 
 """This module implements core plugins."""
+from __future__ import division
 
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import exceptions
 import inspect
 import pdb
 import math
 import re
 import os
+import six
 import textwrap
 
 from rekall import addrspace
@@ -60,13 +65,13 @@ class Info(plugin.Command):
         self.verbosity = verbosity
 
     def plugins(self):
-        for name, cls in plugin.Command.classes.items():
+        for name, cls in six.iteritems(plugin.Command.classes):
             if name:
                 doc = cls.__doc__ or " "
                 yield name, cls.name, doc.splitlines()[0]
 
     def profiles(self):
-        for name, cls in obj.Profile.classes.items():
+        for name, cls in six.iteritems(obj.Profile.classes):
             if self.verbosity == 0 and not cls.metadata("os"):
                 continue
 
@@ -74,7 +79,7 @@ class Info(plugin.Command):
                 yield name, cls.__doc__.splitlines()[0].strip()
 
     def address_spaces(self):
-        for name, cls in addrspace.BaseAddressSpace.classes.items():
+        for name, cls in six.iteritems(addrspace.BaseAddressSpace.classes):
             yield dict(name=name, function=cls.name, definition=cls.__module__)
 
     def render(self, renderer):
@@ -167,7 +172,7 @@ class Info(plugin.Command):
             item = self.item
 
         metadata = config.CommandMetadata(item)
-        for x, y in metadata.args.items():
+        for x, y in six.iteritems(metadata.args):
             # Normalize the option name to use _.
             x = x.replace("-", "_")
 
@@ -572,7 +577,7 @@ class DirectoryDumperMixin(object):
 
         for run in address_space.get_address_ranges(start=start, end=end):
             out_offset = run.start - start
-            self.session.report_progress("Dumping %s Mb", out_offset / BUFFSIZE)
+            self.session.report_progress("Dumping %s Mb", out_offset // BUFFSIZE)
             outfd.seek(out_offset)
             i = run.start
 

@@ -1,3 +1,4 @@
+from __future__ import division
 # Rekall Memory Forensics
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -16,6 +17,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+from builtins import str
+from past.utils import old_div
+from builtins import object
 import math
 
 from rekall.plugins.linux import common
@@ -56,7 +60,7 @@ class Mount(common.LinuxPlugin):
             hashtable_head_len = self.profile.get_obj_size(
                 mount_hashtable_target_type)
             page_size = self.kernel_address_space.PAGE_SIZE
-            hash_size = 1 << int(math.log(page_size/hashtable_head_len, 2))
+            hash_size = 1 << int(math.log(old_div(page_size,hashtable_head_len), 2))
             numentries = hash_size
 
         else:

@@ -57,7 +57,7 @@ class CertScanner(scan.BaseScanner):
     """
 
     checks = [
-        ('StringCheck', dict(needle="\x30\x82"))
+        ('StringCheck', dict(needle=b"\x30\x82"))
         ]
 
     def scan(self, offset=0, maxlen=None):

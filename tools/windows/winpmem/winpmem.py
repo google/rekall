@@ -16,6 +16,7 @@ winpmem driver.
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+from __future__ import print_function
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import win32service
@@ -207,7 +208,7 @@ def main():
 
     try:
         win32service.StartService(hSvc, [])
-    except win32service.error, e:
+    except win32service.error as e:
         print("%s: will try to continue" % e)
 
     if FLAGS.load:

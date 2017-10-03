@@ -24,6 +24,7 @@
 @license:      GNU General Public License 2.0
 @contact:      scudette@gmail.com
 """
+from builtins import str
 import itertools
 import posixpath
 
@@ -88,7 +89,7 @@ class CheckProcFops(common.LinuxPlugin):
         if current.subdir:
             for x in self._walk_proc(
                 current.subdir, seen,
-                posixpath.join(path, unicode(current.Name))):
+                posixpath.join(path, str(current.Name))):
                 yield x
 
     def check_proc_fop(self):

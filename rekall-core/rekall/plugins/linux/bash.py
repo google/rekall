@@ -26,6 +26,7 @@
 Based on the algorithm by Andrew Case but greatly optimised for speed.
 """
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall import scan
@@ -41,10 +42,10 @@ class TimestampScanner(scan.BaseScanner):
     """
     checks = [
         # We use a quick string search first for this rather unique string.
-        ('StringCheck', dict(needle="#")),
+        ('StringCheck', dict(needle=b"#")),
 
         # Refine the search with a more precise regex.
-        ('RegexCheck', dict(regex=r"\#\d{10}")),
+        ('RegexCheck', dict(regex=b"\#\d{10}")),
         ]
 
 
@@ -184,7 +185,7 @@ class BashHistory(common.LinProcessFilter):
             hits = sorted(scanner.scan(), key=lambda x: x.timestamp.deref())
             for hit in hits:
                 timestamp = self.profile.UnixTimeStamp(
-                    value=int(unicode(hit.timestamp.deref())[1:]))
+                    value=int(str(hit.timestamp.deref())[1:]))
 
                 yield dict(
                     task=task,

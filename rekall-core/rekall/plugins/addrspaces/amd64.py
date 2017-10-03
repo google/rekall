@@ -23,8 +23,12 @@
 
 """ This is based on Jesse Kornblum's patch to clean up the standard AS's.
 """
+from __future__ import division
 # pylint: disable=protected-access
 
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import struct
 
 from rekall import addrspace
@@ -129,7 +133,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
         # PDEs and PTEs we must test.
-        for pml4e_index in xrange(0, 0x200):
+        for pml4e_index in range(0, 0x200):
             vaddr = pml4e_index << 39
             if vaddr > end:
                 return
@@ -145,7 +149,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                 continue
 
             tmp1 = vaddr
-            for pdpte_index in xrange(0, 0x200):
+            for pdpte_index in range(0, 0x200):
                 vaddr = tmp1 + (pdpte_index << 30)
                 if vaddr > end:
                     return
@@ -330,7 +334,7 @@ class VTxPagedMemory(AMD64PagedMemory):
         return self._ept
 
     def __str__(self):
-        return "%s@0x%08X" % (self.__class__.__name__, self._ept)
+        return u"%s@0x%08X" % (self.__class__.__name__, self._ept)
 
 
 class XenM2PMapper(dict):
@@ -341,7 +345,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
     """XEN ParaVirtualized guest address space."""
 
     PAGE_SIZE = 0x1000
-    P2M_PER_PAGE = P2M_TOP_PER_PAGE = P2M_MID_PER_PAGE = PAGE_SIZE / 8
+    P2M_PER_PAGE = P2M_TOP_PER_PAGE = P2M_MID_PER_PAGE = PAGE_SIZE // 8
 
     # From include/xen/interface/features.h
     XENFEAT_writable_page_tables = 0
@@ -391,7 +395,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         Yields tuples of (index, p2m) for each p2m, up to a number of p2m_size.
         """
         for index, mfn in zip(
-                xrange(0, p2m_size),
+                range(0, p2m_size),
                 struct.unpack(
                     "<" + "Q" * p2m_size,
                     self.read(offset, 0x1000))):
@@ -453,8 +457,8 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
 
             # A mapping of offset to symbol name
             OFF2SYM = {
-                long(p2m_missing): "p2m_missing",
-                long(p2m_mid_missing): "p2m_mid_missing",
+                int(p2m_missing): "p2m_missing",
+                int(p2m_mid_missing): "p2m_mid_missing",
                 ~0: "INVALID_P2M",
                 }
 
@@ -468,7 +472,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
 
                 self.session.report_progress(
                     "Building m2p map %.02f%%" % (
-                        100 * (float(p2m_top_idx) / self.P2M_TOP_PER_PAGE)))
+                        100 * (p2m_top_idx / self.P2M_TOP_PER_PAGE)))
 
                 self.session.logging.debug(
                     "p2m_top[%d] = %s",
@@ -501,7 +505,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
                         #
                         # We fill all the MFNs under this mid_entry as
                         # identities.
-                        for idx in xrange(self.P2M_PER_PAGE):
+                        for idx in range(self.P2M_PER_PAGE):
                             pfn = (p2m_top_idx * self.P2M_MID_PER_PAGE
                                    * self.P2M_PER_PAGE
                                    + p2m_mid_idx * self.P2M_PER_PAGE
@@ -569,7 +573,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         if not m2p_mapping:
             self._RebuildM2PMapping()
         machine_address = obj.Pointer.integer_to_address(machine_address)
-        mfn = machine_address / 0x1000
+        mfn = machine_address // 0x1000
         pfn = m2p_mapping.get(mfn)
         if pfn is None:
             return obj.NoneObject("No PFN mapping found for MFN %d" % mfn)

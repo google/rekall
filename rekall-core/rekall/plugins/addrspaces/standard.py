@@ -24,7 +24,10 @@
 #
 
 """ These are standard address spaces supported by Rekall Memory Forensics """
-import StringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import io
 import struct
 import os
 import weakref
@@ -229,7 +232,7 @@ class DummyAddressSpace(WritableAddressSpaceMixIn, FDAddressSpace):
     def __init__(self, size=10 * 1024, session=None, **_):
         super(DummyAddressSpace, self).__init__(
             session=session,
-            fhandle=StringIO.StringIO(size * "\x00"))
+            fhandle=io.BytesIO(size * b"\x00"))
 
     def getvalue(self):
         """Dump the entire address space as a byte string."""

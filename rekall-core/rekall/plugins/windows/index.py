@@ -31,6 +31,7 @@ this index to determine the exact version of the profile very quickly - even if
 the RSDS GUID is not available or incorrect.
 """
 
+from builtins import next
 __author__ = "Michael Cohen <scudette@google.com>"
 
 from rekall import obj
@@ -80,7 +81,7 @@ class GuessGUID(common.WindowsCommandPlugin):
             # Switch the process context to this session so the address
             # resolver can find the correctly mapped driver.
             with cc:
-                cc.SwitchProcessContext(iter(session.processes()).next())
+                cc.SwitchProcessContext(next(iter(session.processes())))
 
                 # Get the image base of the win32k module.
                 image_base = self.session.address_resolver.get_address_by_name(
@@ -127,7 +128,7 @@ class EProcessIndex(basic.ProfileLLP64):
         # Consolidate all the relative offsets from the ImageFileName to the
         # DirectoryTableBase.
         self.filename_to_dtb = set()
-        for metadata in index.values():
+        for metadata in list(index.values()):
             offsets = metadata["offsets"]
             relative_offset = offsets["_EPROCESS.ImageFileName"] - (
                 offsets["_EPROCESS.Pcb"] +

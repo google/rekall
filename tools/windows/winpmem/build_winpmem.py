@@ -21,6 +21,7 @@ windows system:
 If you install these in different locations be sure to adjust the constants
 below.
 """
+from __future__ import print_function
 import re
 import os
 import subprocess

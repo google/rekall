@@ -86,7 +86,7 @@ def action(function):
             raise
 
     try:
-        if function.func_code.co_varnames[0] == "self":
+        if function.__code__.co_varnames[0] == "self":
             return wrap_method
     except (IndexError, AttributeError):
         pass

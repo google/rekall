@@ -29,15 +29,19 @@ Note that the configuration file is only used in interactive mode. When used as
 a library the configuration file has no effect.
 """
 
+from builtins import str
+from builtins import object
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import collections
 import logging
 import os
+import six
 import sys
 import tempfile
 import yaml
 
+from past.builtins import basestring
 from rekall import constants
 
 
@@ -91,7 +95,7 @@ class CommandMetadata(object):
         if "action" in options:
             raise RuntimeError("Action keyword is deprecated.")
 
-        if not isinstance(options.get("type", ""), str):
+        if not isinstance(options.get("type", ""), basestring):
             raise RuntimeError("Type must be a string.")
 
         # Is this a positional arg?
@@ -136,7 +140,7 @@ class CommandMetadata(object):
         If an option in args is None, we update it with the default value for
         this option.
         """
-        for name, options in self.args.iteritems():
+        for name, options in six.iteritems(self.args):
             if options.get("dest") == "SUPPRESS":
                 continue
 
@@ -195,7 +199,7 @@ def GetConfigFile(session):
     for path in search_path:
         try:
             with open(path, "rb") as fd:
-                result = yaml.safe_load(fd)
+                result = yaml.safe_load(fd) or {}
                 logging.debug("Loaded configuration from %s", path)
 
                 # Allow the config file to update the
@@ -218,7 +222,7 @@ def CreateDefaultConfigFile(session):
     if homedir:
         try:
             filename = "%s/.rekallrc" % homedir
-            with open(filename, "wb") as fd:
+            with open(filename, "wt") as fd:
                 yaml.dump(DEFAULT_CONFIGURATION, fd)
 
             logging.info("Created new configuration file %s", filename)
@@ -244,11 +248,11 @@ def MergeConfigOptions(state, session):
         config_data = CreateDefaultConfigFile(session)
 
     # First apply the defaults:
-    for name, options in OPTIONS.args.iteritems():
+    for name, options in six.iteritems(OPTIONS.args):
         if name not in config_data:
             config_data[name] = options.get("default")
 
-    for k, v in config_data.items():
+    for k, v in six.iteritems(config_data):
         state.Set(k, v)
 
 
@@ -268,6 +272,6 @@ def DeclareOption(*args, **kwargs):
     kwargs["positional"] = False
     default = kwargs.get("default")
     if default is not None and isinstance(default, str):
-        kwargs["default"] = unicode(default)
+        kwargs["default"] = str(default)
 
     OPTIONS.add_argument(*args, **kwargs)

@@ -3,9 +3,10 @@
 
 from rekall import plugin
 from rekall_lib import registry
+from future.utils import with_metaclass
 
 
-class ParameterHook(plugin.ModeBasedActiveMixin):
+class ParameterHook(with_metaclass(registry.MetaclassRegistry, plugin.ModeBasedActiveMixin)):
     """A mechanism for automatically calculating a parameter.
 
     The session contains many parameters which are calculated through the
@@ -21,8 +22,6 @@ class ParameterHook(plugin.ModeBasedActiveMixin):
     parameter when it is not known.
     """
     __abstract = True
-
-    __metaclass__ = registry.MetaclassRegistry
 
     # The name of the parameter we will be calculating. This class will
     # automatically be called when someone accessed this name, and it is not

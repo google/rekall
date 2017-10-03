@@ -18,6 +18,7 @@
 
 """This module implements renderers specific to virtualization."""
 
+from builtins import str
 from rekall.ui import text
 from rekall.ui import json_renderer
 from rekall.plugins import hypervisors

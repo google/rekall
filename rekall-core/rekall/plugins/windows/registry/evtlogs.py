@@ -27,6 +27,7 @@
 @contact:      jamie.levy@gmail.com
 @organization: Volatile Systems
 """
+from builtins import str
 import ntpath
 
 from rekall import obj
@@ -145,7 +146,7 @@ class _SID(obj.Struct):
     Reference:
     http://www.sekchek.com/downloads/white-papers/windows-about-sids.pdf
     """
-    def __unicode__(self):
+    def __str__(self):
         """Format the Sid using SDDL Notation."""
         components = [self.Revision, self.NumericIdentifier]
         components.extend(self.SubAuthority)
@@ -170,7 +171,7 @@ class EVTObjectTypes(obj.ProfileModification):
 
 
 class EVTScanner(scan.BaseScanner):
-    checks = [('StringCheck', dict(needle="LfLe"))]
+    checks = [('StringCheck', dict(needle=b"LfLe"))]
 
     def scan(self, offset, maxlen=None, context=None):
         for hit in super(EVTScanner, self).scan(offset, maxlen=maxlen):

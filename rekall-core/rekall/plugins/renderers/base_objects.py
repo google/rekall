@@ -20,9 +20,12 @@
 
 """This module implements base object renderers."""
 
+from builtins import hex
+from builtins import str
 from rekall.ui import renderer as renderer_module
 from rekall.ui import text
 from rekall_lib import utils
+import six
 
 
 class PluginObjectTextRenderer(text.TextObjectRenderer):
@@ -44,11 +47,11 @@ class BaseObjectTextRenderer(text.TextObjectRenderer):
         )
 
     def render_full(self, target, **options):
-        result = text.Cell(unicode(target.v()), **options)
+        result = text.Cell(utils.SmartUnicode(target.v()), **options)
         return result
 
     def render_value(self, target, **_):
-        return text.Cell(unicode(target.v()))
+        return text.Cell(utils.SmartUnicode(target.v()))
 
 
 class StringTextRenderer(BaseObjectTextRenderer):
@@ -82,9 +85,9 @@ class UnixTimestampObjectRenderer(BaseObjectTextRenderer):
             return text.Cell(repr(target))
 
         if target != None:
-            return text.Cell(unicode(target))
+            return text.Cell(utils.SmartUnicode(target))
 
-        return text.Cell("-")
+        return text.Cell(u"-")
 
 
 class ArrotTimestampObjectRenderer(BaseObjectTextRenderer):
@@ -108,7 +111,7 @@ class PythonBoolTextRenderer(text.TextObjectRenderer):
     def render_full(self, target, **_):
         color = "GREEN" if target else "RED"
         return text.Cell(
-            value=unicode(target),
+            value=utils.SmartUnicode(target),
             highlights=[(0, -1, color, None)])
 
     render_value = render_full
@@ -145,7 +148,7 @@ class FlagsTextRenderer(BaseObjectTextRenderer):
         return text.Cell(u', '.join(flags))
 
     def render_value(self, target, **_):
-        return text.Cell(unicode(self.v()))
+        return text.Cell(utils.SmartUnicode(self.v()))
 
     def render_compact(self, target, **_):
         lines = self.render_full(target).lines
@@ -163,11 +166,7 @@ class EnumerationTextRenderer(BaseObjectTextRenderer):
     renders_type = "Enumeration"
 
     def render_full(self, target, **_):
-        value = target.v()
-        name = target.choices.get(utils.SmartStr(value), target.default) or (
-            u"UNKNOWN (%s)" % utils.SmartUnicode(value))
-
-        return text.Cell(name)
+        return text.Cell(utils.SmartUnicode(target))
 
     render_compact = render_full
 
@@ -220,9 +219,13 @@ class ListRenderer(text.TextObjectRenderer):
             session=self.session)
 
     def render_row(self, target, **options):
+        if target == []:
+            return text.Cell(u"")
+
         result = []
         for i, item in enumerate(target):
-            result.append(self.table.get_row("- %s:" % i))
+            if len(target) > 1:
+                result.append(self.table.get_row("- %s:" % i))
             result.append(self.table.get_row(item))
 
         return text.StackedCell(*result, **options)
@@ -285,7 +288,7 @@ class FunctionTextRenderer(BaseObjectTextRenderer):
 
         result = []
         for instruction in target.disassemble():
-            result.append(unicode(table.get_row(
+            result.append(str(table.get_row(
                 instruction.address, instruction.hexbytes, instruction.text)))
 
         return text.Cell("\n".join(result))
@@ -386,7 +389,7 @@ class AttributeDictTextRenderer(text.TextObjectRenderer):
 
     def render_row(self, item, **options):
         result = []
-        for key, value in sorted(item.iteritems()):
+        for key, value in sorted(six.iteritems(item)):
             result.append(self.table.get_row(key, value))
 
         return text.StackedCell(*result)

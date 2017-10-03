@@ -25,6 +25,8 @@ http://illmatics.com/Understanding_the_LFH.pdf
 http://www.leviathansecurity.com/blog/understanding-the-windows-allocator-a-redux/
 
 """
+from __future__ import division
+from past.utils import old_div
 from rekall import scan
 
 from rekall.plugins import core
@@ -174,7 +176,7 @@ class InspectHeap(common.WinProcessFilter):
                 heap):
             entries_by_size.setdefault(allocation_length, []).append(entry)
 
-        for allocation_length, entries in sorted(entries_by_size.iteritems()):
+        for allocation_length, entries in sorted(entries_by_size.items()):
             for entry in sorted(entries, key=lambda x: x.obj_offset):
                 data = entry.v()[:64]
 
@@ -312,7 +314,7 @@ class ShowAllocation(common.WindowsCommandPlugin):
             address_map.AddRange(alloc_start-16, alloc_start, "_HEAP_ENTRY")
 
         # Try to interpret pointers to other allocations and highlight them.
-        count = length / 8
+        count = old_div(length, 8)
         for pointer in self.profile.Array(
                 offset=start, count=count, target="Pointer"):
             name = None

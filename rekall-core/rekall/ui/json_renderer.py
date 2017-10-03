@@ -23,14 +23,22 @@ A renderer is used by plugins to produce formatted output.
 
 This code is tested in plugins/tools/render_test.py
 """
+from builtins import str
+from builtins import object
+import base64
 import copy
 import json
 import pdb
+import six
 import sys
 
 from rekall import constants
 from rekall.ui import renderer as renderer_module
 from rekall_lib import utils
+
+
+if six.PY3:
+    long = int
 
 
 class DecodingError(KeyError):
@@ -170,7 +178,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
         elif item.__class__ is dict:
             # Assume keys are strings.
             result = {}
-            for k, v in item.items():
+            for k, v in list(item.items()):
                 result[k] = self._encode_value(v, **options)
 
             return result
@@ -183,7 +191,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
             return tuple(self._encode_value(x, **options) for x in item)
 
         # Encode json safe items literally.
-        if isinstance(item, (unicode, int, long, float)):
+        if isinstance(item, (str, int, float, long)):
             return item
 
         # This will encode unknown objects as None. We do not raise an error
@@ -218,7 +226,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
 
         if value.__class__ is dict:
             result = dict()
-            for k, v in value.iteritems():
+            for k, v in value.items():
                 result[k] = self._decode_value(v, options)
 
             return result
@@ -230,7 +238,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
             return tuple(self._decode_value(x, options) for x in value)
 
         # Decode json safe items literally.
-        if isinstance(value, (unicode, int, long, float)):
+        if isinstance(value, (str, int, float)):
             return value
 
         return value
@@ -279,7 +287,7 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
 
         # Add the details view if required.
         if details:
-            state["details"] = unicode(repr(item))
+            state["details"] = str(repr(item))
 
         return super(StateBasedObjectRenderer, self).EncodeToJsonSafe(
             state, **options)
@@ -288,7 +296,10 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
 class StringRenderer(StateBasedObjectRenderer):
     # Json is not able to encode strings, we therefore must implement a proper
     # encoder/decoder.
-    renders_type = "str"
+    if six.PY3:
+        renders_type = "bytes"
+    else:
+        renders_type = 'str'
 
     def DecodeFromJsonSafe(self, value, options):
         result = value.get("str")
@@ -304,10 +315,10 @@ class StringRenderer(StateBasedObjectRenderer):
             # If the string happens to be unicode safe we dont need to
             # encode it, but we still must mark it with a "*" to ensure the
             # decoder replaces it with a plain string.
-            return dict(str=unicode(item, "utf8"))
+            return dict(str=str(item, "utf8"))
         except UnicodeError:
             # If we failed to encode it into utf8 we must base64 encode it.
-            return dict(b64=unicode(item.encode("base64")).rstrip("\n"))
+            return dict(b64=base64.b64encode(utils.SmartStr(item)))
 
     def EncodeToJsonSafe(self, item, **options):
         # In many cases we receive a string but it can be represented as unicode
@@ -336,8 +347,8 @@ class BaseObjectRenderer(StateBasedObjectRenderer):
 
     def GetState(self, item, **_):
         return dict(offset=item.obj_offset,
-                    type_name=unicode(item.obj_type),
-                    name=unicode(item.obj_name),
+                    type_name=str(item.obj_type),
+                    name=str(item.obj_name),
                     vm=item.obj_vm,
                     profile=item.obj_profile)
 
@@ -537,7 +548,7 @@ class JsonRenderer(renderer_module.BaseRenderer):
         super(JsonRenderer, self).start(plugin_name=plugin_name, kwargs=kwargs)
 
         # Save some metadata.
-        self.metadata = dict(plugin_name=unicode(plugin_name),
+        self.metadata = dict(plugin_name=str(plugin_name),
                              tool_name="rekall",
                              cookie=self._object_id,
                              tool_version=constants.VERSION,
@@ -551,7 +562,7 @@ class JsonRenderer(renderer_module.BaseRenderer):
         self.data.append(statement)
 
     def format(self, formatstring, *args):
-        statement = ["f", unicode(formatstring)]
+        statement = ["f", str(formatstring)]
         for arg in args:
             # Just store the statement in the output.
             statement.append(self.encoder.Encode(arg))

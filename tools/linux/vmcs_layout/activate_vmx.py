@@ -1,4 +1,5 @@
 """Sets the processors to +VME,+LOCK,-SMM to be able to run vmcs_layout."""
+from __future__ import print_function
 
 import logging
 import msr

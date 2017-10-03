@@ -30,6 +30,8 @@ For this address space to work:
 pip install pyaff4
 
 """
+from builtins import str
+from builtins import object
 import logging
 import re
 import os
@@ -69,7 +71,7 @@ class AFF4StreamWrapper(object):
     def end(self):
         return self.stream.Size()
 
-    def __unicode__(self):
+    def __str__(self):
         return utils.SmartUnicode(self.stream.urn)
 
 
@@ -203,11 +205,10 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
             self.volume_urn = volume.urn
 
             # We are searching for images with the physical memory category.
-            for (subject, _, value) in self.resolver.QueryPredicate(
-                    lexicon.AFF4_CATEGORY):
-                if value == lexicon.AFF4_MEMORY_PHYSICAL:
-                    self._LoadMemoryImage(subject)
-                    break
+            for subject in self.resolver.QueryPredicateObject(
+                    lexicon.AFF4_CATEGORY, lexicon.AFF4_MEMORY_PHYSICAL):
+                self._LoadMemoryImage(subject)
+                break
 
         self.as_assert(self.image is not None,
                        "No physical memory categories found.")
@@ -218,11 +219,11 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         for (subject, _, value) in self.resolver.QueryPredicate(
                 lexicon.AFF4_STREAM_ORIGINAL_FILENAME):
             # Normalize the filename for case insensitive filesysyems.
-            self.filenames[unicode(value).lower()] = subject
+            self.filenames[utils.SmartStr(value).lower()] = subject
 
         # TODO: Deprecate this guessing once all images have the
         # AFF4_STREAM_ORIGINAL_FILENAME attribute.
-        for subject in self.resolver.QuerySubject(re.compile(".")):
+        for subject in self.resolver.QuerySubject(re.compile(b".")):
             relative_name = self.volume_urn.RelativePath(subject)
             if relative_name:
                 filename = self._normalize_filename(relative_name)

@@ -22,6 +22,7 @@
 Output is similar to objdump or pefile.
 """
 
+from builtins import zip
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall import plugin

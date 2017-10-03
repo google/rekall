@@ -20,6 +20,7 @@
 """This program mounts an image as a fuse filesystem so each process's address
 space is available for inspection via e.g. a hex editor.
 """
+from __future__ import print_function
 import re
 import os
 import stat
@@ -38,8 +39,7 @@ import fuse
 from fuse import Fuse
 
 if not hasattr(fuse, '__version__'):
-    raise RuntimeError, \
-        "your fuse-py doesn't know of fuse.__version__, probably it's too old."
+    raise RuntimeError("your fuse-py doesn't know of fuse.__version__, probably it's too old.")
 
 fuse.fuse_python_api = (0, 2)
 
@@ -200,7 +200,7 @@ class AddressSpaceFuse(Fuse):
 
         s.f_bsize = 4096
         s.f_frsize = 0
-        s.f_blocks = sys.maxint
+        s.f_blocks = sys.maxsize
         s.f_bfree = 0
         s.f_files = len(self.tasks)
         s.f_ffree = 0

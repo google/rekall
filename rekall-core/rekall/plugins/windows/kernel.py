@@ -25,6 +25,8 @@ varies each time, so we need a way to locate the kernel base address in the
 kernel address space.
 """
 
+from builtins import str
+from builtins import range
 __author__ = "Michael Cohen <scudette@google.com>"
 
 from rekall import obj
@@ -37,7 +39,7 @@ from rekall.plugins.overlays.windows import pe_vtypes
 class ExportScanner(scan.BaseScanner):
     # We search for the name of a section present in the PE header.
     checks = [("MultiStringFinderCheck", dict(needles=[
-        "INITKDBG", "MISYSPTE", "PAGEKD"]))]
+        b"INITKDBG", b"MISYSPTE", b"PAGEKD"]))]
 
 
 class ObjectTreeHook(common.AbstractWindowsParameterHook):
@@ -151,7 +153,7 @@ class KernelBaseHook(common.AbstractWindowsParameterHook):
             # Search backwards for an MZ signature on the page boundary.
             page = hit & 0xFFFFFFFFFFFFF000
             for _ in range(10):
-                if address_space.read(page, 2) == "MZ":
+                if address_space.read(page, 2) == b"MZ":
                     helper = pe_vtypes.PE(
                         address_space=address_space,
                         session=self.session, image_base=page)

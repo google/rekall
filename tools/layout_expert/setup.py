@@ -27,7 +27,7 @@ from setuptools import find_packages, setup, Command
 from setuptools.command.test import test as TestCommand
 
 ENV = {"__file__": __file__}
-exec open("layout_expert/_version.py").read() in ENV
+exec(open("layout_expert/_version.py").read(), ENV)
 VERSION = ENV["get_versions"]()
 
 
