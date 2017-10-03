@@ -1066,7 +1066,7 @@ class HeapAnalysis(common.LinProcessFilter):
                 curr_arena) if not deactivate_swap_check else None
 
             if swap_check_result is not True:
-                curr_arena = curr_arena.next
+                curr_arena = curr_arena.__next__
                 if arena == curr_arena:
                     return True
 
@@ -2006,7 +2006,7 @@ class HeapAnalysis(common.LinProcessFilter):
 
                     # as the 'thread arena carving' method didn't find an
                     # arena, the 'next' field should point to itself
-                    if pot_main_arena.next == pot_main_arena:
+                    if pot_main_arena.__next__ == pot_main_arena:
                         self.session.logging.info(
                             "We found the main_arena via top chunk.")
                         return pot_main_arena
