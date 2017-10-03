@@ -27,7 +27,7 @@ import os
 from setuptools import find_packages, setup, Command
 
 ENV = {"__file__": __file__}
-exec open("_version.py").read() in ENV
+exec(open("_version.py").read(), ENV)
 VERSION = ENV["get_versions"]()
 
 rekall_description = "Rekall Incident Response Agent"
