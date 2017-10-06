@@ -180,6 +180,7 @@ class LinuxConverter(ProfileConverter):
         """Parse the kernel .config file returning it as a dictionary."""
         config = {}
         for line in config_file.splitlines():
+            line = utils.SmartUnicode(line)
             if line.startswith("#"):
                 continue
             try:
@@ -242,7 +243,7 @@ class LinuxConverter(ProfileConverter):
             if ko_file:
                 self.session.logging.info(
                     "Converting Linux profile with ko module.")
-                parser = dwarfparser.DWARFParser(io.StringIO(ko_file),
+                parser = dwarfparser.DWARFParser(io.BytesIO(ko_file),
                                                  session=self.session)
 
                 profile_file = self.BuildProfile(system_map, parser.VType(),
@@ -388,7 +389,7 @@ class ConvertProfile(plugin.TypedProfileCommand, plugin.Command):
             profile = self.ConvertProfile(input)
             if profile:
                 with renderer.open(
-                    filename=self.plugin_args.out_file, mode="wb") as output:
+                    filename=self.plugin_args.out_file, mode="wt") as output:
                     output.write(utils.PPrint(profile))
                     self.session.logging.info("Converted %s to %s",
                                               input, output.name)
@@ -1220,7 +1221,7 @@ class BuildProfileLocally(plugin.Command):
             data = self._fetch_and_parse(module_name, guid)
 
             if self.dumpfile:
-                with renderer.open(filename=self.dumpfile, mode="wb") as fd:
+                with renderer.open(filename=self.dumpfile, mode="wt") as fd:
                     fd.write(utils.PPrint(data))
 
             return repository.StoreData(profile_name, data)

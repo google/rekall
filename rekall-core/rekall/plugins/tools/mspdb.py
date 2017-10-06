@@ -94,6 +94,7 @@ import re
 import ntpath
 import os
 import platform
+import six
 import subprocess
 import sys
 import urllib.request, urllib.error, urllib.parse
@@ -524,7 +525,7 @@ class lfClass(obj.Struct):
             # The field type is an LF_ENUM which determines which struct this
             # is.
             type_enum_name = self.obj_profile.get_enum(
-                "_LEAF_ENUM_e").get(str(field_type))
+                "_LEAF_ENUM_e").get(utils.SmartUnicode(field_type))
 
             type_name = LEAF_ENUM_TO_TYPE.get(type_enum_name)
 
@@ -617,9 +618,9 @@ class lfEnum(obj.Struct):
 
     @utils.safe_property
     def Name(self):
-        enum_name = str(self.m("Name"))
+        enum_name = utils.SmartUnicode(self.m("Name"))
         if enum_name == "<unnamed-tag>":
-            enum_name = "ENUM_%X" % self.obj_offset
+            enum_name = u"ENUM_%X" % self.obj_offset
 
         return enum_name
 
@@ -975,7 +976,7 @@ class PDBParser(object):
             self.omap.insert((src, dest))
             self.session.report_progress(
                 " Extracting OMAP Information %s%%",
-                lambda: i * 100 / omap_array.count)
+                lambda: i * 100 // omap_array.count)
 
     def ParseGlobalSymbols(self, stream_id):
         """Parse the symbol records stream."""
@@ -1224,6 +1225,20 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
 
         return vtypes
 
+    def _demangle_constants(self, constants):
+        result = {}
+        demangler = pe_vtypes.Demangler(self.metadata)
+        for name, value in six.iteritems(constants):
+            root_name = demangled_name = demangler.DemangleName(name)
+            count = 0
+            while demangled_name in result:
+                demangled_name = "%s_%s" % (root_name, count)
+                count += 1
+
+            result[demangled_name] = value
+
+        return result
+
     def parse_pdb(self):
         with self.tpi:
             vtypes = {}
@@ -1248,18 +1263,7 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
 
             self.metadata.update(self.tpi.metadata)
 
-            # Demangle all constants.
-            demangler = pe_vtypes.Demangler(self.metadata)
-            constants = {}
-            for name, value in self.tpi.constants.items():
-                constants[demangler.DemangleName(name)] = value
-
-            functions = {}
-            for name, value in self.tpi.functions.items():
-                functions[demangler.DemangleName(name)] = value
-
             vtypes = self.PostProcessVTypes(vtypes)
-
             result = {
                 "$METADATA": self.metadata,
                 "$STRUCTS": vtypes,
@@ -1268,8 +1272,8 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
 
             if not self.plugin_args.concise:
                 result["$REVENUMS"] = self.tpi.rev_enums
-                result["$CONSTANTS"] = constants
-                result["$FUNCTIONS"] = functions
+                result["$CONSTANTS"] = self._demangle_constants(self.tpi.constants)
+                result["$FUNCTIONS"] = self._demangle_constants(self.tpi.functions)
 
             return result
 

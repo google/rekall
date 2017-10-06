@@ -185,7 +185,7 @@ class CapstoneInstruction(Instruction):
 
     @utils.safe_property
     def hexbytes(self):
-        return str(binascii.hexlify(self.insn.bytes))
+        return utils.SmartUnicode(binascii.hexlify(self.insn.bytes))
 
     def format_indirect(self, operand, size):
         if size == 1:

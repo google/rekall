@@ -49,7 +49,9 @@ in a specific way.
 """
 from builtins import zip
 from builtins import object
+import difflib
 import hashlib
+import json
 import logging
 import subprocess
 import pdb
@@ -334,6 +336,12 @@ class SimpleTestCase(plugin.ModeBasedActiveMixin,
 
     __abstract = True
 
+    # Alas Unittest is a total mess - we want to pass detailed failure
+    # information from the test case but the convoluted mess that is
+    # unittest wont let us. We therefore sneak this info through here
+    # and pick it off into the test json file in test_suite.py.
+    failure_info = None
+
     @classmethod
     def is_active(cls, session):
         if not super(SimpleTestCase, cls).is_active(session):
@@ -347,11 +355,15 @@ class SimpleTestCase(plugin.ModeBasedActiveMixin,
             return delegate_plugin.is_active(session)
 
     def testCase(self):
-        previous = sorted([x.strip() for x in self.baseline['output']])
-        current = sorted([x.strip() for x in self.current['output']])
+        previous = [x.strip() for x in self.baseline['output']]
+        current = [x.strip() for x in self.current['output']]
+
+        difference = list(difflib.unified_diff(previous, current))
+        if difference:
+            self.failure_info = difference
 
         # Compare the entire table
-        self.assertListEqual(previous, current)
+        self.assertListEqual(sorted(previous), sorted(current))
 
 
 class InlineTest(SimpleTestCase):

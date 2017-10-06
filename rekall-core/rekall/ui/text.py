@@ -36,6 +36,7 @@ try:
 except Exception:  # curses sometimes raises weird exceptions.
     curses = None
 
+import binascii
 import re
 import os
 import subprocess
@@ -1481,10 +1482,10 @@ class TextRenderer(renderer_module.BaseRenderer):
         filename = utils.SmartUnicode(filename) or "Unknown%s" % self._object_id
 
         # Filter the filename for illegal chars.
-        filename = re.sub(
-            "[^a-zA-Z0-9_.@{}\[\]\- ]",
-            lambda x: "%" + x.group(0).encode("hex"),
-            filename)
+        filename = utils.SmartUnicode(re.sub(
+            b"[^a-zA-Z0-9_.@{}\[\]\- ]",
+            lambda x: b"%" + binascii.hexlify(x.group(0)),
+            utils.SmartStr(filename)))
 
         if directory:
             filename = os.path.join(directory, "./", filename)

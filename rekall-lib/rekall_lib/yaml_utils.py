@@ -1,3 +1,4 @@
+from rekall_lib import utils
 import collections
 import yaml
 
@@ -53,10 +54,10 @@ class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):
 
 
 def decode(data):
-    return yaml.safe_load(data) or OrderedYamlDict()
+    return yaml.safe_load(utils.SmartUnicode(data)) or OrderedYamlDict()
 
 def encode(raw_data):
-    return yaml.safe_dump(raw_data, default_flow_style=False)
+    return utils.SmartStr(yaml.safe_dump(raw_data, default_flow_style=False))
 
 
 class PrettyPrinterDumper(yaml.SafeDumper):

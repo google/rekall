@@ -58,7 +58,7 @@ class SentinelArray(obj.Array):
         """Break when the sentinel is reached."""
         for member in super(SentinelArray, self).__iter__():
             data = member.obj_vm.read(member.obj_offset, member.obj_size)
-            if data == "\x00" * member.obj_size:
+            if data == b"\x00" * member.obj_size:
                 break
 
             yield member

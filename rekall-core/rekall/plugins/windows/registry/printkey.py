@@ -26,6 +26,7 @@
 @organization: Volatile Systems
 """
 from past.builtins import basestring
+import binascii
 import re
 
 from rekall import addrspace
@@ -240,8 +241,8 @@ sam_vtypes = {
     "Hash": [12, {
         "offset": [0, ["unsigned int"]],
         "len": [4, ["unsigned int"]],
-        "Value": lambda x: x.obj_vm.read(
-            x.offset+0xCC, x.len).encode("hex"),
+        "Value": lambda x: binascii.hexlify(x.obj_vm.read(
+            x.offset+0xCC, x.len)),
 
         }],
 

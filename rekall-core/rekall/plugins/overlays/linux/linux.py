@@ -573,6 +573,26 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
 }
 
 
+class pv_info(obj.Struct):
+    @utils.safe_property
+    def paravirt_enabled(self):
+        result = self.m("paravirt_enabled", None)
+        if result == None:
+            # This might need to be read without a kernel address
+            # space present so we use the GetPageOffset() to read
+            # directly from physical memory.
+            phys_offset = self.obj_session.profile.phys_addr(self.name.v())
+            paravirt_type = self.obj_session.profile.String(
+                offset=phys_offset,
+                vm=self.obj_session.physical_address_space)
+
+            self.obj_session.logging.debug(
+                "Found paravirtualization type %s", paravirt_type)
+            result = self.name == "KVM"
+
+        return result
+
+
 class list_head(basic.ListMixIn, obj.Struct):
     """A list_head makes a doubly linked list."""
     _forward = "next"
@@ -967,6 +987,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
     def Initialize(cls, profile):
         super(Linux, cls).Initialize(profile)
         profile.add_classes(dict(
+            pv_info=pv_info,
             InodePermission=InodePermission,
             PermissionFlags=PermissionFlags,
             dentry=dentry,
@@ -1088,6 +1109,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
         if self.get_constant("tk_core"):
             tk_core = self.get_constant_object("tk_core", "tk_core")
             tk = tk_core.timekeeper
+            import pdb; pdb.set_trace()
             t = self.ktime_sub(tk.offs_real, tk.offs_boot)
             return self.ktime_to_timespec(t)
         else:
@@ -1097,6 +1119,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
 
     def ktime_sub(self, lhs, rhs):
         """Substracts two ktime_t instances."""
+        import pdb; pdb.set_trace()
         kt = self.ktime()
         kt.tv64 = lhs.tv64 - rhs.tv64
         return kt
@@ -1127,6 +1150,8 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
     def phys_addr(self, va):
         """Returns the physical address of a given virtual address va.
 
+        NOTE: This only works for kernel virtual addresses obviously.
+
         Linux has a direct mapping between the kernel virtual address space and
         the physical memory. This is the difference between the virtual and
         physical addresses (aka PAGE_OFFSET). This is defined by the __va macro:
@@ -1149,18 +1174,26 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
         # a profile is not yet set on the session object.
         self.session.logging.debug("Calculating page offset...")
 
+        iomap = self.session.GetParameter("iomap")
+        if iomap != None and "Kernel code" in iomap:
+            # The page offset is the difference between the profile's
+            # _text symbol and the iomap's report of the kernel code
+            # page start.
+            return (self.get_constant("_text", is_address=True) -
+                    iomap["Kernel code"][0].start)
+
         if self.metadata("arch") == "I386":
-            return (self.get_constant("_text", False) -
-                    self.get_constant("phys_startup_32", False))
+            return (self.get_constant("_text", True) -
+                    self.get_constant("phys_startup_32", True))
 
         elif self.metadata("arch") == "AMD64":
             # We use the symbol phys_startup_64. If it's not present in the
             # profile and it's different than the default, we should be able
             # to autodetect the difference via kernel_slide.
-            phys_startup_64 = (self.get_constant("phys_startup_64", False) or
+            phys_startup_64 = (self.get_constant("phys_startup_64", True) or
                                0x1000000)
 
-            return self.get_constant("_text", False) - phys_startup_64
+            return self.get_constant("_text", True) - phys_startup_64
 
         elif self.metadata("arch") == "MIPS":
             return 0x80000000

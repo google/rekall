@@ -71,7 +71,9 @@ def SmartStr(string, encoding="utf8"):
         elif hasattr(string, "__bytes__"):
             return string.__bytes__()
 
-        return bytes(string)
+        # If there is no dedicated __bytes__ method, just encode the
+        # unicode string as utf8.
+        return bytes(SmartUnicode(string), "utf8")
 
     if six.PY2:
         if isinstance(string, str):
@@ -808,7 +810,7 @@ class RangedCollection(object):
         Retuns:
           A tuple of start, end, data for the range that contains address.
         """
-        tmp, data = self.collection.get_value_smaller_than((address + 1, None))
+        tmp, data = self.collection.get_value_smaller_than((address + 1, address + 1))
         if tmp is not None:
             start, end = tmp
             if start <= address < end:

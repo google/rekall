@@ -26,6 +26,7 @@ from __future__ import print_function
 from builtins import str
 from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
+import binascii
 import fnmatch
 import hashlib
 import itertools
@@ -96,7 +97,7 @@ class Hash(object):
         self.value = value
 
     def __str__(self):
-        return u"%s:%s" % (self.type, self.value.encode("hex"))
+        return u"%s:%s" % (self.type, binascii.hexlify(self.value))
 
 
 class IRHash(common.AbstractIRCommandPlugin):

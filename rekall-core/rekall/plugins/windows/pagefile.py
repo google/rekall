@@ -209,7 +209,7 @@ class WindowsFileMappingDescriptor(intel.AddressTranslationDescriptor):
 
         if subsection:
             for details in self.session.GetParameter("subsections").get(
-                    subsection.obj_offset, []):
+                    subsection.v(), []):
                 task = self.session.profile._EPROCESS(details["task"])
                 vad = self.session.profile.Object(offset=details["vad"],
                                                   type_name=details["type"])

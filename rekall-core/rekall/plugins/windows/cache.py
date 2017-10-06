@@ -269,7 +269,7 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
 
             self.session.report_progress(" Dumping %s", filename)
             with renderer.open(directory=self.dump_dir,
-                               filename=filename, mode="w") as out_fd:
+                               filename=filename, mode="wb") as out_fd:
                 filename = out_fd.name
 
                 # Sometimes we get both subsections.
@@ -284,6 +284,8 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                                   filename, renderer)
 
                 scm = file_object.SectionObjectPointer.SharedCacheMap.v()
+                if scm == None:
+                    continue
 
                 # Augment the data with the cache manager.
                 for vacb in self.vacb_by_cache_map.get(scm, []):

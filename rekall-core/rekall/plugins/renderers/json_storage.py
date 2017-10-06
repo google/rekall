@@ -68,6 +68,7 @@ the actual name was never encoded.
 """
 from builtins import str
 import arrow
+import binascii
 
 from rekall import addrspace
 from rekall import obj
@@ -298,7 +299,7 @@ class JsonHexdumpRenderer(json_renderer.StateBasedObjectRenderer):
 
     def GetState(self, item, **options):
         state = super(JsonHexdumpRenderer, self).GetState(item, **options)
-        state["value"] = utils.SmartUnicode(item.value.encode("hex"))
+        state["value"] = utils.SmartUnicode(binascii.hexlify(item.value))
         state["highlights"] = item.highlights
 
         return state

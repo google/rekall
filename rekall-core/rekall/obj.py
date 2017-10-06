@@ -1623,7 +1623,7 @@ class DummyAS(object):
         return True
 
     def read(self, _, length):
-        return "\x00" * length
+        return b"\x00" * length
 
 
 class Profile(with_metaclass(registry.MetaclassRegistry, object)):
@@ -2458,7 +2458,8 @@ class Profile(with_metaclass(registry.MetaclassRegistry, object)):
 
         # Ensure we are called correctly.
         if name.__class__ not in (str, unicode):
-            raise ValueError("Type name must be a string")
+            raise ValueError(
+                "Type name must be a string, not %s" % name.__class__)
 
         if offset is None:
             offset = 0

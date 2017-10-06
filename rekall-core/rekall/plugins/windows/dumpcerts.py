@@ -24,9 +24,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 try:
-    from M2Crypto import X509, RSA
+    from cryptography import x509
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import serialization
 except ImportError:
-    X509 = RSA = None
+    x509 = None
+
+import base64
 
 from rekall import plugin
 from rekall import scan
@@ -67,26 +71,28 @@ class CertScanner(scan.BaseScanner):
                 "unsigned be short", offset=hit+2, vm=self.address_space)
             description = None
 
-            if signature.startswith("\x30\x82"):
+            if signature.startswith(b"\x30\x82"):
                 data = self.address_space.read(hit, size + 4)
-                if X509:
+                if x509:
                     try:
-                        cert = X509.load_cert_der_string(data)
-                        description = utils.SmartStr(cert.get_subject())
-                    except X509.X509Error:
+                        cert = x509.load_der_x509_certificate(data, default_backend())
+                        description = dict((
+                            attr.oid._name, attr.value) for attr in cert.subject)
+                    except Exception:
                         pass
 
                 yield hit, "X509", data, description
 
-            elif signature.startswith("\x02\x01\x00"):
+            elif signature.startswith(b"\x02\x01\x00"):
                 data = self.address_space.read(hit, size + 4)
-                if RSA:
+                if x509:
                     try:
-                        pem = ("-----BEGIN RSA PRIVATE KEY-----\n" +
-                                 data.encode("base64") +
-                                 "-----END RSA PRIVATE KEY-----")
-                        key = RSA.load_key_string(pem)
-                        description = "Verified: %s" % key.check_key()
+                        pem = (b"-----BEGIN RSA PRIVATE KEY-----\n" +
+                               base64.b64encode(data) +
+                               b"-----END RSA PRIVATE KEY-----")
+                        key = serialization.load_pem_private_key(
+                            pem, password=None, backend=default_backend())
+                        description = ""
                     except Exception:
                         pass
 
@@ -192,26 +198,28 @@ rule pkcs {
             "unsigned be short", offset=hit+2, vm=address_space)
         description = None
 
-        if signature.startswith("\x30\x82"):
+        if signature.startswith(b"\x30\x82"):
             data = address_space.read(hit, size + 4)
-            if X509:
+            if x509:
                 try:
-                    cert = X509.load_cert_der_string(data)
-                    description = utils.SmartStr(cert.get_subject())
-                except X509.X509Error:
+                    cert = x509.load_der_x509_certificate(data, default_backend())
+                    description = dict((
+                        attr.oid._name, attr.value) for attr in cert.subject)
+                except Exception:
                     pass
 
             return "X509", data, description
 
-        elif signature.startswith("\x02\x01\x00"):
+        elif signature.startswith(b"\x02\x01\x00"):
             data = address_space.read(hit, size + 4)
-            if RSA:
+            if x509:
                 try:
-                    pem = ("-----BEGIN RSA PRIVATE KEY-----\n" +
-                             data.encode("base64") +
-                             "-----END RSA PRIVATE KEY-----")
-                    key = RSA.load_key_string(pem)
-                    description = "Verified: %s" % key.check_key()
+                    pem = (b"-----BEGIN RSA PRIVATE KEY-----\n" +
+                           base64.b64encode(data) +
+                           b"-----END RSA PRIVATE KEY-----")
+                    key = serialization.load_pem_private_key(
+                        pem, password=None, backend=default_backend())
+                    description = ""
                 except Exception:
                     pass
 
