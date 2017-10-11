@@ -18,6 +18,8 @@
 #
 
 """Address spaces specific to pmem live here."""
+from builtins import str
+from builtins import object
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 from os import path

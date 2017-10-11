@@ -19,10 +19,16 @@
 #
 
 """This module implements various visual aides and their renderers."""
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from rekall.ui import colors
 from rekall.ui import text
 from rekall_lib import utils
+import six
 
 
 class DepthIndicator(int):
@@ -104,7 +110,7 @@ class MemoryMap(object):
         # to format on the order of resolution as a hexadecimal number.
         column_tpl = "+%%0.%dx" % len("%x" % resolution)
         columns = [column_tpl % c for c
-                   in xrange(offset, resolution * column_count, resolution)]
+                   in range(offset, resolution * column_count, resolution)]
 
         row_count, r = divmod(size, column_count * resolution)
         if r:
@@ -112,7 +118,7 @@ class MemoryMap(object):
 
         row_tpl = "0x%x"
         rows = [row_tpl % (r * resolution * column_count)
-                for r in xrange(row_count)]
+                for r in range(row_count)]
 
         return rows, columns
 
@@ -184,7 +190,7 @@ class RunBasedMap(MemoryMap):
 
         # How many cells are we going to need to represent this thing?
         if cell_count:
-            resolution = (limit - offset) / cell_count
+            resolution = old_div((limit - offset), cell_count)
         else:
             cell_count, r = divmod(limit - offset, resolution)
             if r:
@@ -192,7 +198,7 @@ class RunBasedMap(MemoryMap):
 
         # Prefabricate the required cells. They contain mutable members, hence
         # this, somewhat awkward, construct.
-        cells = [self._make_cell() for _ in xrange(cell_count)]
+        cells = [self._make_cell() for _ in range(cell_count)]
 
         # Chunk up the runs and populate cells, blending RGB as needed.
         for run in runs:
@@ -213,12 +219,12 @@ class RunBasedMap(MemoryMap):
 
             # Chunks need to align to resolution increments.
             mod = start % resolution
-            for chunk in xrange(start - mod, end, resolution):
-                cell_idx = chunk / resolution
+            for chunk in range(start - mod, end, resolution):
+                cell_idx = old_div(chunk, resolution)
                 chunk_start = max(chunk, start)
                 chunk_end = min(chunk + resolution, end)
                 chunk_size = chunk_end - chunk_start
-                chunk_weight = resolution / float(chunk_size)
+                chunk_weight = old_div(resolution, float(chunk_size))
                 chunk_rgb = rgb
 
                 cell = cells[cell_idx]
@@ -248,7 +254,7 @@ class RunBasedMap(MemoryMap):
 
             room = cell_width
             string = ""
-            for sigil, _ in sorted(cell["_sigils"].iteritems(),
+            for sigil, _ in sorted(six.iteritems(cell["_sigils"]),
                                    key=lambda x: x[1], reverse=True):
                 if len(sigil) < room:
                     string += sigil
@@ -318,17 +324,17 @@ class Heatmap(MemoryMap):
         """
         buckets = []
         for hit in hits:
-            bucket_idx = hit / bucket_size
+            bucket_idx = old_div(hit, bucket_size)
 
             # Do we need to allocate more buckets?
-            for _ in xrange(bucket_idx - len(buckets) + 1):
+            for _ in range(bucket_idx - len(buckets) + 1):
                 buckets.append(0)
 
             buckets[bucket_idx] += 1
 
         ceiling = ceiling or max(*buckets)
         tpl = "%%d/%d" % ceiling
-        cells = [dict(heat=float(x) / ceiling, value=tpl % x)
+        cells = [dict(heat=old_div(float(x), ceiling), value=tpl % x)
                  for x in buckets]
 
         return cls(cells=cells)
@@ -361,8 +367,8 @@ class MapLegend(object):
 
 def HeatmapLegend():
     return MapLegend(
-        [(None, "%.1f" % (heat / 10.0), colors.HeatToRGB(heat / 10.0))
-         for heat in xrange(11)])
+        [(None, "%.1f" % (old_div(heat, 10.0)), colors.HeatToRGB(old_div(heat, 10.0)))
+         for heat in range(11)])
 
 
 class MemoryMapTextRenderer(text.TextObjectRenderer):
@@ -406,7 +412,7 @@ class MemoryMapTextRenderer(text.TextObjectRenderer):
                     fg = colors.XTermTextForBackground(bg)
 
                 cells.append(text.Cell(
-                    value=unicode(cell.get("value", "-")),
+                    value=utils.SmartUnicode(cell.get("value", "-")),
                     highlights=[dict(
                         bg=bg, fg=fg, start=0, end=-1, bold=True)],
                     colorizer=self.renderer.colorizer,

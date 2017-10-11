@@ -30,6 +30,8 @@ service running in svchost.exe and implemented as the mostly undocumented DLL
 dnsrslvr.dll.
 
 """
+from __future__ import division
+from past.utils import old_div
 import socket
 
 from rekall import scan
@@ -42,9 +44,9 @@ from rekall_lib import utils
 
 # Most common DNS types.
 DNS_TYPES = {
-    1: "A",
-    5: "CNAME",
-    28: "AAAA",
+    '1': "A",
+    '5': "CNAME",
+    '28': "AAAA",
 }
 
 types = {
@@ -254,7 +256,7 @@ class WinDNSCache(common.WindowsCommandPlugin):
             "dnsrslvr")
 
         # Now check all profiles for these symbols.
-        for profile, symbols in dnsrslvr_index.index.iteritems():
+        for profile, symbols in dnsrslvr_index.index.items():
             # Correct symbols offset for dll base address.
             lookup = dict((y[0], x + base_address) for x, y in symbols)
 
@@ -279,7 +281,7 @@ class WinDNSCache(common.WindowsCommandPlugin):
                             target_args=dict(
                                 target="DNS_HASHTABLE_ENTRY",
                             ),
-                            count=entry.Allocation.length / 8)
+                            count=old_div(entry.Allocation.length, 8))
 
         self.session.logging.info(
             "Failed to detect the exact version of dnsrslvr.dll, please "

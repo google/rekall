@@ -23,6 +23,9 @@
 @contact:      jamie.levy@gmail.com
 @organization: Volatile Systems
 """
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import datetime
 
 from rekall import obj
@@ -216,7 +219,7 @@ class UserAssist(registry.RegistryPlugin):
         # Focus time.
         try:
             timestamp = uadata.FocusTime
-            seconds = (uadata.FocusTime + 500) / 1000.0
+            seconds = old_div((uadata.FocusTime + 500), 1000.0)
             if seconds > 0:
                 timestamp = datetime.timedelta(seconds = seconds)
             outfd.write(u"{0:15} {1}\n{2:15} {3}\n".format(
@@ -245,7 +248,7 @@ class UserAssist(registry.RegistryPlugin):
 
             outfd.write("\n")
             outfd.write("Values:\n")
-            for value in key.values():
+            for value in list(key.values()):
                 # In windows 7, folder names are replaced by guids.
                 value_name = str(value.Name).decode("rot13")
                 value_name = self._resolve_gui_folders(value_name)

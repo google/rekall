@@ -52,7 +52,7 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
 
         self.assertEqual(test_obj.N1.C1, 10)
         self.check_serialization(
-            test_obj, {'N1': {'C1': 10L, '__type__': 'TestObject1'}})
+            test_obj, {'N1': {'C1': 10, '__type__': 'TestObject1'}})
 
     def testUnknownFields(self):
         """Test handling of unknown fields.

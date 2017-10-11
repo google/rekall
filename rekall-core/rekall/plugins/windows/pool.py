@@ -259,7 +259,7 @@ class Pools(common.WindowsCommandPlugin):
                 desc.Comment = "Session %s" % task.Session.SessionId
                 descriptors[desc.obj_offset] = desc
 
-        return descriptors.values()
+        return list(descriptors.values())
 
     def find_all_pool_descriptors(self):
         """Finds all unique pool descriptors."""

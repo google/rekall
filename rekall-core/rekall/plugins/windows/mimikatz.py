@@ -28,6 +28,7 @@ https://github.com/gentilkiwi/mimikatz
 
 # pylint: disable=protected-access
 
+from builtins import str
 __author__ = ("Michael Cohen <scudette@google.com> and "
               "Francesco Picasso <francesco.picasso@gmail.com>")
 
@@ -92,7 +93,7 @@ class _SID(obj.Struct):
     Reference:
     http://www.sekchek.com/downloads/white-papers/windows-about-sids.pdf
     """
-    def __unicode__(self):
+    def __str__(self):
         """Format the Sid using SDDL Notation."""
         components = [self.Revision, self.NumericIdentifier]
         components.extend(self.SubAuthority)
@@ -352,7 +353,7 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
                    cred_obj.ShaOwPassword.v().encode('hex'))
 
     def logons(self, lsass_logons):
-        for luid, lsass_logon in lsass_logons.iteritems():
+        for luid, lsass_logon in lsass_logons.items():
             for cred in lsass_logon.Credentials.walk_list('next'):
                 for primary_cred in cred.PrimaryCredentials.walk_list('next'):
 

@@ -26,13 +26,13 @@ SCAN_BLOCKSIZE = 1024 * 1024 * 10
 # Official profile repository locations. We create the initial .rekallrc from
 # this list.
 PROFILE_REPOSITORIES = [
-    "https://github.com/google/rekall-profiles/raw/master",
-    "http://profiles.rekall-forensic.com",
+    u"https://github.com/google/rekall-profiles/raw/master",
+    u"http://profiles.rekall-forensic.com",
 ]
 
 # Deprecated URLs that don't work any more.
 OLD_DEPRECATED_URLS = [
-    "https://raw.githubusercontent.com/google/rekall-profiles/master"
+    u"https://raw.githubusercontent.com/google/rekall-profiles/master"
 ]
 
 # Log domain subsystems. Various components will send log messages to these

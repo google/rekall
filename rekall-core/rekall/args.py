@@ -24,12 +24,14 @@ Rekall uses the argparse module for command line parsing, however this module
 contains so many bugs it might be worth to implement our own parser in future.
 """
 
+from past.builtins import basestring
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
 import logging
 import re
 import os
+import six
 import sys
 import zipfile
 
@@ -287,7 +289,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
         groups[command_metadata.plugin_cls.name] = parser.add_argument_group(
             "Plugin %s options" % command_metadata.plugin_cls.name)
 
-    for name, options in command_metadata.args.iteritems():
+    for name, options in six.iteritems(command_metadata.args):
         # We need to modify options to feed into argparse.
         options = options.copy()
 
@@ -296,7 +298,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
             options["help"] = argparse.SUPPRESS
 
         # Prevent None getting into the kwargs because it upsets argparser.
-        kwargs = dict((k, v) for k, v in options.items() if v is not None)
+        kwargs = dict((k, v) for k, v in six.iteritems(options) if v is not None)
         name = kwargs.pop("name", None) or name
 
         # If default is specified we assume the parameter is not required.

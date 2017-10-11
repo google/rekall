@@ -16,7 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """This module implements filesystem-related plugins for Linux."""
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from rekall import testlib
 
 from rekall.plugins import core
@@ -118,7 +122,7 @@ class Mfind(common.LinuxPlugin):
             if device != None and mountpoint.device != device:
                 continue
 
-            if path and not path.startswith(unicode(mountpoint.name)):
+            if path and not path.startswith(str(mountpoint.name)):
                 continue
 
             current_file = vfs.File(mountpoint=mountpoint,
@@ -126,7 +130,7 @@ class Mfind(common.LinuxPlugin):
                                     is_root=True,
                                     session=self.session)
 
-            if path == unicode(mountpoint.name):
+            if path == str(mountpoint.name):
                 # Return a file for the mountpoint root
                 yield current_file
             else:
@@ -258,7 +262,7 @@ class Mcat(core.DirectoryDumperMixin, Mfind):
 
                     fd.seek(range_start)
                     for offset in range(range_start, range_end, page_size):
-                        page_index = offset / page_size
+                        page_index = old_div(offset, page_size)
                         to_write = min(page_size, file_obj.size - offset)
                         data = file_obj.GetPage(page_index)
                         if data != None:

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from rekall import utils
 import subprocess
 import re

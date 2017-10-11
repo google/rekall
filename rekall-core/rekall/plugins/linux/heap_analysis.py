@@ -30,7 +30,11 @@
 This module implements several classes, allowing the glibc heap analysis for a
 given process.
 """
+from __future__ import print_function
 
+from builtins import str
+from builtins import hex
+from builtins import range
 import re
 import pdb
 import struct
@@ -225,7 +229,7 @@ class HeapAnalysis(common.LinProcessFilter):
 
                 else:
                     for offsets in thread_stack_offsets:
-                        if (('start_stack' in offsets.keys() and
+                        if (('start_stack' in list(offsets.keys()) and
                              vma.vm_start <= offsets['start_stack']
                              <= vma.vm_end) or
                                 vma.vm_start <= offsets['ebp'] <= vma.vm_end or
@@ -316,7 +320,7 @@ class HeapAnalysis(common.LinProcessFilter):
             self.profile.add_types(libc_profile.vtypes)
             self.profile.add_constants(libc_profile.constants)
 
-            if all(x in self.profile.vtypes.keys() for x in
+            if all(x in list(self.profile.vtypes.keys()) for x in
                    ['malloc_chunk', 'malloc_state',
                     'malloc_par', '_heap_info']):
                 self._libc_profile_success = True
@@ -2548,7 +2552,7 @@ class HeapAnalysis(common.LinProcessFilter):
                         chunk_to_add = chunk
 
 
-                    if chunk_to_add not in chunks.keys():
+                    if chunk_to_add not in list(chunks.keys()):
                         # in the case, multiple addresses match the same chunk:
                         chunks[chunk_to_add] = set()
 
@@ -2610,11 +2614,11 @@ class HeapAnalysis(common.LinProcessFilter):
 
             for hit in hits:
                 if start <= hit['hit'] < end:
-                    if chunk not in result.keys():
+                    if chunk not in list(result.keys()):
                         result[chunk] = {hit['needle']: {hit['hit']}}
 
                     else:
-                        if hit['needle'] not in result[chunk].keys():
+                        if hit['needle'] not in list(result[chunk].keys()):
                             result[chunk][hit['needle']] = {hit['hit']}
 
                         else:
@@ -2880,7 +2884,7 @@ class HeapAnalysis(common.LinProcessFilter):
         hidden_next_chunks = [x.next_chunk() for x in self._hidden_chunks]
 
         # now we get only the slack space for the hidden chunks
-        vma_sum += sum([y for x, y in self._mmap_slack_space.iteritems()
+        vma_sum += sum([y for x, y in self._mmap_slack_space.items()
                         if x in hidden_next_chunks])
 
         vma_sum -= self._first_chunk_distance
@@ -3435,7 +3439,7 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
             output_file.write(data)
 
         except:
-            print traceback.format_exc()
+            print(traceback.format_exc())
 
         finally:
             try:
@@ -3476,8 +3480,8 @@ class HeapPointerSearch(HeapAnalysis):
                             search_string=self.plugin_args.string,
                             search_struct=self.plugin_args.search_struct)
 
-                        for chunk, needles in temp_hits.iteritems():
-                            if chunk in hits.keys():
+                        for chunk, needles in temp_hits.items():
+                            if chunk in list(hits.keys()):
                                 hits[chunk].update(needles)
 
                             else:
@@ -3489,8 +3493,8 @@ class HeapPointerSearch(HeapAnalysis):
                             search_regex=self.plugin_args.regex,
                             search_struct=self.plugin_args.search_struct)
 
-                        for chunk, needles in temp_hits.iteritems():
-                            if chunk in hits.keys():
+                        for chunk, needles in temp_hits.items():
+                            if chunk in list(hits.keys()):
                                 hits[chunk].update(needles)
 
                             else:
@@ -3523,8 +3527,8 @@ class HeapPointerSearch(HeapAnalysis):
                             if base_chunk.prev_inuse():
                                 start += base_chunk.get_prev_size().obj_size
 
-                            pointers = range(
-                                start, sum(base_chunk.start_and_length()))
+                            pointers = list(range(
+                                start, sum(base_chunk.start_and_length())))
 
                             # now, we search in all chunks for pointers to the
                             # chunks of interest
@@ -3535,11 +3539,11 @@ class HeapPointerSearch(HeapAnalysis):
 
                             # temp_hits: chunks that contain a pointer to one
                             # of the chunks of interest and the pointer values
-                            for hit_chunk, data in temp_hits.iteritems():
-                                if hit_chunk not in hits.keys():
+                            for hit_chunk, data in temp_hits.items():
+                                if hit_chunk not in list(hits.keys()):
                                     hits[hit_chunk] = {base_chunk: data}
 
-                                elif base_chunk not in hits[hit_chunk].keys():
+                                elif base_chunk not in list(hits[hit_chunk].keys()):
                                     hits[hit_chunk][base_chunk] = data
 
                                 else:
@@ -3560,12 +3564,12 @@ class HeapPointerSearch(HeapAnalysis):
                         renderer.write("{0:s} Search results {0:s}"
                                        .format('=' * 18))
 
-                    for chunk, needles in hits.iteritems():
+                    for chunk, needles in hits.items():
                         renderer.write("\n\n")
                         renderer.write("The chunk (0x{:X}) below contains:\n\n"
                                        .format(chunk.v()))
 
-                        for needle, data in needles.iteritems():
+                        for needle, data in needles.items():
                             if isinstance(needle, malloc_chunk):
                                 renderer.write(
                                     "The following pointers at the given "
@@ -3574,7 +3578,7 @@ class HeapPointerSearch(HeapAnalysis):
 
                                 renderer.write("Pointer    Offset(s)\n")
                                 renderer.write("----------------------\n")
-                                for pointer, offsets in data.iteritems():
+                                for pointer, offsets in data.items():
                                     renderer.write(
                                         "0x{:X}: ".format(pointer)
                                         + ', '.join(["0x{:X}".format(x) for x
@@ -3664,7 +3668,7 @@ class HeapReferenceSearch(HeapAnalysis):
             if temp == 0:
                 continue
 
-            elif temp in offset_and_pointers.keys():
+            elif temp in list(offset_and_pointers.keys()):
                 offset_and_pointers[temp].append(i)
 
             else:
@@ -3672,10 +3676,10 @@ class HeapReferenceSearch(HeapAnalysis):
 
 
         # gathers a list of chunks, referenced by the potential chunk pointers
-        chunks = self.get_chunks_for_addresses(offset_and_pointers.keys())
+        chunks = self.get_chunks_for_addresses(list(offset_and_pointers.keys()))
 
-        for chunk, pointers in chunks.iteritems():
-            for pointer_offset, offsets in offset_and_pointers.iteritems():
+        for chunk, pointers in chunks.items():
+            for pointer_offset, offsets in offset_and_pointers.items():
                 for pointer in pointers:
                     if pointer == pointer_offset:
                         for offset in offsets:
@@ -3693,7 +3697,7 @@ class HeapReferenceSearch(HeapAnalysis):
     def _get_next_color_index(self, pointer):
         """Returns color index values that are easy to read on command line."""
 
-        if pointer not in self._color_index_dict.keys():
+        if pointer not in list(self._color_index_dict.keys()):
             self._current_color_index += 1
 
             while self._current_color_index in self._color_index_blacklist:
@@ -3718,7 +3722,7 @@ class HeapReferenceSearch(HeapAnalysis):
                 chunks = self.get_chunks_for_addresses(
                     self.plugin_args.chunk_addresses, ignore_prevsize=True)
 
-                for chunk, pointers in chunks.iteritems():
+                for chunk, pointers in chunks.items():
                     renderer.write("\n\n")
                     renderer.write(
                         "Examining chunk at offset 0x{:X}, belonging to the "

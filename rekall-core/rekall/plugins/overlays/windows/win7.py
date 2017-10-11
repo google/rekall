@@ -26,6 +26,8 @@ This file provides support for windows Windows 7 SP 0.
 """
 
 # pylint: disable=protected-access
+from builtins import chr
+from builtins import range
 from rekall import addrspace
 from rekall import kb
 from rekall import obj
@@ -263,11 +265,11 @@ class _MMADDRESS_NODE(common.VadTraverser):
     """
 
     ## The actual type depends on this tag value.
-    tag_map = {'Vadl': '_MMVAD_LONG',
-               'VadS': '_MMVAD_SHORT',
-               'Vad ': '_MMVAD',
-               'VadF': '_MMVAD_SHORT',
-               'Vadm': '_MMVAD_LONG',
+    tag_map = {b'Vadl': '_MMVAD_LONG',
+               b'VadS': '_MMVAD_SHORT',
+               b'Vad ': '_MMVAD',
+               b'VadF': '_MMVAD_SHORT',
+               b'Vadm': '_MMVAD_LONG',
               }
 
 

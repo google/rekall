@@ -25,6 +25,7 @@
 @organization: Volatile Systems
 """
 
+from builtins import str
 import hashlib
 import struct
 

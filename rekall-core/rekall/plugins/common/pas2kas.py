@@ -22,6 +22,7 @@
 
 # pylint: disable=protected-access
 
+from builtins import object
 import bisect
 
 from rekall import testlib

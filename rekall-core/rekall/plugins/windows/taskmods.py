@@ -23,6 +23,8 @@
 
 # pylint: disable=protected-access
 
+from future import standard_library
+standard_library.install_aliases()
 from rekall import testlib
 from rekall_lib import utils
 

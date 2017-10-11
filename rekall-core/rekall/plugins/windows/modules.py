@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import str
 from rekall import plugin
 from rekall import scan
 from rekall.plugins.windows import common
@@ -78,7 +79,7 @@ class RSDSScanner(scan.BaseScanner):
     """Scan for RSDS objects."""
 
     checks = [
-        ("StringCheck", dict(needle="RSDS"))
+        ("StringCheck", dict(needle=b"RSDS"))
         ]
 
 
@@ -159,14 +160,14 @@ class VersionScan(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
                 offset=hit, vm=self.physical_address_space)
 
             # The filename must end with pdb for valid pdb.
-            if not unicode(rsds.Filename).endswith("pdb"):
+            if not str(rsds.Filename).endswith("pdb"):
                 continue
 
             guid = rsds.GUID_AGE
             if guid not in guids:
                 guids.add(guid)
 
-                if self.plugin_args.name_regex.search(unicode(rsds.Filename)):
+                if self.plugin_args.name_regex.search(str(rsds.Filename)):
                     yield rsds, guid
 
     def collect(self):

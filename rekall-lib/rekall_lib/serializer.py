@@ -102,6 +102,9 @@ type(new_message.field1) == ExtraLocation
 
 
 """
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import collections
 import json
 import yaml
@@ -110,6 +113,7 @@ import arrow
 
 from rekall_lib import registry
 from rekall_lib import utils
+from future.utils import with_metaclass
 
 
 def StripImpl(name):
@@ -148,7 +152,7 @@ class FieldDescriptor(object):
 class IntDescriptor(FieldDescriptor):
     def validate(self, value, session=None):
         _ = session
-        return long(value)
+        return int(value)
 
     def get_default(self, session=None):
         return self.descriptor.get("default", 0)
@@ -209,10 +213,10 @@ class UnicodeDescriptor(FieldDescriptor):
         if not isinstance(value, basestring):
             raise ValueError("Value must be unicode string")
 
-        return unicode(value)
+        return str(value)
 
     def get_default(self, session=None):
-        return unicode(self.descriptor.get("default", ""))
+        return str(self.descriptor.get("default", ""))
 
 
 class StringDescriptor(FieldDescriptor):
@@ -244,7 +248,7 @@ class ChoicesDescriptor(FieldDescriptor):
         if value not in choices:
             raise ValueError("Value must be one of %s" % choices)
 
-        return unicode(value)
+        return str(value)
 
 
 class NestedDescriptor(FieldDescriptor):
@@ -262,7 +266,7 @@ class NestedDescriptor(FieldDescriptor):
             return value
 
         # Assign a dict to this object, parse from primitive.
-        elif isinstance(value, (dict, basestring, int, long, float)):
+        elif isinstance(value, (dict, basestring, int, int, float)):
             return nested_cls.from_primitive(value, session=session)
 
         # A subclass is assigned.
@@ -358,7 +362,7 @@ class RepeatedDescriptor(FieldDescriptor):
 
     def __init__(self, descriptor):
         super(RepeatedDescriptor, self).__init__(descriptor)
-        field_type = descriptor.get("type", unicode)
+        field_type = descriptor.get("type", str)
         field_name = descriptor["name"]
 
         # If the type is a class then check the name in the dispatcher.
@@ -407,7 +411,7 @@ class RepeatedDescriptor(FieldDescriptor):
 # This dispatches the class implementing as declared type.
 DISPATCHER = dict(
     int=IntDescriptor,
-    unicode=UnicodeDescriptor,
+    str=UnicodeDescriptor,
     str=StringDescriptor,
     bytes=StringDescriptor,
     choices=ChoicesDescriptor,
@@ -472,10 +476,8 @@ class SerializedObjectCompiler(registry.MetaclassRegistry):
             mcs, cls_name, parents, dct)
 
 
-class SerializedObject(object):
+class SerializedObject(with_metaclass(SerializedObjectCompiler, object)):
     """An object with a fixed schema which can be easily serialized."""
-
-    __metaclass__ = SerializedObjectCompiler
 
     # This contains the object's schema.
     schema = [
@@ -571,7 +573,7 @@ class SerializedObject(object):
             session = Session()
 
         result = cls(session=session)
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             result.SetMember(k, v)
 
         return result
@@ -593,7 +595,7 @@ class SerializedObject(object):
 
     @classmethod
     def get_descriptors(cls):
-        return [x.descriptor for x in cls._descriptors.itervalues()]
+        return [x.descriptor for x in cls._descriptors.values()]
 
     def HasMember(self, name):
         return name in self._data
@@ -669,12 +671,12 @@ class SerializedObject(object):
         if _other:
             kwargs.update(_other)
 
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             self.SetMember(k, v)
 
     def merge(self, other):
         """Merge the other object into this one."""
-        for k, v in other.iteritems():
+        for k, v in other.items():
             if isinstance(v, SerializedObject):
                 self.GetMember(k).merge(v)
             else:
@@ -685,7 +687,7 @@ class SerializedObject(object):
     def to_primitive(self, with_type=True):
         """Convert ourselves to a dict."""
         result = self._unknowns.copy()
-        for k, v in self.iteritems():
+        for k, v in self.items():
             result[k] = self._descriptors[k].to_primitive(
                 v, with_type=with_type)
 
@@ -724,7 +726,7 @@ class SerializedObject(object):
 
         result = data_cls(session=session)
 
-        for k, v in data.iteritems():
+        for k, v in data.items():
             if k == "__type__":
                 continue
             descriptor = data_cls._descriptors.get(k)
@@ -741,7 +743,7 @@ class SerializedObject(object):
 
         return result
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._data)
 
     def __eq__(self, other):
@@ -751,7 +753,7 @@ class SerializedObject(object):
         return self._data == other._data
 
     def __unicode__(self):
-        return unicode(self.to_primitive())
+        return str(self.to_primitive())
 
     def __repr__(self):
         return repr(self.to_primitive())
@@ -782,7 +784,7 @@ class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):
     def to_yaml(cls, dumper, data):
         value = []
         node = yaml.nodes.MappingNode(cls.yaml_tag, value)
-        for key, item in data.iteritems():
+        for key, item in data.items():
             node_key = dumper.represent_data(key)
             node_value = dumper.represent_data(item)
             value.append((node_key, node_value))
@@ -802,7 +804,7 @@ class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):
             key = loader.construct_object(key_node, deep=deep)
             try:
                 hash(key)
-            except TypeError, exc:
+            except TypeError as exc:
                 raise yaml.loader.ConstructorError(
                     "while constructing a mapping", node.start_mark,
                     "found unacceptable key (%s)" % exc, key_node.start_mark)
@@ -817,7 +819,7 @@ class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):
         """Parse the yaml file into an OrderedDict so we can preserve order."""
         fields = cls.construct_mapping(loader, node, deep=True)
         result = cls()
-        for k, v in fields.items():
+        for k, v in list(fields.items()):
             result[k] = v
 
         return result
@@ -830,7 +832,7 @@ def load_from_dicts(data, names=None):
     """
     # If not specified define all the classes.
     if names is None:
-        names = data.keys()
+        names = list(data.keys())
 
     result = {}
     for name in names:

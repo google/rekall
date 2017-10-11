@@ -1,3 +1,4 @@
+from builtins import str
 import os
 import mock
 
@@ -5,6 +6,8 @@ from rekall import testlib
 from rekall import utils
 from rekall.plugins.response import common
 from rekall.plugins.response import files
+
+from rekall_lib import utils
 
 
 class TestGlob(testlib.RekallBaseUnitTestCase):
@@ -37,21 +40,21 @@ class TestGlob(testlib.RekallBaseUnitTestCase):
 
         path_spec = common.FileSpec("/etc")
         result = list(literal.filter(path_spec))
-        self.assertTrue("/etc/passwd" in [unicode(x) for x in result])
+        self.assertTrue("/etc/passwd" in [utils.SmartUnicode(x) for x in result])
 
         regex = files.RegexComponent(session=self.session,
                                      cache=self.component_cache,
                                      component="pass.+")
 
         result = list(regex.filter(path_spec))
-        self.assertTrue("/etc/passwd" in [unicode(x) for x in result])
+        self.assertTrue("/etc/passwd" in [str(x) for x in result])
 
         recursive = files.RecursiveComponent(session=self.session,
                                              cache=self.component_cache,
                                              component=".+")
 
         result = list(recursive.filter(path_spec))
-        self.assertTrue("/etc/ssh/ssh_config" in [unicode(x) for x in result])
+        self.assertTrue("/etc/ssh/ssh_config" in [str(x) for x in result])
 
     def _touch(self, path):
         with open(path, "wb") as fd:
@@ -70,14 +73,14 @@ class TestGlob(testlib.RekallBaseUnitTestCase):
         glob_plugin = files.IRGlob(session=self.session, globs=[
             self.temp_directory + "/*.txt"])
         result = list(glob_plugin.collect())
-        self.assertTrue("boo.txt" in [os.path.basename(unicode(x["path"].filename))
+        self.assertTrue("boo.txt" in [os.path.basename(str(x["path"].filename))
                                       for x in result])
         self.assertEqual(len(result), 1)
 
         glob_plugin = files.IRGlob(session=self.session, globs=[
             self.temp_directory + "/**/*.txt"])
         result = list(glob_plugin.collect())
-        paths = [os.path.basename(unicode(x["path"].filename))
+        paths = [os.path.basename(str(x["path"].filename))
                  for x in result]
         self.assertEqual(["boo.txt", "boo2.txt"], paths)
 

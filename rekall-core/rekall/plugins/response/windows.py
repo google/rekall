@@ -1,4 +1,5 @@
 """Windows specific response plugins."""
+from builtins import str
 import itertools
 import re
 import win32api
@@ -97,7 +98,7 @@ class WindowsRootFileInformation(common.FileInformation):
     def __init__(self, **kwargs):
         super(WindowsRootFileInformation, self).__init__(**kwargs)
         # The fake root is like a directory.
-        self.st_mode = common.Permissions(040755)
+        self.st_mode = common.Permissions(0o40755)
 
     def open(self):
         return obj.NoneObject("Not set")
@@ -156,7 +157,7 @@ class WinAPIAddressResponse(address_resolver.AddressResolverMixin,
 
     @staticmethod
     def NormalizeModuleName(module_name):
-        result = unicode(module_name)
+        result = str(module_name)
         result = re.split(r"[/\\]", result)[-1]
 
         # Drop the file extension.

@@ -24,6 +24,8 @@ AFF4 images. The difference being that this plugin will apply live analysis to
 acquire more relevant information (e.g. mapped files etc).
 """
 
+from builtins import str
+from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
 import platform
 import glob
@@ -532,7 +534,7 @@ class AFF4Acquire(AbstractAFF4Plugin):
 
     def copy_page_file(self, resolver, volume):
         pagefiles = self.session.GetParameter("pagefiles")
-        for filename, _ in pagefiles.values():
+        for filename, _ in list(pagefiles.values()):
             yield ("Imaging pagefile {0}\n".format(filename),)
             for x in self._copy_raw_file_to_image(resolver, volume, filename):
                 yield x
@@ -737,9 +739,9 @@ class AFF4Ls(AbstractAFF4Plugin):
         if not isinstance(urn, rdfvalue.URN):
             return urn
 
-        urn = unicode(urn)
+        urn = str(urn)
 
-        for k, v in self.namespaces.iteritems():
+        for k, v in self.namespaces.items():
             if urn.startswith(k):
                 return "%s%s" % (v, urn[len(k):])
 
@@ -757,7 +759,7 @@ class AFF4Ls(AbstractAFF4Plugin):
                 subjects = self.interesting_streams(volume)
 
             for subject in sorted(subjects):
-                urn = unicode(subject)
+                urn = str(subject)
                 filename = None
                 if (self.resolver.Get(subject, lexicon.AFF4_CATEGORY) ==
                         lexicon.AFF4_MEMORY_PHYSICAL):
@@ -789,19 +791,19 @@ class AFF4Ls(AbstractAFF4Plugin):
         for (subject, _, value) in self.resolver.QueryPredicate(
                 lexicon.AFF4_STREAM_ORIGINAL_FILENAME):
             # Normalize the filename for case insensitive filesysyems.
-            urn = unicode(subject)
-            urns[urn] = unicode(value)
+            urn = str(subject)
+            urns[urn] = str(value)
 
         for (subject, _, value) in self.resolver.QueryPredicate(
                 lexicon.AFF4_CATEGORY):
-            urn = unicode(subject)
+            urn = str(subject)
             if value == lexicon.AFF4_MEMORY_PHYSICAL:
                 urns[urn] = "Physical Memory"
 
         # Add metadata files.
         for subject in self.resolver.QuerySubject(
                 re.compile(".+(yaml|turtle)")):
-            urn = unicode(subject)
+            urn = str(subject)
             urns[urn] = volume.urn.RelativePath(urn)
 
         return urns
@@ -892,8 +894,8 @@ class AFF4Export(core.DirectoryDumperMixin, AbstractAFF4Plugin):
 
         volume_urn = rdfvalue.URN().FromFileName(self.plugin_args.volume)
         with zip.ZipFile.NewZipFile(self.resolver, volume_urn) as volume:
-            for urn, filename in aff4ls.interesting_streams(
-                    volume).items():
+            for urn, filename in list(aff4ls.interesting_streams(
+                    volume).items()):
                 if self.plugin_args.regex.match(filename):
                     # Force the file to be under the dumpdir.
                     filename = self._sanitize_filename(filename)

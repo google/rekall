@@ -39,6 +39,7 @@ http://mista.nu/research/mandt-win32k-paper.pdf
 http://volatility-labs.blogspot.de/2012/09/movp-31-detecting-malware-hooks-in.html
 """
 
+from builtins import str
 from rekall import obj
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import constants

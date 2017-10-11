@@ -25,6 +25,7 @@
 # this code in Rekall Memory Forensics.
 
 """ A Hiber file Address Space """
+from builtins import range
 from rekall import addrspace
 from rekall import obj
 from rekall import utils

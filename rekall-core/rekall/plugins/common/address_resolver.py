@@ -17,7 +17,12 @@
 #
 
 """The module implements the base class for address resolution."""
+from __future__ import division
 
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import re
@@ -52,7 +57,7 @@ class Module(object):
         self.session = session
 
     def __str__(self):
-        return "%s: %s" % (self.__class__.__name__, self.name)
+        return u"%s: %s" % (self.__class__.__name__, self.name)
 
 
 class AddressResolverMixin(object):
@@ -136,7 +141,7 @@ class AddressResolverMixin(object):
 
     def NormalizeModuleName(self, module_name):
         if module_name is not None:
-            module_name = unicode(module_name)
+            module_name = utils.SmartUnicode(module_name)
             module_name = re.split(r"[/\\]", module_name)[-1]
 
             return module_name.lower()
@@ -207,7 +212,7 @@ class AddressResolverMixin(object):
 
     def GetAllModules(self):
         self._EnsureInitialized()
-        return self._modules_by_name.values()
+        return list(self._modules_by_name.values())
 
     def get_constant_object(self, name, target=None, **kwargs):
         """Instantiate the named constant with these args.
@@ -386,7 +391,7 @@ class AddressResolverMixin(object):
                 # Next lowest index is a whole number of items.
                 item = member_obj[0]
                 next_lowest_index = (
-                    offset - member_obj.obj_offset) / item.obj_size
+                    offset - member_obj.obj_offset) // item.obj_size
                 result += "[%s]" % next_lowest_index
 
                 member_obj = member_obj[next_lowest_index]

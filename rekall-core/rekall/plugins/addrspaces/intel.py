@@ -71,7 +71,12 @@ and returns it. This is essentially a noop for any of the other descriptors and
 therefore maintains the same speed benefits.
 
 """
-import StringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+import io
 import struct
 
 from rekall import addrspace
@@ -175,9 +180,9 @@ class DescriptorCollection(object):
         except KeyError:
             return obj.NoneObject("No descriptor found.")
 
-    def __unicode__(self):
+    def __str__(self):
         """Render ourselves into a string."""
-        fd = StringIO.StringIO()
+        fd = io.StringIO()
         ui_renderer = text_renderer.TextRenderer(
             session=self.session, fd=fd)
 
@@ -464,7 +469,7 @@ class IA32PagedMemory(addrspace.PagedReader):
                         address_space=self.base)
 
     def __str__(self):
-        return "%s@0x%08X (%s)" % (self.__class__.__name__, self.dtb, self.name)
+        return u"%s@0x%08X (%s)" % (self.__class__.__name__, self.dtb, self.name)
 
     def __eq__(self, other):
         return (super(IA32PagedMemory, self).__eq__(other) and

@@ -22,6 +22,10 @@
 
 """This module adds support for incident response to Rekall."""
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@google.com>"
 import platform
 import os
@@ -106,7 +110,7 @@ class FileSpec(utils.SlottedObject):
         return ""
 
     def components(self):
-        return filter(None, self.name.split(self.path_sep))
+        return [_f for _f in self.name.split(self.path_sep) if _f]
 
     def os_path(self):
         """Get a path suitable to be used with os APIs."""
@@ -167,13 +171,13 @@ class User(utils.SlottedObject):
     def __int__(self):
         return self.uid
 
-    def __unicode__(self):
+    def __str__(self):
         if self.username:
             return u"%s (%s)" % (self.username, self.uid)
         elif self.uid is not None:
-            return unicode(self.uid)
+            return utils.SmartUnicode(self.uid)
 
-        return ""
+        return u""
 
 
 class Group(utils.SlottedObject):
@@ -201,14 +205,14 @@ class Group(utils.SlottedObject):
     def __int__(self):
         return self.gid
 
-    def __unicode__(self):
+    def __str__(self):
         if self.group_name:
             return u"%s (%s)" % (self.group_name, self.gid)
 
         elif self.gid is not None:
-            return unicode(self.gid)
+            return utils.SmartUnicode(self.gid)
 
-        return ""
+        return u""
 
 
 class FileInformation(utils.SlottedObject):
@@ -293,10 +297,9 @@ class FileInformation(utils.SlottedObject):
             pass
 
 
-class Permissions(object):
+class Permissions(with_metaclass(registry.UniqueObjectIdMetaclass, object)):
 
     """An object to represent permissions."""
-    __metaclass__ = registry.UniqueObjectIdMetaclass
 
     # Taken from Python3.3's stat.filemode.
     _filemode_table = (
@@ -338,8 +341,8 @@ class Permissions(object):
                     perm.append(char)
                     break
             else:
-                perm.append("-")
-        return "".join(perm)
+                perm.append(u"-")
+        return u"".join(perm)
 
     def __int__(self):
         return self.value
@@ -347,7 +350,7 @@ class Permissions(object):
     def __str__(self):
         return self.filemode(self.value)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.filemode(self.value)
 
     def is_dir(self):

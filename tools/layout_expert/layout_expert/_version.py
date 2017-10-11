@@ -12,10 +12,10 @@ def get_versions():
 def raw_versions():
     return json.loads("""
 {
-    "codename": "Hurricane Ridge", 
-    "version": "1.7.0", 
-    "post": "0", 
-    "rc": "1"
+    "codename": "Hurricane Ridge",
+    "post": "1",
+    "rc": "1",
+    "version": "1.7.0"
 }
 """)
 
@@ -43,7 +43,7 @@ def get_version_file_path(version_file="version.yaml"):
         return os.path.join(subprocess.check_output(
             ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.PIPE,
             cwd=MY_DIR,
-        ).strip(), version_file)
+        ).decode("utf-8").strip(), version_file)
     except (OSError, subprocess.CalledProcessError):
         return None
 

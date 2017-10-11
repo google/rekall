@@ -18,6 +18,7 @@
 #
 
 """A parser for dwarf modules which generates vtypes."""
+from builtins import object
 import logging
 
 from elftools import construct
@@ -33,6 +34,11 @@ from elftools.dwarf.descriptions import describe_attr_value
 
 from rekall import plugin
 from rekall_lib import utils
+
+import six
+
+if six.PY3:
+    long = int
 
 
 
@@ -107,7 +113,7 @@ class DIETag(object):
         if parents:
             self.parent = parents[-1]
 
-        for attr in die.attributes.values():
+        for attr in list(die.attributes.values()):
             self.attributes[attr.name] = attr
 
     @utils.safe_property
@@ -122,7 +128,7 @@ class DIETag(object):
             if sibling and sibling.die.tag == "DW_TAG_typedef":
                 return sibling.name
 
-        return "__unnamed_%s" % self.die.offset
+        return utils.SmartStr("__unnamed_%s" % self.die.offset)
 
     @utils.safe_property
     def type_id(self):
@@ -166,7 +172,7 @@ class DW_TAG_structure_type(DIETag):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
         else:
-            return "__unnamed_%s" % self.die.offset
+            return utils.SmartStr("__unnamed_%s" % self.die.offset)
 
     @utils.safe_property
     def size(self):
@@ -192,8 +198,8 @@ class DW_TAG_structure_type(DIETag):
                 name = member.name
 
                 # Make nicer names for annonymous things (usually unions).
-                if name.startswith("__unnamed_"):
-                    name = "u%s" % count
+                if name.startswith(b"__unnamed_"):
+                    name = utils.SmartStr("u%s" % count)
                     count += 1
 
                 result[1][name] = member.VType()
@@ -215,7 +221,7 @@ class DW_TAG_union_type(DW_TAG_structure_type):
             if sibling and sibling.die.tag == "DW_TAG_typedef":
                 return sibling.name
 
-        return "__unnamed_%s" % self.die.offset
+        return utils.SmartStr("__unnamed_%s" % self.die.offset)
 
 
 class DW_TAG_pointer_type(DIETag):

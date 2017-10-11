@@ -18,7 +18,9 @@
 #
 
 """Rekall specifies an external API where plugins can be invoked."""
+from past.builtins import basestring
 import copy
+import six
 import textwrap
 
 from rekall import config
@@ -107,7 +109,7 @@ class APIGenerator(plugin.TypedProfileCommand,
 
     def generate_api(self):
         # All plugins are registered with the base plugin.
-        for plugin_name, cls in sorted(self.classes.iteritems()):
+        for plugin_name, cls in sorted(six.iteritems(self.classes)):
             if not cls.name:
                 continue
 
@@ -151,8 +153,8 @@ class APISessionGenerator(APIGenerator):
 
     def collect(self):
         apis = []
-        for option, api in config.OPTIONS.args.items():
-            for k, v in api.items():
+        for option, api in six.iteritems(config.OPTIONS.args):
+            for k, v in list(api.items()):
                 if callable(v):
                     api[k] = v()
 

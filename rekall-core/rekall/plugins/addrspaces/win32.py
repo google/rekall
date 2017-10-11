@@ -20,6 +20,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 """This is a windows specific address space."""
+from builtins import zip
+from builtins import range
+from builtins import object
 import os
 import struct
 import weakref
@@ -212,9 +215,9 @@ class WinPmemAddressSpace(Win32AddressSpace):
             raise IOError("Unable to open %s: %s" % (path, e))
 
     FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
-              ["KPCR%02d" % i for i in xrange(32)] +
+              ["KPCR%02d" % i for i in range(32)] +
               ["PfnDataBase", "PsLoadedModuleList", "PsActiveProcessHead"] +
-              ["Padding%s" % i for i in xrange(0xff)] +
+              ["Padding%s" % i for i in range(0xff)] +
               ["NumberOfRuns"])
 
     def ParseMemoryRuns(self, fhandle):
@@ -232,7 +235,7 @@ class WinPmemAddressSpace(Win32AddressSpace):
             fmt_string, result)))
 
         offset = struct.calcsize(fmt_string)
-        for x in xrange(self.memory_parameters["NumberOfRuns"]):
+        for x in range(self.memory_parameters["NumberOfRuns"]):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             self.add_run(start, start, length, self.fhandle_as)
 

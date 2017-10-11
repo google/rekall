@@ -80,6 +80,10 @@ $ ls -l Ubuntu-3.0.0-32-generic-pae.*
 Now simply specify the rekall profile using the --profile command line arg.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+from future.utils import with_metaclass
 __author__ = (
     "Michael Cohen <scudette@google.com>",
     "Jordi Sanchez <nop@google.com>"
@@ -90,7 +94,7 @@ import itertools
 import json
 import os
 import re
-import StringIO
+import io
 
 from rekall import io_manager
 from rekall import obj
@@ -106,10 +110,8 @@ from rekall_lib import registry
 from rekall_lib import utils
 
 
-class ProfileConverter(object):
+class ProfileConverter(with_metaclass(registry.MetaclassRegistry, object)):
     """Base class for converters."""
-
-    __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
     def __init__(self, input, profile_class=None, session=None):
@@ -168,7 +170,7 @@ class LinuxConverter(ProfileConverter):
         for line in system_map.splitlines():
             try:
                 (address, _, symbol) = line.strip().split()
-                sys_map[symbol] = long(address, 16) & 0xFFFFFFFFFFFF
+                sys_map[symbol] = int(address, 16) & 0xFFFFFFFFFFFF
             except ValueError:
                 pass
 
@@ -240,7 +242,7 @@ class LinuxConverter(ProfileConverter):
             if ko_file:
                 self.session.logging.info(
                     "Converting Linux profile with ko module.")
-                parser = dwarfparser.DWARFParser(StringIO.StringIO(ko_file),
+                parser = dwarfparser.DWARFParser(io.StringIO(ko_file),
                                                  session=self.session)
 
                 profile_file = self.BuildProfile(system_map, parser.VType(),
@@ -294,7 +296,7 @@ class OSXConverter(LinuxConverter):
                 m = self.DLSYM_REGEX.search(line)
                 if m:
                     try:
-                        sys_map[m.group(2)] = long(m.group(1), 16)
+                        sys_map[m.group(2)] = int(m.group(1), 16)
                     except ValueError:
                         pass
 
@@ -496,8 +498,8 @@ class BuildIndex(plugin.Command):
 
         # The following algorithm is very slow O(n^2) but there aren't that many
         # profiles in the index.
-        for profile, data in index.iteritems():
-            for profile2, data2 in index.iteritems():
+        for profile, data in index.items():
+            for profile2, data2 in index.items():
                 overlap = []
 
                 # Don't report collisions with the same profile.
@@ -648,7 +650,7 @@ class BuildIndex(plugin.Command):
 
             metadata = index[relative_path] = data["$METADATA"]
             offsets = metadata["offsets"] = {}
-            for struct, fields in spec["members"].items():
+            for struct, fields in list(spec["members"].items()):
                 for field in fields:
                     try:
                         offsets["%s.%s" % (struct, field)] = (
@@ -680,7 +682,7 @@ class BuildIndex(plugin.Command):
 
         unique = True
 
-        for other_id, other_symbols in profiles.iteritems():
+        for other_id, other_symbols in profiles.items():
             # Skip comparing this profile against itself.
             if profile_id == other_id:
                 continue
@@ -748,7 +750,7 @@ class BuildIndex(plugin.Command):
                                       profiles=None):
         """Returns a set of profile_ids that have symbol_name: symbol_offset."""
         matching_profiles = set()
-        for profile_id, symbols in profiles.iteritems():
+        for profile_id, symbols in profiles.items():
             if symbols.get(symbol_name) == symbol_offset:
                 matching_profiles.add(profile_id)
         return matching_profiles
@@ -772,7 +774,7 @@ class BuildIndex(plugin.Command):
         exit_set = set([profile_id])
 
         # Store a pool of symbols
-        symbol_pool = profile_symbols.keys()
+        symbol_pool = list(profile_symbols.keys())
         if first_try_symbols:
             # Reorder these symbols so they are tried first
             for symbol in reversed(first_try_symbols):
@@ -944,7 +946,7 @@ class BuildIndex(plugin.Command):
             profile_needs_rebuild = False
 
             for trait in traits_dict:
-                for new_profile_id, symbols in new_profiles.iteritems():
+                for new_profile_id, symbols in new_profiles.items():
                     if index.RawProfileMatchesTrait(symbols, trait):
                         self.session.logging.warn(
                           "New profile %s clashes with %s, will recalculate.",
@@ -1019,7 +1021,7 @@ class BuildIndex(plugin.Command):
         # A dictionary of traits per profile_id
         traits_dict = dict()
         for i, (profile_id, symbols) in enumerate(
-            sorted(new_profiles.iteritems())):
+            sorted(new_profiles.items())):
 
             self.session.report_progress(
                 "[STEP 4/6][%d/%d] Finding %d traits for %s",
@@ -1235,7 +1237,7 @@ class BuildProfileLocally(plugin.Command):
                     "profile repository.", profile_name)
 
                 return repository.StoreData(profile_name, data)
-            except IOError, e:
+            except IOError as e:
                 self.session.logging.error("Error: %s", e)
 
         raise IOError("Profile not found")

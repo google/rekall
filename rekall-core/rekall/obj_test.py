@@ -80,7 +80,7 @@ class ProfileTest(testlib.RekallBaseUnitTestCase):
                 )]],
 
             # Check struct dereferencing
-            'next': [0x00, ['Pointer', dict(
+            '_next': [0x00, ['Pointer', dict(
                 target='Test'
                 )]],
 
@@ -148,10 +148,10 @@ class ProfileTest(testlib.RekallBaseUnitTestCase):
         self.assert_(test.ptr32)
 
         # Now dereference a struct.
-        ptr3 = test.next
+        ptr3 = test._next
 
         # This struct starts at offset 8.
-        self.assertEqual(test.next.v(), 8)
+        self.assertEqual(test._next.v(), 8)
 
         next = ptr3.dereference()
 

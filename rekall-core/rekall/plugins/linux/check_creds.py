@@ -53,7 +53,7 @@ class CheckCreds(common.LinProcessFilter):
         for task in self.filter_processes():
             creds.setdefault(task.cred, []).append(task)
 
-        for cred, tasks in creds.iteritems():
+        for cred, tasks in creds.items():
             highlight = None
             if len(tasks) > 1:
                 highlight = "important"

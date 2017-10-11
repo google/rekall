@@ -28,6 +28,9 @@ http://moyix.blogspot.com/2008/02/decrypting-lsa-secrets.html
 Code seems to be inspired by eyas_at_xfocus.org
 http://www.xfocus.net/articles/200411/749.html
 """
+from builtins import chr
+from builtins import str
+from builtins import range
 import struct
 
 from rekall import obj

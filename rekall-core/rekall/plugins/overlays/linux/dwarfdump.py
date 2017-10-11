@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Volatility
 # Copyright (C) 2010 Brendan Dolan-Gavitt
 # Copyright (c) 2011 Michael Cohen <scudette@gmail.com>
@@ -21,6 +22,7 @@
 # !! e6ed7078f9cfe07f761a6a33ca5f24a548bdbdb4  and minor changes have been made
 # !! to 'DWARFParser.print_output' and '__main__' for compatibility.
 
+from builtins import object
 import re
 
 class DWARFParser(object):
@@ -326,7 +328,7 @@ class DWARFParser(object):
             self.vtypes = self.resolve_refs()
             self.all_vtypes.update(self.vtypes)
         if self.vars:
-            self.vars = dict(((k, self.resolve(v)) for k, v in self.vars.items()))
+            self.vars = dict(((k, self.resolve(v)) for k, v in list(self.vars.items())))
             self.all_vars.update(self.vars)
         if self.local_vars:
             self.local_vars = [ (name, lineno, decl_file, self.resolve(tp)) for
@@ -340,7 +342,7 @@ class DWARFParser(object):
             changed = False
             s = set()
             for m in self.all_vtypes:
-                for t in self.all_vtypes[m][1].values():
+                for t in list(self.all_vtypes[m][1].values()):
                     s.add(self.get_deepest(t))
             for m in self.all_vars:
                 s.add(self.get_deepest(self.all_vars[m][1]))
@@ -356,7 +358,7 @@ class DWARFParser(object):
                 d = self.get_deepest(memb)
                 if d in self.enums:
                     sz = self.enums[d][0]
-                    vals = dict((v, k) for k, v in self.enums[d][1].items())
+                    vals = dict((v, k) for k, v in list(self.enums[d][1].items()))
                     self.all_vtypes[t][1][m] = self.deep_replace(
                         memb, [d],
                         ['Enumeration', dict(target = self.sz2tp[sz], choices = vals)]

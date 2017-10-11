@@ -22,6 +22,8 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+from builtins import str
+from builtins import range
 from rekall.plugins.linux import common
 
 
@@ -104,7 +106,7 @@ class Lsmod_parameters(common.LinuxPlugin):
         super(Lsmod_parameters, self).__init__(*args, **kwargs)
         self.arg_lookuptable = {}
         resolver = self.session.address_resolver
-        for x, y in self._arg_lookuptable.items():
+        for x, y in list(self._arg_lookuptable.items()):
             try:
                 address = resolver.get_constant_object(
                     x, "Function").obj_offset

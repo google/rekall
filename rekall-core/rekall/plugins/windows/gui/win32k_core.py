@@ -1,3 +1,4 @@
+from __future__ import division
 # Rekall Memory Forensics
 # Copyright (C) 2007,2008 Volatile Systems
 # Copyright (C) 2010,2011,2012 Michael Hale Ligh <michael.ligh@mnin.org>
@@ -19,6 +20,11 @@
 #
 
 # pylint: disable=protected-access
+from builtins import chr
+from builtins import str
+from builtins import filter
+from builtins import object
+from past.utils import old_div
 from rekall import kb
 from rekall import obj
 from rekall.plugins.overlays.windows import pe_vtypes
@@ -324,7 +330,7 @@ class _MM_SESSION_SPACE(obj.Struct):
         for section in dos_header.NTHeader.Sections:
             if section.Name == sec_name:
                 section_base = section.VirtualAddress
-                section_size = section.Misc.VirtualSize / 4
+                section_size = old_div(section.Misc.VirtualSize, 4)
                 break
 
 
@@ -537,7 +543,7 @@ class tagDESKTOP(tagWINDOWSTATION):
             cur = cur.spwndNext.dereference()
         while wins:
             cur = wins.pop()
-            if not filter(cur):
+            if not list(filter(cur)):
                 continue
 
             yield cur, level
@@ -599,10 +605,10 @@ class tagWND(obj.Struct):
 
     def _get_flags(self, member, flags):
 
-        if flags.has_key(member):
+        if member in flags:
             return flags[member]
 
-        return ','.join([n for (n, v) in flags.items() if member & v == v])
+        return ','.join([n for (n, v) in list(flags.items()) if member & v == v])
 
     @utils.safe_property
     def style(self):
@@ -680,7 +686,7 @@ class tagEVENTHOOK(obj.Struct):
         f = self.m('dwFlags') >> 1
 
         flags = [
-            name for (val, name) in constants.EVENT_FLAGS.items() if f & val]
+            name for (val, name) in list(constants.EVENT_FLAGS.items()) if f & val]
 
         return '|'.join(flags)
 

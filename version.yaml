@@ -7,6 +7,6 @@ dependent_versions:
 - rekall-lib/_version.py
 version_data:
   codename: Hurricane Ridge
-  post: '0'
+  post: '1'
   rc: '1'
   version: 1.7.0

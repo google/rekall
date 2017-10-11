@@ -19,8 +19,8 @@ class LiveMap(utils.SlottedObject):
     def length(self):
         return self.end - self.start
 
-    def __unicode__(self):
-        return "%s %08x-%08x %s" % (
+    def __str__(self):
+        return u"%s %08x-%08x %s" % (
             self.filename or "", self.start, self.end, self.perms)
 
 
@@ -207,7 +207,7 @@ class LinuxAPIProcessAddressSpace(addrspace.RunBasedAddressSpace):
             return addrspace.ZEROER.GetZeros(length)
 
     def __str__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.pid)
+        return u"%s(%s)" % (self.__class__.__name__, self.pid)
 
 
 # Register the process AS as a Linux one.

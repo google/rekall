@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from __future__ import print_function
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import os
@@ -174,7 +175,7 @@ class SessionMod(plugin.Command):
 
     def render(self, renderer):
         with self.session as s:
-            for k, v in self.kwargs.items():
+            for k, v in list(self.kwargs.items()):
                 s.SetParameter(k, v)
 
         renderer.format("Done!\n")

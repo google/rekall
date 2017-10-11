@@ -18,6 +18,7 @@
 
 """Classes around handling tokens, privileges etc."""
 
+from builtins import range
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall import obj

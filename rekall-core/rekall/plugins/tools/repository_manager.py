@@ -26,6 +26,9 @@ Cheatsheet:
     - rekal manage_repo nt/GUID add_guid 0D18D0FD87C04EB191F4E363F3977A9A1
 
 """
+from __future__ import print_function
+from builtins import str
+from builtins import object
 import fnmatch
 import json
 import os
@@ -40,6 +43,7 @@ from rekall import threadpool
 from rekall import testlib
 from rekall_lib import registry
 from rekall_lib import utils
+from future.utils import with_metaclass
 
 
 NUMBER_OF_CORES = multiprocessing.cpu_count()
@@ -84,9 +88,8 @@ class RepositoryManager(io_manager.DirectoryIOManager):
             name, to_write, **options)
 
 
-class RepositoryPlugin(object):
+class RepositoryPlugin(with_metaclass(registry.MetaclassRegistry, object)):
     """A plugin to manage a type of profile in the repository."""
-    __metaclass__ = registry.MetaclassRegistry
 
     def __init__(self, session=None, **kwargs):
         """Instantiate the plugin with the provided kwargs."""
@@ -97,7 +100,7 @@ class RepositoryPlugin(object):
     def TransformProfile(self, profile):
         """Transform the profile according to the specified transforms."""
         transforms = self.args.transforms or {}
-        for transform, args in transforms.items():
+        for transform, args in list(transforms.items()):
             if transform == "merge":
                 profile["$MERGE"] = args
             else:
@@ -119,7 +122,7 @@ class RepositoryPlugin(object):
         """Runs a plugin in another process."""
         subprocess.check_call(
             [sys.executable, plugin_name] + pos +
-            ["--%s='%s'" % (k, v) for k, v in kwargs.iteritems()])
+            ["--%s='%s'" % (k, v) for k, v in kwargs.items()])
 
     def LaunchBuilder(self, *args):
         """Relaunch this builder with the provided parameters."""
@@ -229,7 +232,7 @@ class WindowsGUIDProfile(RepositoryPlugin):
     def _AddGUIDs(self, args):
         repository = self.args.repository
         guid_file = self.args.repository.GetData(self.args.guids)
-        existing_guids = dict((x, set(y)) for x, y in guid_file.iteritems())
+        existing_guids = dict((x, set(y)) for x, y in guid_file.items())
 
         for arg in args:
             pdb_filename, guid = self._DecodeGUIDFromArg(arg)
@@ -237,7 +240,7 @@ class WindowsGUIDProfile(RepositoryPlugin):
                 "Adding GUID %s %s" % (pdb_filename, guid))
             existing_guids.setdefault(pdb_filename, set()).add(guid)
 
-        new_guids = dict((k, sorted(v)) for k, v in existing_guids.iteritems())
+        new_guids = dict((k, sorted(v)) for k, v in existing_guids.items())
         repository.StoreData(self.args.guids, new_guids, yaml=True)
 
     def ParseCommand(self, renderer, command, args):
@@ -266,7 +269,7 @@ class WindowsGUIDProfile(RepositoryPlugin):
 
         try:
             changed_files = set()
-            for pdb_filename, guids in guid_file.iteritems():
+            for pdb_filename, guids in guid_file.items():
                 for guid in guids:
                     if guid in rejects:
                         continue
@@ -277,7 +280,7 @@ class WindowsGUIDProfile(RepositoryPlugin):
                         continue
 
                     def Reject(e, guid=guid, changed_files=changed_files):
-                        print "GUID %s rejected: %s" % (guid, e)
+                        print("GUID %s rejected: %s" % (guid, e))
                         rejects[guid] = str(e)
                         changed_files.remove(guid)
 
@@ -488,7 +491,7 @@ class ManageRepository(plugin.TypedProfileCommand, plugin.Command):
 
         self.config_file = self.repository.GetData("config.yaml")
 
-        for profile_name, kwargs in self.config_file.iteritems():
+        for profile_name, kwargs in self.config_file.items():
             if (self.plugin_args.build_target and
                 profile_name != self.plugin_args.build_target):
                 continue

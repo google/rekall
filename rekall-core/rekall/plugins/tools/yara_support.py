@@ -17,7 +17,10 @@
 #
 
 """Routines for manipulating yara rule definitions."""
+from __future__ import print_function
 
+from builtins import str
+from builtins import map
 import string
 import sys
 import yaml
@@ -50,8 +53,8 @@ def anything_beetween(opener_and_closer):
     """
     opener = pyparsing.Literal(opener_and_closer[0])
     closer = pyparsing.Literal(opener_and_closer[1])
-    char_removal_mapping = dict.fromkeys(map(ord, opener_and_closer))
-    other_chars = unicode(string.printable).translate(char_removal_mapping)
+    char_removal_mapping = dict.fromkeys(list(map(ord, opener_and_closer)))
+    other_chars = str(string.printable).translate(char_removal_mapping)
     word_without_delimiters = pyparsing.Word(other_chars).setName(
         "other_chars")
     anything = pyparsing.Forward()
@@ -163,7 +166,7 @@ def ast_to_yara(parsed_rules):
         metadata = rule_ast.get("meta")
         if metadata:
             result.append("   meta:")
-            for k, v in metadata.iteritems():
+            for k, v in metadata.items():
                 result.append("       %s = %s" % (k, v))
 
         if rule_ast.get("strings"):
@@ -181,11 +184,11 @@ if __name__ == "__main__":
     filename = sys.argv[2]
     if action == "parse":
         data = open(filename).read()
-        print yaml.safe_dump(
+        print(yaml.safe_dump(
             parse_yara_to_ast(data),
-            default_flow_style=False)
+            default_flow_style=False))
     elif action == "encode":
         data = open(filename).read()
-        print ast_to_yara(yaml.safe_load(data))
+        print(ast_to_yara(yaml.safe_load(data)))
     else:
         raise RuntimeError("Unknown action %s" % action)

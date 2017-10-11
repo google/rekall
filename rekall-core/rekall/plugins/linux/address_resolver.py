@@ -18,6 +18,7 @@
 
 """The module implements the linux specific address resolution plugin."""
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@gmail.com>"
 from rekall import obj
 from rekall.plugins.common import address_resolver
@@ -29,7 +30,7 @@ class LKMModule(address_resolver.Module):
     def __init__(self, module, **kwargs):
         self.module = module
         super(LKMModule, self).__init__(
-            name=unicode(module.name),
+            name=str(module.name),
             start=module.base,
             end=module.end,
             **kwargs)

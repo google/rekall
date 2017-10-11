@@ -21,13 +21,19 @@
 https://github.com/ForensicArtifacts
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@google.com>"
 import csv
 import datetime
 import json
 import platform
 import os
-import StringIO
+import io
 import sys
 import zipfile
 
@@ -72,11 +78,9 @@ class ArtifactResult(object):
 
 
 
-class BaseArtifactResultWriter(object):
+class BaseArtifactResultWriter(with_metaclass(registry.MetaclassRegistry, object)):
     """Writes the results of artifacts."""
     __abstract = True
-
-    __metaclass__ = registry.MetaclassRegistry
 
     def __init__(self, session=None, copy_files=False,
                  create_timeline=False):
@@ -120,7 +124,7 @@ class BaseArtifactResultWriter(object):
                         timestamp).strftime("%Y-%m-%dT%H:%M:%S+00:00")
                     new_row["timestamp_desc"] = artifact_result.artifact_name
                     new_row["message"] = " ".join(
-                        unicode(row[field["name"]]) for field in artifact_fields
+                        str(row[field["name"]]) for field in artifact_fields
                         if field["name"] in row)
                     new_result.add_result(**new_row)
 
@@ -245,7 +249,7 @@ class ZipBasedWriter(BaseArtifactResultWriter):
                              json.dumps(result.as_dict(), sort_keys=True),
                              zipfile.ZIP_DEFLATED)
 
-        tmp_fd = StringIO.StringIO()
+        tmp_fd = io.StringIO()
         self._write_csv_file(tmp_fd, result)
         self.outzip.writestr("artifacts/%s.csv" % result.artifact_name,
                              tmp_fd.getvalue(),
@@ -253,7 +257,7 @@ class ZipBasedWriter(BaseArtifactResultWriter):
 
 
         if self.create_timeline:
-            tmp_fd = StringIO.StringIO()
+            tmp_fd = io.StringIO()
             self._write_csv_file(tmp_fd, self._create_timeline(result))
             self.outzip.writestr("artifacts/%s.timeline.csv" %
                                  result.artifact_name,
@@ -280,7 +284,7 @@ class _FieldDefinitionValidator(object):
             default = field.get("default")
             required_type = field.get("type")
 
-            if required_type in (str, unicode):
+            if required_type in (str, str):
                 required_type = basestring
 
             if default is None and required_type is not None:
@@ -354,7 +358,7 @@ class RekallEFilterArtifacts(SourceType):
 
     allowed_types = {
         "int": int,
-        "unicode": unicode,  # Unicode data.
+        "unicode": str,  # Unicode data.
         "str": str, # Used for binary data.
         "float": float,
         "epoch": float, # Dates as epoch timestamps.
@@ -497,7 +501,7 @@ class WMISourceType(LiveModeSourceMixin, SourceType):
 
     def _guess_returned_fields(self, sample):
         result = []
-        for key, value in sample.iteritems():
+        for key, value in sample.items():
             field_type = type(value)
             if field_type is int:
                 field_type = "int"
@@ -727,7 +731,7 @@ class ArtifactDefinition(_FieldDefinitionValidator):
         except Exception as e:
             exc_info = sys.exc_info()
             raise errors.FormatError(
-                "Definition %s: %s" % (self.name, e)), None, exc_info[2]
+                "Definition %s: %s" % (self.name, e))
 
     def set_implementations(self, source_types):
         return self.__class__(self.data, source_types)
@@ -818,7 +822,7 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
 
         dict(name="writer", type="Choices",
              choices=lambda: (
-                 x.name for x in BaseArtifactResultWriter.classes.values()),
+                 x.name for x in list(BaseArtifactResultWriter.classes.values())),
              help="Writer for artifact results."),
 
         dict(name="output_path",

@@ -18,6 +18,7 @@
 
 """This module implements renderers specific to windows structures."""
 
+from builtins import str
 from rekall.ui import text
 from rekall.ui import json_renderer
 from rekall.plugins.renderers import data_export
@@ -58,7 +59,7 @@ class UNICODE_STRING_Text(text.TextObjectRenderer):
     renderers = ["TextRenderer", "TestRenderer", "WideTextRenderer"]
 
     def render_compact(self, target, width=None, **_):
-        return text.Cell(unicode(target), width=width)
+        return text.Cell(utils.SmartUnicode(target), width=width)
 
 
 class SID_Text(UNICODE_STRING_Text):
@@ -69,7 +70,7 @@ class UNICODE_STRINGDataExport(data_export.DataExportBaseObjectRenderer):
     renders_type = "_UNICODE_STRING"
 
     def EncodeToJsonSafe(self, item, **_):
-        return unicode(item)
+        return utils.SmartUnicode(item)
 
 
 class STRINGDataExport(UNICODE_STRINGDataExport):

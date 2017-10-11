@@ -25,16 +25,21 @@ repository has index files that are used to lookup the correct profile quickly,
 based on a limited set of symbols and offsets that are known, or can be easily
 detected, about the image.
 """
+from __future__ import division
 
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
 __author__ = (
     "Michael Cohen <scudette@google.com>",
     "Adam Sindelar <adamsh@google.com>",
     "Jordi Sanchez <nop@google.com>"
 )
-
+import binascii
 import hashlib
 from rekall import obj
 from rekall_lib import utils
+import six
 
 
 class IndexProfileLoader(obj.ProfileSectionLoader):
@@ -68,7 +73,7 @@ class Index(obj.Profile):
         Return True if there is a match.
         """
         for value in possible_values:
-            value = value.decode("hex")
+            value = binascii.unhexlify(value)
             data = address_space.read(offset, len(value))
             if value == data:
                 return data
@@ -124,7 +129,7 @@ class Index(obj.Profile):
     def IndexHits(self, image_base, address_space=None, minimal_match=1):
         if address_space == None:
             address_space = self.session.GetParameter("default_address_space")
-        for profile, symbols in self.index.iteritems():
+        for profile, symbols in six.iteritems(self.index):
             match = self._TestProfile(
                 address_space=address_space,
                 image_base=image_base,
@@ -189,7 +194,7 @@ class SymbolOffsetIndex(Index):
             self.session.logging.debug(str(e))
             return []
 
-        for profile, traits in self.traits.iteritems():
+        for profile, traits in six.iteritems(self.traits):
             matched_traits = 0
 
             for trait in traits:
@@ -221,7 +226,7 @@ class SymbolOffsetIndex(Index):
         symbols = profile["$CONSTANTS"]
         ordered_symbol_list = sorted(
             ["(%s, %d)" % (k, v)
-             for (k, v) in cls.FilterSymbols(symbols).iteritems()])
+             for (k, v) in six.iteritems(cls.FilterSymbols(symbols))])
 
         hasher = hashlib.sha256()
         hasher.update("|".join(ordered_symbol_list))
@@ -332,7 +337,7 @@ class SymbolOffsetIndex(Index):
         Each trait is a list of tuples of (symbol, offset) that make this
         profile unique within the repository.
         """
-        for profile, traits in self.index.get("$TRAITS").iteritems():
+        for profile, traits in six.iteritems(self.index.get("$TRAITS")):
             yield profile, traits
 
     def RelativizeSymbols(self, symbols, base_symbol=None):
@@ -355,7 +360,7 @@ class SymbolOffsetIndex(Index):
         if not base_value:
             raise ValueError("Symbol %s not found in profile", base_symbol)
         new_symbols = symbols.copy()
-        for symbol, value in new_symbols.iteritems():
+        for symbol, value in six.iteritems(new_symbols):
             new_symbols[symbol] = value - base_value
         return new_symbols
 
@@ -366,7 +371,7 @@ class LinuxSymbolOffsetIndex(SymbolOffsetIndex):
     @classmethod
     def FilterSymbols(cls, symbols):
         """Filters a dict of symbols, discarding irrelevant ones."""
-        return dict([(k, v) for (k, v) in symbols.iteritems()
+        return dict([(k, v) for (k, v) in six.iteritems(symbols)
                      if not "." in k and k != "__irf_end"])
 
     @classmethod

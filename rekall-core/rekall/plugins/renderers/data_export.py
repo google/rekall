@@ -34,6 +34,7 @@ information about the exported objects. The exported data also omits information
 which is not relevant without access to the original image.
 """
 
+from builtins import str
 import datetime
 import pytz
 
@@ -135,9 +136,9 @@ class DataExportBaseObjectRenderer(DataExportObjectRenderer):
             item, **options)
 
         result.update(offset=item.obj_offset,
-                      type_name=unicode(item.obj_type),
-                      name=unicode(item.obj_name),
-                      vm=unicode(item.obj_vm))
+                      type_name=utils.SmartUnicode(item.obj_type),
+                      name=utils.SmartUnicode(item.obj_name),
+                      vm=utils.SmartUnicode(item.obj_vm))
 
         return result
 

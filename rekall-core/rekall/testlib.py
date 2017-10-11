@@ -47,6 +47,8 @@ When test is run, the baseline files are loaded and copared with present output
 in a specific way.
 
 """
+from builtins import zip
+from builtins import object
 import hashlib
 import logging
 import subprocess
@@ -63,6 +65,7 @@ from rekall import config
 from rekall import plugin
 from rekall import session as rekall_session
 from rekall_lib import registry
+from future.utils import with_metaclass
 
 
 class Tail(threading.Thread):
@@ -96,9 +99,8 @@ class Tail(threading.Thread):
                 sys.stdout.flush()
 
 
-class RekallBaseUnitTestCase(unittest.TestCase):
+class RekallBaseUnitTestCase(with_metaclass(registry.MetaclassRegistry, unittest.TestCase)):
     """Base class for all rekall unit tests."""
-    __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
     # The parameters to run this test with. These parameters are written to the
@@ -185,7 +187,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
         if baseline_commandline:
             baseline_commandline = "- %s" % baseline_commandline
-            for k, v in config_options.items():
+            for k, v in list(config_options.items()):
                 # prepend all global options to the command line.
                 if k.startswith("-"):
                     # This is a boolean flag.
@@ -210,8 +212,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             # output in a timely manner.
             os.environ["PYTHONUNBUFFERED"] = "1"
 
-            with open(tmp_filename, "wb", buffering=1) as output_fd:
-                with open(error_filename, "wb", buffering=1) as error_fd:
+            with open(tmp_filename, "wt", buffering=1) as output_fd:
+                with open(error_filename, "wt", buffering=1) as error_fd:
                     stdout_copier = Tail(tmp_filename)
                     stderr_copier = Tail(error_filename)
                     # Specifying --debug should allow the subprocess to print
@@ -234,11 +236,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                     stderr_copier.stop()
 
             output = open(tmp_filename).read(10 * 1024 * 1024)
-            output = output.decode("utf8", "ignore")
-
             error = open(error_filename).read(10 * 1024 * 1024)
-            error = error.decode("utf8", "ignore")
-
             baseline_data = dict(output=output.splitlines(),
                                  logging=error.splitlines(),
                                  return_code=pipe.returncode,
@@ -262,7 +260,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         user_session = rekall_session.InteractiveSession()
         with user_session.state as state:
             config.MergeConfigOptions(state, user_session)
-            for k, v in config_options.items():
+            for k, v in list(config_options.items()):
                 if k.startswith("--"):
                     state.Set(k[2:], v)
 
@@ -276,8 +274,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         for x, y in zip(a, b):
             self.assertEqual(x, y)
 
-    def __unicode__(self):
-        return "%s %s" % (self.__class__.__name__, self._testMethodName)
+    def __str__(self):
+        return u"%s %s" % (self.__class__.__name__, self._testMethodName)
 
     def run(self, result=None):
         if result is None:
@@ -349,8 +347,8 @@ class SimpleTestCase(plugin.ModeBasedActiveMixin,
             return delegate_plugin.is_active(session)
 
     def testCase(self):
-        previous = sorted(self.baseline['output'])
-        current = sorted(self.current['output'])
+        previous = sorted([x.strip() for x in self.baseline['output']])
+        current = sorted([x.strip() for x in self.current['output']])
 
         # Compare the entire table
         self.assertListEqual(previous, current)
@@ -406,7 +404,8 @@ class HashChecker(SimpleTestCase):
         baseline['hashes'] = {}
         for filename in os.listdir(self.temp_directory):
             if not filename.startswith("."):
-                with open(os.path.join(self.temp_directory, filename)) as fd:
+                with open(os.path.join(self.temp_directory, filename),
+                          "rb") as fd:
                     md5 = hashlib.md5()
                     while 1:
                         data = fd.read(1024 * 1024)

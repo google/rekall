@@ -17,7 +17,10 @@
 #
 
 """The plugins in this module are mainly used to visually test renderers."""
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import itertools
@@ -76,18 +79,18 @@ class RekallBovineExperience3000(plugin.Command):
             caption="Offset (p)",
             # Some of the below xs stand for eXtreme. The other ones just
             # look cool.
-            column_headers=["%0.2x" % x for x in xrange(0, 0xff, 0x10)],
+            column_headers=["%0.2x" % x for x in range(0, 0xff, 0x10)],
             row_headers=["0x%0.6x" % x for x
-                         in xrange(0x0, 0xfffff, 0x10000)],
+                         in range(0x0, 0xfffff, 0x10000)],
             cells=cells,
             greyscale=False)
 
         gradual = visual_aides.Heatmap(
             caption="Offset (v)",
-            column_headers=["%0.2x" % x for x in xrange(0, 0xff, 0x10)],
+            column_headers=["%0.2x" % x for x in range(0, 0xff, 0x10)],
             row_headers=["0x%0.6x" % x for x
-                         in xrange(0x0, 0xfffff, 0x10000)],
-            cells=[dict(value="%x" % x, heat=x / 255.0) for x in xrange(256)],
+                         in range(0x0, 0xfffff, 0x10000)],
+            cells=[dict(value="%x" % x, heat=old_div(x, 255.0)) for x in range(256)],
             greyscale=False)
 
         ranges_legend = visual_aides.MapLegend(phys_map["ranges_legend"])

@@ -110,7 +110,7 @@ class SymbolOffsetIndexTest(testlib.RekallBaseUnitTestCase):
         # We're gonna SHIFT P1 by 0x20000, just like the Linux kernel does
         profile = self.profiles[0][1]
         symbols = dict([(i[0], i[1]+0x200000)
-                        for i in profile["$CONSTANTS"].iteritems()])
+                        for i in profile["$CONSTANTS"].items()])
 
 
         profiles = self.dummy_index.LookupProfile(symbols)

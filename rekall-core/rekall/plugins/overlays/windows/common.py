@@ -22,6 +22,11 @@
 # pylint: disable=protected-access
 
 """Common windows overlays and classes."""
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import struct
 from itertools import chain
 
@@ -82,7 +87,7 @@ windows_overlay = {
             target="String",
             target_args=dict(
                 term=None,
-                length=lambda x: x.SizeOfBitMap / 8 + 1
+                length=lambda x: old_div(x.SizeOfBitMap, 8) + 1
             )
         )]],
     }],
@@ -236,8 +241,9 @@ windows_overlay = {
     }],
     "_GUID": [16, {
         "Data4": [8, ["String", dict(length=8, term=None)]],
-        "AsString": lambda x: ("%08x-%04x-%04x-%s" % (
-            x.Data1, x.Data2, x.Data3, x.Data4.v().encode('hex'))).upper(),
+        "AsString": lambda x: (u"%08x%04x%04x%s" % (
+            x.Data1, x.Data2, x.Data3, utils.SmartUnicode(
+                binascii.hexlify(x.Data4.v())))).upper(),
         }],
 
     '_MMVAD_LONG': [None, {
@@ -608,7 +614,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
 
     @utils.safe_property
     def name(self):
-        return unicode(self.BaseDllName)
+        return utils.SmartUnicode(self.BaseDllName)
 
     @utils.safe_property
     def size(self):
@@ -621,7 +627,8 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     @utils.safe_property
     def filename(self):
         object_tree_plugin = self.obj_session.plugins.object_tree()
-        return object_tree_plugin.FileNameWithDrive(unicode(self.FullDllName))
+        return object_tree_plugin.FileNameWithDrive(
+            utils.SmartUnicode(self.FullDllName))
 
     @utils.safe_property
     def end(self):
@@ -643,7 +650,9 @@ class _UNICODE_STRING(obj.Struct):
     Adds the following behavior:
       * The Buffer attribute is presented as a Python string rather
         than a pointer to an unsigned short.
-      * The __unicode__ method returns the value of the Buffer.
+
+      * The __str__ method returns the value of the Buffer interpreted
+        as the encoding type.
     """
 
     def v(self, vm=None):
@@ -658,14 +667,14 @@ class _UNICODE_STRING(obj.Struct):
         else:
             return u''
 
-    def __nonzero__(self):
+    def __bool__(self):
         ## Unicode strings are valid if they point at a valid memory
         return bool(self.Buffer)
 
     def __eq__(self, other):
-        return unicode(self) == utils.SmartUnicode(other)
+        return str(self) == utils.SmartUnicode(other)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.v().strip("\x00") or u""
 
     def __repr__(self):
@@ -675,8 +684,8 @@ class _UNICODE_STRING(obj.Struct):
             elide = "..."
             value = value[:50]
 
-        return "%s (%s%s)" % (super(_UNICODE_STRING, self).__repr__(),
-                              value, elide)
+        return u"%s (%s%s)" % (super(_UNICODE_STRING, self).__repr__(),
+                               value, elide)
 
     def write(self, string):
         self.Buffer.dereference().write(string)
@@ -696,22 +705,22 @@ class _SID(obj.Struct):
     http://searchwindowsserver.techtarget.com/feature/The-structure-of-a-SID
     """
 
-    def __unicode__(self):
+    def __str__(self):
         """
         Ref: RtlConvertSidToUnicodeString
         http://doxygen.reactos.org/d9/d9b/lib_2rtl_2sid_8c_source.html
         """
-        wcs = "S-1-"
+        wcs = u"S-1-"
 
         if (self.IdentifierAuthority.Value[0] == 0 and
                 self.IdentifierAuthority.Value[1] == 0):
-            wcs += "%lu" % (
+            wcs += u"%lu" % (
                 self.IdentifierAuthority.Value[2] << 24 |
                 self.IdentifierAuthority.Value[3] << 16 |
                 self.IdentifierAuthority.Value[4] << 8 |
                 self.IdentifierAuthority.Value[5])
         else:
-            wcs += "0x%02hx%02hx%02hx%02hx%02hx%02hx" % (
+            wcs += u"0x%02hx%02hx%02hx%02hx%02hx%02hx" % (
                 self.IdentifierAuthority.Value[0],
                 self.IdentifierAuthority.Value[1],
                 self.IdentifierAuthority.Value[2],
@@ -720,7 +729,7 @@ class _SID(obj.Struct):
                 self.IdentifierAuthority.Value[5])
 
         for i in self.SubAuthority:
-            wcs += "-%u" % i
+            wcs += u"-%u" % i
 
         return wcs
 
@@ -1255,7 +1264,7 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
                 name = u"\\Device\\{0}".format(device_name)
 
         if self.FileName:
-            name += unicode(self.FileName)
+            name += utils.SmartUnicode(self.FileName)
 
         return name
 
@@ -1284,7 +1293,7 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
 
         filename = self.FileName.v(vm=vm)
         if filename:
-            name += unicode(filename)
+            name += utils.SmartUnicode(filename)
 
         return name
 
@@ -1387,11 +1396,11 @@ class VadTraverser(obj.Struct):
     for all Vad traversor.
     """
     ## The actual type depends on this tag value.
-    tag_map = {'Vadl': '_MMVAD_LONG',
-               'VadS': '_MMVAD_SHORT',
-               'Vad ': '_MMVAD',
-               'VadF': '_MMVAD_SHORT',
-               'Vadm': '_MMVAD_LONG',
+    tag_map = {b'Vadl': '_MMVAD_LONG',
+               b'VadS': '_MMVAD_SHORT',
+               b'Vad ': '_MMVAD',
+               b'VadF': '_MMVAD_SHORT',
+               b'Vadm': '_MMVAD_LONG',
               }
 
     left = "LeftChild"
@@ -1529,14 +1538,14 @@ class _SHARED_CACHE_MAP(obj.Struct):
 class _RTL_BITMAP(obj.Struct):
 
     def __getitem__(self, index):
-        char = ord(self.Buffer[index / 8])
+        char = ord(self.Buffer[old_div(index, 8)])
         return bool(char & 2 ** (index % 8))
 
     def __len__(self):
         return int(self.SizeOfBitMap)
 
     def __iter__(self):
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield self[i]
 
 
@@ -1583,13 +1592,13 @@ def InitializeWindowsProfile(profile):
 
     # Pooltags for common objects (These are different in Win8).
     profile.add_constants(dict(
-        DRIVER_POOLTAG="Dri\xf6",
-        EPROCESS_POOLTAG="Pro\xe3",
-        FILE_POOLTAG="Fil\xe5",
-        SYMLINK_POOLTAG="Sym\xe2",
-        MODULE_POOLTAG="MmLd",
-        MUTANT_POOLTAG="Mut\xe1",
-        THREAD_POOLTAG='\x54\x68\x72\xe5',
+        DRIVER_POOLTAG=b"Dri\xf6",
+        EPROCESS_POOLTAG=b"Pro\xe3",
+        FILE_POOLTAG=b"Fil\xe5",
+        SYMLINK_POOLTAG=b"Sym\xe2",
+        MODULE_POOLTAG=b"MmLd",
+        MUTANT_POOLTAG=b"Mut\xe1",
+        THREAD_POOLTAG=b'\x54\x68\x72\xe5',
         ))
 
     # These constants are always the same in all versions of Windows.

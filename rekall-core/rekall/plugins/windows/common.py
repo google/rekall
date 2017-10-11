@@ -63,10 +63,10 @@ class AbstractWindowsParameterHook(kb.ParameterHook):
 
 
 class WinDTBScanner(scan.BaseScanner):
-    def __init__(self, process_name=None, **kwargs):
+    def __init__(self, process_name=b"Idle", **kwargs):
         super(WinDTBScanner, self).__init__(**kwargs)
-        needle_process_name = process_name or "Idle"
-        needle = needle_process_name + "\x00" * (15 - len(needle_process_name))
+        needle_process_name = utils.SmartStr(process_name)
+        needle = needle_process_name + b"\x00" * (15 - len(needle_process_name))
         self.image_name_offset = self.profile.get_obj_offset(
             "_EPROCESS", "ImageFileName")
         self.checks = [["StringCheck", {"needle": needle}]]
@@ -76,7 +76,7 @@ class WinDTBScanner(scan.BaseScanner):
             self.eprocess = self.profile.Object(
                 "_EPROCESS", offset=offset - self.image_name_offset,
                 vm=self.session.physical_address_space)
-            self.session.logging.debug("Found _EPROCESS @ 0x%X (DTB: 0x%X)",
+            self.session.logging.debug(u"Found _EPROCESS @ 0x%X (DTB: 0x%X)",
                                        self.eprocess.obj_offset,
                                        self.eprocess.Pcb.DirectoryTableBase.v())
 

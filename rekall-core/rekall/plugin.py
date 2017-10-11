@@ -19,12 +19,19 @@
 
 """Plugins allow the core rekall system to be extended."""
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import zip
+from past.builtins import basestring
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import collections
 import copy
 import re
-import StringIO
+import io
 
 from rekall import config
 from rekall import obj
@@ -223,7 +230,7 @@ class ModeBasedActiveMixin(object):
 
 
 
-class Command(ModeBasedActiveMixin):
+class Command(with_metaclass(registry.MetaclassRegistry, ModeBasedActiveMixin)):
     """A command can be run from the rekall command line.
 
     Commands can be automatically imported into the shell's namespace and are
@@ -245,7 +252,6 @@ class Command(ModeBasedActiveMixin):
 
     # This class will not be registered (but extensions will).
     __abstract = True
-    __metaclass__ = registry.MetaclassRegistry
 
     # This declares that this plugin only exists in the interactive session.
     interactive = False
@@ -313,7 +319,7 @@ class Command(ModeBasedActiveMixin):
         """
         session = kwargs.pop("session", None)
         if kwargs:
-            raise InvalidArgs("Invalid arguments: %s" % unicode(kwargs.keys()))
+            raise InvalidArgs("Invalid arguments: %s" % str(list(kwargs.keys())))
 
         super(Command, self).__init__(**kwargs)
 
@@ -340,7 +346,7 @@ class Command(ModeBasedActiveMixin):
 
     def __str__(self):
         """Render into a string using the text renderer."""
-        fd = StringIO.StringIO()
+        fd = io.StringIO()
         ui_renderer = text_renderer.TextRenderer(
             session=self.session, fd=fd)
 
@@ -532,7 +538,7 @@ class PluginHeader(object):
 
     @utils.safe_property
     def all_names(self):
-        return set(self.by_name.iterkeys())
+        return set(self.by_name)
 
     def find_column(self, name):
         """Get the column spec in 'name'."""
@@ -694,7 +700,7 @@ class TypedProfileCommand(ArgsParserMixin):
                 # One row is sometimes sufficient to figure out types, but
                 # sometimes a plugin will send None as some of its columns
                 # so we try a few more rows.
-                if None not in result.values() or row_count > 5:
+                if None not in list(result.values()) or row_count > 5:
                     break
 
         except (NotImplementedError, TypeError):
@@ -765,7 +771,7 @@ class TypedProfileCommand(ArgsParserMixin):
             return self.profile.object_classes.get(t)
 
     def getkeys(self):
-        return self.table_header.keys()
+        return list(self.table_header)
 
     def get_column(self, name):
         for row in self.collect_as_dicts():
@@ -938,7 +944,7 @@ class PluginMetadataDatabase(object):
     def Rebuild(self):
         self.db = {}
 
-        for plugin_cls in Command.classes.itervalues():
+        for plugin_cls in Command.classes.values():
             plugin_name = plugin_cls.name
             self.db.setdefault(plugin_name, []).append(
                 config.CommandMetadata(plugin_cls))

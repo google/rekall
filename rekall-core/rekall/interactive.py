@@ -1,3 +1,4 @@
+from __future__ import print_function
 import inspect
 
 from rekall import ipython_support

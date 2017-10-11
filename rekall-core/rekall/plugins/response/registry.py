@@ -2,13 +2,19 @@
 
 This code is borrowed from GRR.
 """
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import ctypes
 import ctypes.wintypes
 import exceptions
 import stat
-import StringIO
-import _winreg
+import io
+import winreg
 
 from rekall import obj
 from rekall_lib import utils
@@ -227,13 +233,13 @@ def EnumValue(key, index):
 
 
 def Reg2Py(data, size, data_type):
-    if data_type == _winreg.REG_DWORD:
+    if data_type == winreg.REG_DWORD:
         if size == 0:
             return 0
         return ctypes.cast(data, ctypes.POINTER(ctypes.c_int)).contents.value
-    elif data_type == _winreg.REG_SZ or data_type == _winreg.REG_EXPAND_SZ:
+    elif data_type == winreg.REG_SZ or data_type == winreg.REG_EXPAND_SZ:
         return ctypes.wstring_at(data, size // 2).rstrip(u"\x00")
-    elif data_type == _winreg.REG_MULTI_SZ:
+    elif data_type == winreg.REG_MULTI_SZ:
         return ctypes.wstring_at(data, size // 2).rstrip(u"\x00").split(u"\x00")
     else:
         if size == 0:
@@ -248,15 +254,15 @@ class RegistryKeyInformation(common.FileInformation):
 
     # Maps the registry types to names
     registry_map = {
-        _winreg.REG_NONE: "REG_NONE",
-        _winreg.REG_SZ: "REG_SZ",
-        _winreg.REG_EXPAND_SZ: "REG_EXPAND_SZ",
-        _winreg.REG_BINARY: "REG_BINARY",
-        _winreg.REG_DWORD: "REG_DWORD",
-        _winreg.REG_DWORD_LITTLE_ENDIAN: "REG_DWORD_LITTLE_ENDIAN",
-        _winreg.REG_DWORD_BIG_ENDIAN: "REG_DWORD_BIG_ENDIAN",
-        _winreg.REG_LINK: "REG_LINK",
-        _winreg.REG_MULTI_SZ: "REG_MULTI_SZ",
+        winreg.REG_NONE: "REG_NONE",
+        winreg.REG_SZ: "REG_SZ",
+        winreg.REG_EXPAND_SZ: "REG_EXPAND_SZ",
+        winreg.REG_BINARY: "REG_BINARY",
+        winreg.REG_DWORD: "REG_DWORD",
+        winreg.REG_DWORD_LITTLE_ENDIAN: "REG_DWORD_LITTLE_ENDIAN",
+        winreg.REG_DWORD_BIG_ENDIAN: "REG_DWORD_BIG_ENDIAN",
+        winreg.REG_LINK: "REG_LINK",
+        winreg.REG_MULTI_SZ: "REG_MULTI_SZ",
     }
 
     def __init__(self, filename=None, **kwargs):
@@ -318,7 +324,7 @@ class RegistryKeyInformation(common.FileInformation):
 
     def open(self):
         if self.value_type != "REG_NONE":
-            return StringIO.StringIO(self.value)
+            return io.StringIO(self.value)
 
         return obj.NoneObject("No data")
 
@@ -343,11 +349,11 @@ class RegistryKeyInformation(common.FileInformation):
 
                 st_mtime = basic.UnixTimeStamp(
                     name="st_mtime", value=(
-                        last_modified / 10000000 - WIN_UNIX_DIFF_MSECS),
+                        old_div(last_modified, 10000000) - WIN_UNIX_DIFF_MSECS),
                     session=self.session)
 
                 # First keys - These will look like directories.
-                for i in xrange(number_of_keys):
+                for i in range(number_of_keys):
                     name = EnumKey(key, i)
                     key_name = "\\".join((self.hive, self.key_name, name))
                     try:
@@ -360,7 +366,7 @@ class RegistryKeyInformation(common.FileInformation):
                         pass
 
                 # Now Values - These will look like files.
-                for i in xrange(number_of_values):
+                for i in range(number_of_values):
                     name, _, _ = EnumValue(key, i)
                     key_name = "\\".join((self.hive, self.key_name, name))
                     try:

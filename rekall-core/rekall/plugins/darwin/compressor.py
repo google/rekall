@@ -16,7 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """Enumerate and dump all compressed memory pages on Darwin."""
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 __author__ = "Andreas Moser <amoser@google.com>"
 
 import os
@@ -83,8 +87,8 @@ class DarwinDumpCompressedPages(core.DirectoryDumperMixin, common.AbstractDarwin
                     slot.dereference_as(
                         target="Array", target_args=dict(target="c_slot")))
 
-            for slot_nr in xrange(c_seg.c_nextslot):
-                c_slot_array = c_slot_arrays[slot_nr / self.SLOT_ARRAY_SIZE]
+            for slot_nr in range(c_seg.c_nextslot):
+                c_slot_array = c_slot_arrays[old_div(slot_nr, self.SLOT_ARRAY_SIZE)]
                 c_slot = c_slot_array[slot_nr % self.SLOT_ARRAY_SIZE]
 
                 if not (c_slot.c_offset and c_slot.c_size):

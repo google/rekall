@@ -11,6 +11,7 @@ To install:
 All this file does is write a control file in the specified location when github
 sends a push notification.
 """
+from __future__ import print_function
 import json
 import hashlib
 import hmac

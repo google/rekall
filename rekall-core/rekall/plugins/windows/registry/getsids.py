@@ -32,6 +32,7 @@
 """
 # pylint: disable=protected-access
 
+from builtins import str
 import re
 from rekall.plugins.windows import common
 
@@ -169,7 +170,7 @@ class GetSIDs(common.WinProcessFilter):
                 if username:
                     sid_name = "User: %s" % username
 
-                sid_string = unicode(sa.Sid.deref())
+                sid_string = str(sa.Sid.deref())
                 if sid_string in self.well_known_sids:
                     sid_name = self.well_known_sids[sid_string]
                 else:

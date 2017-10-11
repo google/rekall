@@ -21,6 +21,7 @@
 Globs and Artifacts may expand interpolations from the KnowledgeBase. This
 module provides a live, on demand, KnowledgeBase.
 """
+from builtins import object
 import os
 import re
 import platform

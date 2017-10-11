@@ -24,6 +24,10 @@ session. Sessions can be saved and loaded between runs and provide a convenient
 way for people to save their own results.
 """
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import logging
@@ -305,7 +309,7 @@ class Configuration(utils.AttributeDict):
         them from all the address resolver caches.
         """
         # Clear all profile caches in address resolver contexts.
-        for context in self.session.context_cache.values():
+        for context in list(self.session.context_cache.values()):
             context.reset()
 
         return set(tracked)
@@ -442,17 +446,17 @@ class Configuration(utils.AttributeDict):
     def __str__(self):
         """Print the contents somewhat concisely."""
         result = []
-        for k, v in self.iteritems():
+        for k, v in self.items():
             if isinstance(v, obj.BaseObject):
                 v = repr(v)
 
-            value = "\n  ".join(str(v).splitlines())
+            value = u"\n  ".join(utils.SmartUnicode(v).splitlines())
             if len(value) > 100:
-                value = "%s ..." % value[:100]
+                value = u"%s ..." % value[:100]
 
-            result.append("  %s = %s" % (k, value))
+            result.append(u"  %s = %s" % (k, value))
 
-        return "{\n" + "\n".join(sorted(result)) + "\n}"
+        return u"{\n" + u"\n".join(sorted(result)) + u"\n}"
 
 
 class ProgressDispatcher(object):
@@ -475,7 +479,7 @@ class ProgressDispatcher(object):
         self.callbacks.pop(key, 0)
 
     def Broadcast(self, message, *args, **kwargs):
-        for handler in self.callbacks.values():
+        for handler in list(self.callbacks.values()):
             handler(message, *args, **kwargs)
 
 
@@ -512,7 +516,7 @@ class HoardingLogHandler(logging.Handler):
             self.logrecord_buffer = []
 
 
-class Session(object):
+class Session(with_metaclass(registry.MetaclassRegistry, object)):
     """Base session.
 
     This session contains the bare minimum to use rekall.
@@ -532,8 +536,6 @@ class Session(object):
         ("session_name", u"String"),
         ("timezone", u"TimeZone"),
     ]
-
-    __metaclass__ = registry.MetaclassRegistry
 
     # The currently active address resolver.
     _address_resolver = None
@@ -568,7 +570,7 @@ class Session(object):
         self.state = Configuration(session=self)
         self.cache = cache.Factory(self, "memory")
         with self.state:
-            for k, v in kwargs.items():
+            for k, v in list(kwargs.items()):
                 self.state.Set(k, v)
 
         # We use this logger if provided.
@@ -785,7 +787,7 @@ class Session(object):
 
     def _RunParameterHook(self, name):
         """Launches the registered parameter hook for name."""
-        for cls in kb.ParameterHook.classes.values():
+        for cls in list(kb.ParameterHook.classes.values()):
             if cls.name == name and cls.is_active(self):
                 if name in self._hook_locks:
                     # This should never happen! If it does then this will block
@@ -811,7 +813,7 @@ class Session(object):
         So we can pass them as valid python parameters.
         """
         result = {}
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             result[k.replace("-", "_")] = v
         return result
 
@@ -1004,7 +1006,7 @@ class Session(object):
 
         return result
 
-    def __unicode__(self):
+    def __str__(self):
         return u"Session"
 
     def report_progress(self, message=" %(spinner)s", *args, **kwargs):
@@ -1095,7 +1097,7 @@ class Session(object):
 
         # Now override all parameters as requested.
         with new_session:
-            for k, v in kwargs.iteritems():
+            for k, v in kwargs.items():
                 new_session.SetParameter(k, v)
         return new_session
 
@@ -1187,6 +1189,9 @@ class DynamicNameSpace(dict):
         # Create a runner for this plugin.
         return PluginRunner(self["session"], name)
 
+    def __bool__(self):
+        return bool(self.state)
+
 
 class InteractiveSession(Session):
     """The session allows for storing of arbitrary values and configuration.
@@ -1254,7 +1259,7 @@ class InteractiveSession(Session):
                 config.MergeConfigOptions(self.state, self)
 
             with self.state:
-                for k, v in kwargs.items():
+                for k, v in list(kwargs.items()):
                     self.state.Set(k, v)
 
     @utils.safe_property
@@ -1312,9 +1317,6 @@ class InteractiveSession(Session):
             self.printer(x)
 
     def __str__(self):
-        return self.__unicode__()
-
-    def __unicode__(self):
         result = u"""Rekall Memory Forensics session Started on %s.
 
 Config:
@@ -1326,7 +1328,7 @@ Cache (%r):
         return result
 
     def __dir__(self):
-        items = self.__dict__.keys() + dir(self.__class__)
+        items = list(self.__dict__.keys()) + dir(self.__class__)
 
         return [x for x in items if not x.startswith("_")]
 
@@ -1349,10 +1351,12 @@ Cache (%r):
         new_session.profile_cache = self.profile_cache
 
         with new_session:
-            for k, v in kwargs.iteritems():
+            for k, v in kwargs.items():
                 new_session.SetParameter(k, v)
 
         self.session_list.append(new_session)
         self.session_list.sort(key=lambda x: x.session_id)
 
         return new_session
+    def __bool__(self):
+        return bool(self.state)

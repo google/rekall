@@ -278,7 +278,7 @@ class WebConsole(plugin.Command):
                         self.session.logging.debug("Copied %s->%s",
                                                    srcname, dstname)
 
-            except EnvironmentError, why:
+            except EnvironmentError as why:
                 self.session.logging.debug("Unable to copy %s->%s: %s",
                                            srcname, dstname, why)
 

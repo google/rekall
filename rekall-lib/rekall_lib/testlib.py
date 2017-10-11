@@ -1,4 +1,5 @@
 """Utilities for testing Rekall Agent components."""
+from __future__ import print_function
 import json
 import os
 import sqlite3
@@ -36,7 +37,7 @@ class ClientAcionTest(testlib.RekallBaseUnitTestCase):
                 self.assertMultiLineEqual(self._normalize_json(fd.read()),
                                           self._normalize_json(baseline_data))
         except Exception:
-            print "Unable to verify baseline %s: \n%s" % (name, baseline_data)
+            print("Unable to verify baseline %s: \n%s" % (name, baseline_data))
             raise
 
     def get_test_location(self, name):

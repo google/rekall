@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Rekall Memory Forensics
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -20,10 +21,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from builtins import object
 import logging
 import threading
 import traceback
-import Queue
+import queue
 
 
 # Simple threadpool implementation - we just run all tests in the pool for
@@ -58,7 +63,7 @@ class Worker(threading.Thread):
 
                 task(*args, **kwargs)
             except Exception as e:
-                print e
+                print(e)
                 logging.error("Worker raised %s", e)
                 traceback.print_exc()
                 on_error(e)
@@ -72,7 +77,7 @@ class ThreadPool(object):
 
     def __init__(self, number_of_threads):
         self.number_of_threads = number_of_threads
-        self.queue = Queue.Queue(2 * number_of_threads)
+        self.queue = queue.Queue(2 * number_of_threads)
         self.workers = [Worker(self.queue) for _ in range(number_of_threads)]
 
     def Stop(self):

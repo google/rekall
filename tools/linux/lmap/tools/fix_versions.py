@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Uses ko_patcher to fix the __vermagic of a kernel module."""
+from __future__ import print_function
 import sys
 
 from ko_patcher import KernelObjectPatcher

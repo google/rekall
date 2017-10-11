@@ -21,6 +21,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 """Meta-script for pulling in all Rekall components."""
+from __future__ import print_function
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import os
@@ -52,7 +53,7 @@ class install(_install):
             os.path.join(os.path.dirname(__file__), "rekall-core", "setup.py"))
 
         if os.access(path, os.F_OK):
-            print "Installing rekall-core from local directory."
+            print("Installing rekall-core from local directory.")
 
             subprocess.check_call([sys.executable, "setup.py", "install"],
                                   cwd="rekall-core")
@@ -68,7 +69,7 @@ class develop(_develop):
             os.path.join(os.path.dirname(__file__), "rekall-core", "setup.py"))
 
         if os.access(path, os.F_OK):
-            print "Installing rekall-core from local directory."
+            print("Installing rekall-core from local directory.")
 
             subprocess.check_call([sys.executable, "setup.py", "develop"],
                                   cwd="rekall-core")

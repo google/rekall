@@ -61,7 +61,7 @@ class CachingManager(io_manager.IOManager):
         self.CheckUpstreamRepository()
 
     def __str__(self):
-        return "Local Cache %s" % self.cache_io_manager
+        return u"Local Cache %s" % self.cache_io_manager
 
     def CheckInventory(self, name):
         """Do we have this file at all?
@@ -122,7 +122,7 @@ class CachingManager(io_manager.IOManager):
         cache_inventory = self.cache_io_manager.inventory
         modified = False
 
-        for item, metadata in cache_inventory.get("$INVENTORY", {}).items():
+        for item, metadata in list(cache_inventory.get("$INVENTORY", {}).items()):
             upstream_meta = upstream_inventory.get(
                 "$INVENTORY", {}).get(item)
 

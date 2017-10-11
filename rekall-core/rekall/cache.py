@@ -1,6 +1,11 @@
-import cPickle
-import cStringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import pickle
+import io
 import os
+import six
 import time
 
 from rekall import config
@@ -16,6 +21,26 @@ config.DeclareOption(
     help="Type of cache to use. ")
 
 
+class RestrictedUnpickler(pickle.Unpickler):
+
+    def find_class(self, module, name):
+        # Only allow safe classes from builtins.
+        if module == "builtins" and name in safe_builtins:
+            return getattr(builtins, name)
+        # Forbid everything else.
+        raise pickle.UnpicklingError("global '%s.%s' is forbidden" %
+                                     (module, name))
+
+
+def RestrictedPickler(raw):
+    if six.PY3:
+        return RestrictedUnpickler(io.BytesIO(utils.SmartStr(raw))).load()
+
+    unpickler = pickle.Unpickler(io.BytesIO(utils.SmartStr(raw)))
+    unpickler.find_global = None
+    return unpickler
+
+
 class PicklingDirectoryIOManager(io_manager.DirectoryIOManager):
 
     def __init__(self, *args, **kwargs):
@@ -26,7 +51,7 @@ class PicklingDirectoryIOManager(io_manager.DirectoryIOManager):
         data = self.renderer.encoder.Encode(data)
 
         try:
-            return cPickle.dumps(data, -1)
+            return pickle.dumps(data, -1)
         except TypeError:
             raise io_manager.EncodeError("Unable to pickle data")
 
@@ -38,8 +63,7 @@ class PicklingDirectoryIOManager(io_manager.DirectoryIOManager):
         recovered.
         """
         now = time.time()
-        unpickler = cPickle.Unpickler(cStringIO.StringIO(raw))
-        unpickler.find_global = None
+        unpickler = RestrictedPickler(raw)
 
         try:
             decoded = unpickler.load()
@@ -78,17 +102,17 @@ class Cache(object):
     def __str__(self):
         """Print the contents somewhat concisely."""
         result = []
-        for k, v in self.data.iteritems():
+        for k, v in six.iteritems(self.data):
             if isinstance(v, obj.BaseObject):
                 v = repr(v)
 
-            value = "\n  ".join(str(v).splitlines())
+            value = u"\n  ".join(str(v).splitlines())
             if len(value) > 100:
-                value = "%s ..." % value[:100]
+                value = u"%s ..." % value[:100]
 
-            result.append("  %s = %s" % (k, value))
+            result.append(u"  %s = %s" % (k, value))
 
-        return "{\n" + "\n".join(sorted(result)) + "\n}"
+        return u"{\n" + u"\n".join(sorted(result)) + u"\n}"
 
 
 class TimedCache(Cache):
@@ -135,7 +159,7 @@ class TimedCache(Cache):
         """Print the contents somewhat concisely."""
         result = []
         now = time.time()
-        for k, (v, timestamp) in self.data.items():
+        for k, (v, timestamp) in six.iteritems(self.data):
             if timestamp + self.expire_time < now:
                 self.data.pop(k)
                 continue
@@ -143,13 +167,13 @@ class TimedCache(Cache):
             if isinstance(v, obj.BaseObject):
                 v = repr(v)
 
-            value = "\n  ".join(str(v).splitlines())
+            value = u"\n  ".join(str(v).splitlines())
             if len(value) > 1000:
-                value = "%s ..." % value[:1000]
+                value = u"%s ..." % value[:1000]
 
-            result.append("  %s = %s" % (k, value))
+            result.append(u"  %s = %s" % (k, value))
 
-        return "{\n" + "\n".join(sorted(result)) + "\n}"
+        return u"{\n" + u"\n".join(sorted(result)) + u"\n}"
 
 
 class FileCache(Cache):
@@ -252,7 +276,7 @@ class FileCache(Cache):
 
         if self.name and self.io_manager:
             # Save to disk the dirty items.
-            for key, item in self.data.iteritems():
+            for key, item in six.iteritems(self.data):
                 if key in self.dirty or getattr(item, "dirty", False):
                     now = time.time()
                     self.io_manager.StoreData(
@@ -270,7 +294,7 @@ class FileCache(Cache):
             return
 
         session_index = self.io_manager.GetData("sessions/index")
-        for name, tests in session_index.iteritems():
+        for name, tests in six.iteritems(session_index):
             item = SessionIndex(name, tests)
             if item.Test(address_space):
                 self.SetName(item.name)

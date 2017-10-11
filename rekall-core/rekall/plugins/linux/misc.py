@@ -17,6 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """Miscelaneous information gathering plugins."""
 
+from builtins import str
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import hashlib
@@ -102,5 +103,5 @@ class LinImageFingerprint(common.AbstractLinuxParameterHook):
             result.append((task_name_offset, name.v()))
 
         return dict(
-            hash=hashlib.sha1(unicode(result).encode("utf8")).hexdigest(),
+            hash=hashlib.sha1(str(result).encode("utf8")).hexdigest(),
             tests=result)

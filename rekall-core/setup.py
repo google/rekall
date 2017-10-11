@@ -21,6 +21,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 """Installation and deployment script."""
+from __future__ import print_function
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import os
 import subprocess
@@ -33,7 +34,7 @@ rekall_description = "Rekall Memory Forensic Framework"
 current_directory = os.path.dirname(__file__)
 
 ENV = {"__file__": __file__}
-exec open("rekall/_version.py").read() in ENV
+exec(open("rekall/_version.py").read(), ENV)
 VERSION = ENV["get_versions"]()
 
 
@@ -63,10 +64,10 @@ install_requires = [
     "pyparsing==2.1.5",
     "pytz == 2016.4",
     "psutil >= 5.0, < 6.0",
-    "rekall-capstone == 3.0.4.post2",
+    "rekall-capstone == 3.0.5",
     "rekall-yara == 3.4.0.1",
     "pytsk3 == 20160721",
-    "ipaddr==2.1.11",
+    "ipaddr==2.2.0",
 
     # Version 2.5.0 is broken with pyinstaller.
     # https://github.com/pyinstaller/pyinstaller/issues/1848
@@ -76,11 +77,11 @@ install_requires = [
 ]
 
 if "VIRTUAL_ENV" not in os.environ:
-    print "*****************************************************"
-    print "  WARNING: You are not installing Rekall in a virtual"
-    print "  environment. This configuration is not supported!!!"
-    print "  Expect breakage."
-    print "*****************************************************"
+    print("*****************************************************")
+    print("  WARNING: You are not installing Rekall in a virtual")
+    print("  environment. This configuration is not supported!!!")
+    print("  Expect breakage.")
+    print("*****************************************************")
 
 if int(setuptools.__version__.split(".")[0]) < 8:
     raise RuntimeError("Rekall requires at least setuptool version 8.0. "
@@ -115,7 +116,7 @@ class PIPUpgrade(Command):
             except IndexError:
                 pass
 
-        print "\n".join(sorted(result))
+        print("\n".join(sorted(result)))
 
 
 class CleanCommand(Command):

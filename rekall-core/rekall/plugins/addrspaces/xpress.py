@@ -29,9 +29,11 @@
 @license:      GNU General Public License 2.0 or later
 @contact:      bdolangavitt@wesleyan.edu
 """
+from __future__ import division
 
 #pylint: disable-msg=C0111
 
+from past.utils import old_div
 from struct import unpack
 from struct import error as StructError
 
@@ -89,7 +91,7 @@ def xpress_decode(inputBuffer):
                 return recombine(outputBuffer)
 
             inputIndex += 2
-            offset = length / 8
+            offset = length // 8
             length = length % 8
             if length == 7:
                 if nibbleIndex == 0:
@@ -100,7 +102,7 @@ def xpress_decode(inputBuffer):
                     # get the high nibble of the last place a nibble sized
                     # length was used thus we don't waste that extra half
                     # byte :p
-                    length = ord(inputBuffer[nibbleIndex]) / 16
+                    length = ord(inputBuffer[nibbleIndex]) // 16
                     nibbleIndex = 0
 
                 if length == 15:

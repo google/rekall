@@ -18,6 +18,7 @@
 
 # The code in this directory is based on original code and algorithms by Andrew
 # Case (atcuno@gmail.com).
+from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
 
 # Disabled because pylint is wrong about it pretty much all the time.
@@ -132,7 +133,7 @@ class KernelSlideHook(AbstractDarwinParameterHook):
 
 class CatfishScanner(scan.BaseScanner):
     checks = [
-        ("StringCheck", dict(needle="Catfish \x00\x00"))
+        ("StringCheck", dict(needle=b"Catfish \x00\x00"))
     ]
 
 
@@ -457,7 +458,7 @@ class ProcessFilterMixin(object):
         # Find all the producers that collect procs and inherit from
         # AbstractDarwinCachedProducer.
         methods = []
-        for subclass in AbstractDarwinCachedProducer.classes.itervalues():
+        for subclass in AbstractDarwinCachedProducer.classes.values():
             if (issubclass(subclass, AbstractDarwinCachedProducer)
                     and subclass.type_name == "proc"):
                 methods.append(subclass.name)

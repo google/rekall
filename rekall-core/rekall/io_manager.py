@@ -33,16 +33,20 @@ io_manager attribute, which will be used to create new files, or read from
 existing files.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+from future.utils import with_metaclass
 __author__ = "Michael Cohen <scudette@google.com>"
 
-import StringIO
+import io
 import gzip
 import json
 import time
 import os
 import shutil
-import urllib2
-import urlparse
+import urllib.request, urllib.error, urllib.parse
+import urllib.parse
 import zipfile
 
 from rekall import constants
@@ -67,7 +71,7 @@ class DecodeError(IOError):
     """Raised when unable to decode to the IO Manager."""
 
 
-class IOManager(object):
+class IOManager(with_metaclass(registry.MetaclassRegistry, object)):
     """The baseclass for abstracted IO implementations.
 
     The IO manager classes are responsible for managing access to profiles. A
@@ -79,8 +83,6 @@ class IOManager(object):
     The IO manager may actually store the profile file using some other scheme,
     but that internal scheme is private to itself.
     """
-
-    __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
     order = 100
@@ -234,7 +236,7 @@ class IOManager(object):
         return json.dumps(data, sort_keys=True, **options)
 
     def Decoder(self, raw):
-        return json.loads(raw)
+        return json.loads(utils.SmartUnicode(raw))
 
     def GetData(self, name, raw=False, default=None):
         """Get the data object stored at container member.
@@ -460,17 +462,17 @@ class DirectoryIOManager(IOManager):
 
         # If we are asked to write uncompressed files we do.
         if options.get("uncompressed"):
-            with open(path, "wb") as out_fd:
-                out_fd.write(to_write)
+            with open(path, "wt") as out_fd:
+                out_fd.write(utils.SmartUnicode(to_write))
             self._dirty = True
             return
 
         # We need to update the file atomically in case someone else is trying
         # to open it right now. Since the files are expected to be fairly small
         # its ok to compress into memory and just write atomically.
-        fd = StringIO.StringIO()
+        fd = io.BytesIO()
         with gzip.GzipFile(mode="wb", fileobj=fd) as gzip_fd:
-            gzip_fd.write(to_write)
+            gzip_fd.write(utils.SmartStr(to_write))
 
         with open(path + ".gz", "wb") as out_fd:
             out_fd.write(fd.getvalue())
@@ -478,16 +480,16 @@ class DirectoryIOManager(IOManager):
         self._dirty = True
 
     def __str__(self):
-        return "Directory:%s" % self.dump_dir
+        return u"Directory:%s" % self.dump_dir
 
 
 # pylint: disable=protected-access
 
-class SelfClosingFile(StringIO.StringIO):
+class SelfClosingFile(io.StringIO):
     def __init__(self, name, manager):
         self.name = name
         self.manager = manager
-        StringIO.StringIO.__init__(self)
+        io.StringIO.__init__(self)
 
     def __enter__(self):
         return self
@@ -614,7 +616,7 @@ class ZipFileManager(IOManager):
         self.zip.close()
 
     def __str__(self):
-        return "ZipFile:%s" % self.file_name
+        return u"ZipFile:%s" % self.file_name
 
 
 class URLManager(IOManager):
@@ -626,7 +628,7 @@ class URLManager(IOManager):
             raise IOManagerError("%s supports only reading." %
                                  self.__class__.__name__)
 
-        self.url = urlparse.urlparse(urn)
+        self.url = urllib.parse.urlparse(utils.SmartUnicode(urn))
         if self.url.scheme not in ("http", "https"):
             raise IOManagerError("%s supports only http protocol." %
                                  self.__class__.__name__)
@@ -642,7 +644,7 @@ class URLManager(IOManager):
     def _GetURL(self, name):
         url = self.url._replace(path="%s/%s/%s" % (
             self.url.path, self.version, name))
-        return urlparse.urlunparse(url)
+        return urllib.parse.urlunparse(url)
 
     def Open(self, name):
         url = self._GetURL(name)
@@ -650,17 +652,16 @@ class URLManager(IOManager):
         try:
             # Rekall repositories always use gzip to compress the files - so
             # first try with the .gz extension.
-            fd = urllib2.urlopen(url + ".gz", timeout=10)
+            fd = urllib.request.urlopen(url + ".gz", timeout=10)
             self.session.logging.debug("Opened url %s.gz" % url)
-            return gzip.GzipFile(
-                fileobj=StringIO.StringIO(fd.read(MAX_DATA_SIZE)))
-        except urllib2.HTTPError:
+            return gzip.GzipFile(fileobj=io.BytesIO(fd.read(MAX_DATA_SIZE)))
+        except urllib.error.HTTPError:
             # Try to load the file without the .gz extension.
             self.session.logging.debug("Opened url %s" % url)
-            return urllib2.urlopen(url, timeout=10)
+            return urllib.request.urlopen(url, timeout=10)
 
     def __str__(self):
-        return "URL:%s" % self.urn
+        return u"URL:%s" % self.urn
 
 
 def Factory(urn, mode="r", session=None, **kwargs):

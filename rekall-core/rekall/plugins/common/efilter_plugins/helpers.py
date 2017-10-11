@@ -1,5 +1,7 @@
 # The below are helper routines for
 
+from builtins import str
+from builtins import object
 import functools
 import re
 import six
@@ -37,7 +39,8 @@ def int_function(value):
 
 def noncase_search_function(regex, value):
     """Case insensitive regex search function."""
-    return bool(re.search(unicode(regex), unicode(value), re.I))
+    return bool(re.search(utils.SmartUnicode(regex),
+                          utils.SmartUnicode(value), re.I))
 
 
 def substitute(pattern, repl, target):
@@ -59,13 +62,13 @@ EFILTER_SCOPES = dict(
         hex_function, arg_types=[int], return_type=[str]),
 
     str=api.user_func(
-        str_function, arg_types=[], return_type=[unicode]),
+        str_function, arg_types=[], return_type=[str]),
 
     int=api.user_func(
         int_function, arg_types=[], return_type=[int]),
 
     regex_search=api.user_func(
-        noncase_search_function, arg_types=[unicode, unicode],
+        noncase_search_function, arg_types=[str, str],
         return_type=[bool]),
 
     concat=api.user_func(lambda *args: "".join(args)),

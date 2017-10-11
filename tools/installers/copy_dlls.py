@@ -7,6 +7,7 @@ This program works by running inside Rekall itself, and introspecting the
 currently used DLLs. We copy all the DLLs that are not in the system32 directory
 to the target path.
 """
+from __future__ import print_function
 import ctypes
 import re
 import os
@@ -59,12 +60,12 @@ def EnumMissingModules():
         "\\dlls" in module_filename):
         yield module_filename
     else:
-        print "Skipping %s" % module_filename
+        print("Skipping %s" % module_filename)
 
 target_dir = "dist/rekal"
 if not os.path.isdir(target_dir):
   raise RuntimeError("Target is not a directory.")
 
 for x in EnumMissingModules():
-    print "Copying %s" % x
+    print("Copying %s" % x)
     shutil.copy(x, target_dir)

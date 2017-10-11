@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from builtins import str
+from builtins import range
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall import obj
@@ -150,7 +152,7 @@ darwin_overlay = {
         "v_name": [None, ["Pointer", dict(target="String")]],
 
         "path": lambda self: "/".join(reversed(
-            [unicode(y.v_name.deref()) for y in self.walk_list("v_parent")])),
+            [str(y.v_name.deref()) for y in self.walk_list("v_parent")])),
 
         # xnu-2422.1.72/bsd/sys/vnode_internal.h:230
         "v_flag": [None, ["Flags", dict(
@@ -582,7 +584,7 @@ class LIST_ENTRY(obj.Struct):
 
         return result1
 
-    def __nonzero__(self):
+    def __bool__(self):
         # List entries are valid when both Flinks and Blink are valid
         return bool(self.m(self._forward)) or bool(self.m(self._backward))
 
@@ -605,8 +607,8 @@ class queue_entry(basic.ListMixIn, obj.Struct):
     Although the queue_entry is defined as:
 
     struct queue_entry {
-        struct queue_entry	*next;		/* next element */
-        struct queue_entry	*prev;		/* previous element */
+        struct queue_entry      *next;          /* next element */
+        struct queue_entry      *prev;          /* previous element */
     };
 
     This is in fact not correct since the next, and prev pointers
@@ -633,13 +635,13 @@ class queue_entry(basic.ListMixIn, obj.Struct):
 
 
 class sockaddr_dl(obj.Struct):
-    def __unicode__(self):
+    def __str__(self):
         result = []
-        for i in xrange(self.sdl_alen):
+        for i in range(self.sdl_alen):
             result.append(
-                "%.02X" % ord(self.sdl_data[self.sdl_nlen + i].v()))
+                u"%.02X" % ord(self.sdl_data[self.sdl_nlen + i].v()))
 
-        return ":".join(result)
+        return u":".join(result)
 
 
 class fileproc(obj.Struct):
@@ -1006,15 +1008,15 @@ class sockaddr(obj.Struct):
         result = ""
         addr = self._get_address_obj()
         if addr:
-            if self.sa_family in ("AF_INET6", "AF_INET"):
+            if self.sa_family in (u"AF_INET6", u"AF_INET"):
                 result = utils.FormatIPAddress(self.sa_family, addr)
 
-            elif self.sa_family == "AF_LINK":
+            elif self.sa_family == u"AF_LINK":
                 result = addr
 
-        return str(result)
+        return utils.SmartUnicode(result)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.address
 
 
@@ -1197,7 +1199,7 @@ class proc(obj.Struct):
         ofiles = self.p_fd.fd_ofiles.deref()
         ofileflags = self.p_fd.fd_ofileflags
 
-        for fd in xrange(last_fd + 1):  # xrange stops at N-1.
+        for fd in range(last_fd + 1):  # xrange stops at N-1.
             file_obj = ofiles[fd].deref()
 
             # file_obj will be None if the pointer is NULL (see ref [4]), and
@@ -1245,7 +1247,7 @@ class proc(obj.Struct):
             if len(result) >= self.p_argc:
                 break
 
-            item = unicode(item)
+            item = str(item)
 
             # The argv array may have null padding for alignment. Discard these
             # empty strings.
@@ -1292,7 +1294,7 @@ class vnode(obj.Struct):
                 return "<Orphan>"
 
         path = "/" + "/".join((str(x) for x in reversed(result) if x))
-        return unicode(path.encode("string-escape"))
+        return str(path.encode("string-escape"))
         # return "/" + "/".join((unicode(x) for x in reversed(result) if x))
 
     @utils.safe_property
@@ -1417,7 +1419,7 @@ class zone(obj.Struct):
         # space that contain valid elements.
         limit -= self.obj_profile.get_obj_size("zone_page_metadata")
 
-        return xrange(page_start, limit, self.elem_size)
+        return range(page_start, limit, self.elem_size)
 
 
 class ifnet(obj.Struct):
@@ -1536,7 +1538,7 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
         # Some Darwin profiles add a suffix to IOKIT objects. So OSDictionary
         # becomes OSDictionary_class. We automatically generate the overlays and
         # classes to account for this.
-        for k in profile.vtypes.keys():
+        for k in list(profile.vtypes.keys()):
             if k.endswith("_class"):
                 stripped_k = k[:-len("_class")]
                 if stripped_k not in profile.vtypes:

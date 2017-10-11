@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from past.builtins import basestring
+from builtins import object
 __author__ = "Andreas Moser <grrrrrrrrr@surfsup.at>"
 
 

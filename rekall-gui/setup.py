@@ -27,7 +27,7 @@ import os
 from setuptools import find_packages, setup, Command
 
 VERSION_ENV = {}
-exec open("rekall_gui/_version.py").read() in VERSION_ENV
+exec(open("rekall_gui/_version.py").read(), VERSION_ENV)
 VERSION = VERSION_ENV["get_versions"]()
 
 rekall_description = "Rekall Memory Forensic Framework"

@@ -22,6 +22,8 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+from builtins import str
+from builtins import object
 import os
 import re
 
@@ -164,7 +166,7 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
             # know about but that don't really work with the current image.
             linux_banner = address_space.session.profile.get_constant_object(
                 "linux_proc_banner", "String", vm=address_space)
-            if unicode(linux_banner).startswith(u"%s version %s"):
+            if str(linux_banner).startswith(u"%s version %s"):
                 return address_space
 
             self.session.logging.debug("Failed to verify dtb @ %#x" % dtb)

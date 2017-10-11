@@ -24,7 +24,13 @@
 """ This file defines some basic types which might be useful for many
 OS's
 """
+from __future__ import division
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 import datetime
+import six
 import socket
 import struct
 
@@ -34,6 +40,10 @@ from rekall import config
 from rekall import obj
 from rekall.plugins.overlays import native_types
 from rekall_lib import utils
+
+if six.PY3:
+    long = int
+
 
 
 config.DeclareOption(
@@ -48,7 +58,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     arrays and therefore are not encoded in any particular unicode encoding.
     """
 
-    def __init__(self, length=1024, max_length=1024000, term="\x00", **kwargs):
+    def __init__(self, length=1024, max_length=1024000, term=b"\x00", **kwargs):
         """Constructor.
 
         Args:
@@ -63,6 +73,9 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         if callable(length):
             length = length(self.obj_parent)
 
+        if term is not None:
+            term = utils.SmartStr(term)
+
         self.term = term
         self.length = int(length)
         self.max_length = max_length
@@ -75,10 +88,11 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return self.v().startswith(other)
 
     def v(self, vm=None):
+        """Returns the strings as a python bytes string."""
         # Make sure to protect ourselves before reading too much at once.
         length = self.length
         if self.length > self.max_length:
-            self.obj_session.logging.warn("%s@%#x truncated",
+            self.obj_session.logging.warn(u"%s@%#x truncated",
                                           self.obj_name, self.obj_offset)
             length = 0
 
@@ -98,15 +112,23 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def write(self, data):
         return self.obj_vm.write(self.obj_offset, data)
 
+    def __eq__(self, other):
+        return utils.SmartStr(self) == utils.SmartStr(other)
+
+    # Hash must be explicitely defined when __eq__ is
+    # set. (https://bugs.python.org/issue2235)
+    def __hash__(self):
+        return hash(self.v())
+
     def proxied(self):
         """ Return an object to be proxied """
-        return str(self)
+        return self.v()
+
+    def __bytes__(self):
+        # Remove any null termination chars.
+        return self.v().rstrip(b"\x00")
 
     def __str__(self):
-        # Remove any null termination chars.
-        return self.v().rstrip("\x00")
-
-    def __unicode__(self):
         return self.v().decode("utf8", "replace").split("\x00")[0] or u""
 
     def __len__(self):
@@ -132,6 +154,10 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         """This is equivalent to strlen() plus the terminator."""
         # The length is really determined by the terminator here.
         return len(self.v())
+
+    def __repr__(self):
+        return " [{0}:{1}]: {2}".format(self.obj_type, self.obj_name,
+                                        repr(self.v()))
 
 
 class Signature(String):
@@ -163,6 +189,9 @@ class UnicodeString(String):
         self.encoding = encoding or self.obj_profile.get_constant(
             'default_text_encoding')
 
+        # We split the unicode string using a unicode terminator.
+        self.term = utils.SmartUnicode(self.term)
+
     def v(self, vm=None):
         vm = vm or self.obj_vm
 
@@ -179,16 +208,16 @@ class UnicodeString(String):
         return data
 
     def proxied(self):
-        return unicode(self)
+        return str(self)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.v().split("\x00")[0] or u""
 
     def __getitem__(self, *args):
-        return unicode(self).__getitem__(*args)
+        return str(self).__getitem__(*args)
 
     def __len__(self):
-        return len(unicode(self))
+        return len(str(self))
 
     def __repr__(self):
         value = utils.SmartStr(self)
@@ -221,7 +250,7 @@ class Flags(obj.NativeType):
         super(Flags, self).__init__(**kwargs)
         self.maskmap = maskmap or {}
         if bitmap:
-            for k, v in bitmap.items():
+            for k, v in list(bitmap.items()):
                 self.maskmap[k] = 1 << v
 
         self.target = target
@@ -317,7 +346,7 @@ class Enumeration(obj.NativeType):
 
         # Due to the way JSON serializes dicts, we must always operate on the
         # choices dict with string keys.
-        self.choices = dict((str(k), v) for k, v in choices.iteritems())
+        self.choices = choices
         self.default = default
         if callable(value):
             value = value(self.obj_parent)
@@ -335,7 +364,8 @@ class Enumeration(obj.NativeType):
         return self.target_obj.obj_size
 
     def is_valid(self):
-        return str(self.v()) in self.choices
+        value = self.v()
+        return (value in self.choices) or (str(value) in self.choices)
 
     def v(self, vm=None):
         if self.value is None:
@@ -350,32 +380,38 @@ class Enumeration(obj.NativeType):
 
         return self.target_obj.write(data)
 
-    def __hash__(self):
-        # TODO: This hash function is dangerous, because the Enum compares
-        # as string or int, but hashes only as int. We need to implement a
-        # version of dict that supports multiple hash entries and then uncomment
-        # the exception:
-        # raise NotImplementedError("Enumerations are not hashable.")
-        return hash(self.v())
-
-    def __unicode__(self):
+    def get_choice(self):
         value = self.v()
-        # Choices dict keys are always strings.
-        return self.choices.get(utils.SmartStr(value), self.default) or (
-            u"UNKNOWN (%s)" % utils.SmartUnicode(value))
+        choice = self.choices.get(value)
+        if choice is None:
+            choice = self.choices.get(utils.SmartUnicode(value))
+
+        if choice is None:
+            choice = self.default
+
+        return choice
+
+    def __str__(self):
+        choice = self.get_choice()
+        if choice is not None:
+            return choice
+        return u"UNKNOWN (%s)" % utils.SmartUnicode(self.v())
 
     def __eq__(self, other):
-        if isinstance(other, (int, long)):
+        if isinstance(other, int):
             return str(self.v()) == str(other)
 
         # Search the choices.
-        for k, v in self.choices.iteritems():
+        for k, v in self.choices.items():
             if v == other:
                 return str(self.v()) == k
 
+    def __hash__(self):
+       return hash(self.v())
+
     def __repr__(self):
-        return "%s (%s)" % (super(Enumeration, self).__repr__(),
-                            self.__str__())
+        return u"%s (%s)" % (super(Enumeration, self).__repr__(),
+                             self.__str__())
 
     _reverse_choices = None
 
@@ -383,7 +419,7 @@ class Enumeration(obj.NativeType):
     def reverse_choices(self):
         if self._reverse_choices is None:
             self._reverse_choices = {v: int(k)
-                                     for k, v in self.choices.items()}
+                                     for k, v in list(self.choices.items())}
         return self._reverse_choices
 
     def __getattr__(self, attr):
@@ -535,7 +571,7 @@ class ListMixIn(object):
     def empty(self):
         return self.m(self._forward) == self.m(self._backward)
 
-    def __nonzero__(self):
+    def __bool__(self):
         # List entries are valid when both Flinks and Blink are valid
         return bool(self.m(self._forward)) or bool(self.m(self._backward))
 
@@ -574,11 +610,11 @@ class UnixTimeStamp(obj.NativeType):
         super(UnixTimeStamp, self).__init__(
             format_string=format_string, **kwargs)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.v() != 0
 
     def __add__(self, other):
-        if isinstance(other, (float, int, long)):
+        if isinstance(other, (float, int)):
             return UnixTimeStamp(
                 value=self.v() + other, profile=self.obj_profile)
 
@@ -609,12 +645,12 @@ class UnixTimeStamp(obj.NativeType):
         except ValueError as e:
             return obj.NoneObject("Error: %s", e)
 
-    def __unicode__(self):
-        return unicode(self.display())
+    def __str__(self):
+        return utils.SmartUnicode(self.display())
 
     def __repr__(self):
-        return "%s (%s)" % (super(UnixTimeStamp, self).__repr__(),
-                            str(self))
+        return u"%s (%s)" % (super(UnixTimeStamp, self).__repr__(),
+                             self.display())
 
     def as_arrow(self):
         value = self.v()
@@ -648,7 +684,7 @@ class ValueEnumeration(Enumeration):
 class timeval(UnixTimeStamp, obj.Struct):
 
     def v(self, vm=None):
-        return float(self.m("tv_sec")) + self.m("tv_usec") / 1e6
+        return float(self.m("tv_sec")) + old_div(self.m("tv_usec"), 1e6)
 
 
 class WinFileTime(UnixTimeStamp):
@@ -664,7 +700,7 @@ class WinFileTime(UnixTimeStamp):
     def v(self, vm=None):
         value = self.as_windows_timestamp()
 
-        unix_time = value / 10000000 - 11644473600
+        unix_time = old_div(value, 10000000) - 11644473600
         if unix_time < 0:
             unix_time = 0
 
@@ -685,10 +721,10 @@ class IndexedArray(obj.Array):
         super(IndexedArray, self).__init__(**kwargs)
         try:
             self.index_table = dict(
-                (x, int(y)) for x, y in index_table.items())
+                (x, int(y)) for x, y in six.iteritems(index_table))
         except ValueError:
             self.index_table = dict(
-                (y, int(x)) for x, y in index_table.items())
+                (y, int(x)) for x, y in six.iteritems(index_table))
 
         if self.count == 0:
             self.count = len(index_table)
@@ -699,7 +735,7 @@ class IndexedArray(obj.Array):
             index = item
 
             # Try to name the object appropriately.
-            for k, v in self.index_table.items():
+            for k, v in six.iteritems(self.index_table):
                 if v == item:
                     item = k
                     break

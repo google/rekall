@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+from builtins import next
 __author__ = (
     "Michael Cohen <scudette@google.com>",
     "Adam Sindelar <adam.sindelar@gmail.com>")
@@ -78,7 +79,7 @@ class DarwinNetstat(common.AbstractDarwinCommand):
         # Find all the producers that collect procs and inherit from
         # AbstractDarwinCachedProducer.
         methods = []
-        for subclass in common.AbstractDarwinProducer.classes.itervalues():
+        for subclass in common.AbstractDarwinProducer.classes.values():
             # We look for a plugin which is a producer and a darwin command.
             if (issubclass(subclass, common.AbstractDarwinCommand) and
                     issubclass(subclass, plugin.Producer) and

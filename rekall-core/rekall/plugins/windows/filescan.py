@@ -27,6 +27,8 @@
 @contact:      a.schuster@forensikblog.de
 @organization: http://computer.forensikblog.de/en/
 """
+from future import standard_library
+standard_library.install_aliases()
 from rekall.plugins.windows import common
 
 

@@ -17,6 +17,7 @@
 #
 
 
+from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """A Common mixin for implementing plugins based on scanning."""
@@ -61,7 +62,7 @@ class BaseScannerPlugin(object):
 
     def scan_specification_requested(self):
         """Return True if the user requested any specific regions."""
-        for k, v in self.plugin_args.items():
+        for k, v in list(self.plugin_args.items()):
             if k.startswith("scan_") and v:
                 return True
 

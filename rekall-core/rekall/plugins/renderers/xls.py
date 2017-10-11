@@ -23,6 +23,8 @@
 
 We produce xls (Excel spreadsheet files) with the output from Rekall plugins.
 """
+from builtins import str
+from builtins import range
 import time
 import openpyxl
 
@@ -33,6 +35,11 @@ from openpyxl.styles import fills
 from rekall import utils
 from rekall.ui import renderer
 from rekall.ui import text
+
+import six
+if six.PY3:
+    long = int
+
 
 # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
 # pylint: disable=redefined-outer-name
@@ -81,8 +88,9 @@ class XLSObjectRenderer(renderer.ObjectRenderer):
         if isinstance(value, (int, float, long)):
             return value
 
-        return unicode(self._GetDelegateObjectRenderer(value).render_row(
-            value, **options))
+        return utils.SmartUnicode(
+            self._GetDelegateObjectRenderer(value).render_row(
+                value, **options))
 
 
 class XLSColumn(text.TextColumn):

@@ -1,3 +1,4 @@
+from __future__ import division
 # Rekall Memory Forensics
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -23,6 +24,7 @@
 
 # pylint: disable=protected-access
 
+from past.utils import old_div
 from rekall import plugin
 from rekall import testlib
 from rekall.plugins.windows import common
@@ -286,12 +288,12 @@ class Raw2Dump(common.WindowsCommandPlugin):
         # Pad the header area with PAGE pattern:
         if self.profile.metadata("arch") == "AMD64":
             header = self.profile._DMP_HEADER64(vm=out_as)
-            out_as.write(0, "PAGE" * (header.obj_size / 4))
+            out_as.write(0, "PAGE" * (old_div(header.obj_size, 4)))
             out_as.write(4, "DU64")
         else:
             # 32 bit systems use a smaller structure.
             header = self.profile._DMP_HEADER(vm=out_as)
-            out_as.write(0, "PAGE" * (header.obj_size / 4))
+            out_as.write(0, "PAGE" * (old_div(header.obj_size, 4)))
             out_as.write(4, "DUMP")
 
             # PEA address spaces.
@@ -304,8 +306,8 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
         for i, run in enumerate(self.physical_address_space.get_mappings()):
             # Convert to pages
-            start = run.start / PAGE_SIZE
-            length = run.length / PAGE_SIZE
+            start = old_div(run.start, PAGE_SIZE)
+            length = old_div(run.length, PAGE_SIZE)
 
             header.PhysicalMemoryBlockBuffer.Run[i].BasePage = start
             header.PhysicalMemoryBlockBuffer.Run[i].PageCount = length
@@ -347,9 +349,9 @@ class Raw2Dump(common.WindowsCommandPlugin):
         kuser_shared = self.profile.get_constant_object(
             "KI_USER_SHARED_DATA", "_KUSER_SHARED_DATA")
         header.SystemTime = kuser_shared.SystemTime.as_windows_timestamp()
-        header.SystemUpTime = (
+        header.SystemUpTime = old_div((
             kuser_shared.InterruptTime.LowPart +
-            kuser_shared.InterruptTime.High1Time << 32) / 100000
+            kuser_shared.InterruptTime.High1Time << 32), 100000)
         header.ProductType = kuser_shared.NtProductType
         header.SuiteMask = kuser_shared.SuiteMask
 
@@ -361,7 +363,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         header.BugCheckCodeParameter[3] = 0x00000000
 
         # Set the sample run information
-        header.RequiredDumpSpace = number_of_pages + header.obj_size / PAGE_SIZE
+        header.RequiredDumpSpace = number_of_pages + old_div(header.obj_size, PAGE_SIZE)
         header.DumpType = 1
 
         # Zero out the remaining non-essential fields from ContextRecordOffset
@@ -378,8 +380,8 @@ class Raw2Dump(common.WindowsCommandPlugin):
         output_offset = header.obj_size
         for run in self.physical_address_space.get_mappings():
             # Convert to pages
-            start = run.start / PAGE_SIZE
-            length = run.length / PAGE_SIZE
+            start = old_div(run.start, PAGE_SIZE)
+            length = old_div(run.length, PAGE_SIZE)
 
             yield ("\nRun [0x%08X, 0x%08X] \n" % (start, length),)
             data_length = length * PAGE_SIZE

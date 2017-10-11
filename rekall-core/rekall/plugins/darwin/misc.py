@@ -16,7 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """Miscelaneous information gathering plugins."""
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
 __author__ = "Michael Cohen <scudette@google.com>"
 import hashlib
 import re
@@ -25,6 +28,8 @@ from rekall import obj
 from rekall.plugins import core
 from rekall.plugins.darwin import common
 from rekall.plugins.renderers import visual_aides
+
+from rekall_lib import utils
 
 
 class DarwinDMSG(common.AbstractDarwinCommand):
@@ -116,8 +121,8 @@ class DarwinPhysicalMap(common.AbstractDarwinCommand):
             vm=self.physical_address_space,
             target="EfiMemoryRange",
             target_size=int(boot_params.MemoryMapDescriptorSize),
-            count=(boot_params.MemoryMapSize /
-                   boot_params.MemoryMapDescriptorSize))
+            count=(old_div(boot_params.MemoryMapSize,
+                   boot_params.MemoryMapDescriptorSize)))
 
         runs = []
         for memory_range in memory_map:
@@ -126,7 +131,8 @@ class DarwinPhysicalMap(common.AbstractDarwinCommand):
                    + 0x1000
                    * memory_range.NumberOfPages)
             runs.append(dict(
-                value=unicode(memory_range.Type), start=start, end=end))
+                value=utils.SmartUnicode(memory_range.Type),
+                start=start, end=end))
             renderer.table_row(
                 start,
                 end,
@@ -149,8 +155,8 @@ class DarwinPhysicalMap(common.AbstractDarwinCommand):
                  "using a weighted average. Letters in cells indicate "
                  "which regions from the legend are present. They are "
                  "ordered proportionally, by their respective page "
-                 "counts in each cell.") % dict(pages=resolution / 0x1000,
-                                                mb=resolution / 1024.0 ** 2)
+                 "counts in each cell.") % dict(pages=old_div(resolution, 0x1000),
+                                                mb=old_div(resolution, 1024.0 ** 2))
 
         legend = visual_aides.MapLegend(
             notes=notes,
@@ -260,7 +266,7 @@ class DarwinImageFingerprint(common.AbstractDarwinParameterHook):
             result.append((task_name_offset, name.v()))
 
         return dict(
-            hash=hashlib.sha1(unicode(result).encode("utf8")).hexdigest(),
+            hash=hashlib.sha1(utils.SmartStr(result)).hexdigest(),
             tests=result)
 
 
