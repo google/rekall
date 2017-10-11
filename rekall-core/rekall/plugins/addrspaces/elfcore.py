@@ -220,12 +220,20 @@ class KCoreAddressSpace(Elf64CoreDump):
             # The random offset added to all physical memory ranges
             # when exported via the ELF header.
             range_start = first_run.start - first_system_ram.start
-            range_end = range_start + range_len
 
-        for start, _, run in self.runs:
-            if range_start < run.start < range_end:
-                runs.append((start - range_start,
-                             run.file_offset, run.length))
+            # Only add the runs which correspond with the System RAM Io map.
+            for start, _, run in self.runs:
+                normalized_start = start - range_start
+                for ram_run in io_map["System RAM"]:
+                    if normalized_start == ram_run.start:
+                        runs.append((normalized_start,
+                                     run.file_offset, run.length))
+                        break
+        else:
+            for start, _, run in self.runs:
+                if range_start < run.start < range_end:
+                    runs.append((start - range_start,
+                                 run.file_offset, run.length))
 
         self.as_assert(runs, "No kcore compatible virtual ranges.")
         self.runs.clear()

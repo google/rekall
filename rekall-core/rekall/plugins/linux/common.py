@@ -131,7 +131,6 @@ class KAllSyms(object):
 
     def _OpenLiveSymbolsFile(self, physical_address_space):
         """Opens the live symbols file to parse."""
-
         return physical_address_space.get_file_address_space(
             self.KALLSYMS_FILE)
 
@@ -189,7 +188,6 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
                     offset=pv_info_phys,
                     vm=self.physical_address_space)
 
-                import pdb; pdb.set_trace()
                 if pv_info.paravirt_enabled and pv_info.paravirt_enabled == 1:
                     self.session.logging.debug(
                         "Detected paravirtualized XEN guest")
@@ -407,7 +405,6 @@ class LinuxKASLR(AbstractLinuxParameterHook):
     name = "kernel_slide"
 
     def calculate(self):
-        import pdb; pdb.set_trace()
         if self.session.GetCache("execution_phase") == "ProfileAutodetect":
             raise RuntimeError(
                 "Attempting to get KASLR slide during profile "

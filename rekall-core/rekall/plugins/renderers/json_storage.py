@@ -329,10 +329,23 @@ class JsonFormattedAddress(json_renderer.StateBasedObjectRenderer):
 
     def GetState(self, item, **_):
         return dict(address=item.address,
-                    symbol=utils.SmartStr(item))
+                    symbol=utils.SmartUnicode(item))
 
     def Summary(self, item, **_):
-        return utils.SmartStr(item)
+        return utils.SmartUnicode(item)
+
+
+class RunEncoder(json_renderer.StateBasedObjectRenderer):
+    renders_type = ["Run"]
+
+    def GetState(self, item, **_):
+        return dict(start=item.start, end=item.end,
+                    address_space=item.address_space,
+                    file_offset=item.file_offset,
+                    data=item.data)
+
+    def Summary(self, item, **_):
+        return utils.SmartUnicode(self.GetState())
 
 
 class JsonRangedCollectionObjectRenderer(

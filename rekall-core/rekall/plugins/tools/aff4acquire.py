@@ -84,8 +84,8 @@ class AFF4ProgressReporter(aff4.ProgressContext):
 
         self.session.report_progress(
             " Reading %sMiB / %sMiB  %s MiB/s     ",
-            readptr/1024/1024,
-            self.length/1024/1024,
+            readptr//1024//1024,
+            self.length//1024//1024,
             rate)
 
         self.last_time = self.now()

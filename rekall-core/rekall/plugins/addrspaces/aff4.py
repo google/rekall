@@ -219,7 +219,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         for (subject, _, value) in self.resolver.QueryPredicate(
                 lexicon.AFF4_STREAM_ORIGINAL_FILENAME):
             # Normalize the filename for case insensitive filesysyems.
-            self.filenames[utils.SmartStr(value).lower()] = subject
+            self.filenames[utils.SmartUnicode(value).lower()] = subject
 
         # TODO: Deprecate this guessing once all images have the
         # AFF4_STREAM_ORIGINAL_FILENAME attribute.
