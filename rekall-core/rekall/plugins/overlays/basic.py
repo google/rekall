@@ -213,6 +213,10 @@ class UnicodeString(String):
     def __str__(self):
         return self.v().split("\x00")[0] or u""
 
+    def __bytes__(self):
+        # Remove any null termination chars.
+        return utils.SmartStr(str(self))
+
     def __getitem__(self, *args):
         return str(self).__getitem__(*args)
 
@@ -404,7 +408,7 @@ class Enumeration(obj.NativeType):
         # Search the choices.
         for k, v in self.choices.items():
             if v == other:
-                return str(self.v()) == k
+                return str(self.v()) == str(k)
 
     def __hash__(self):
        return hash(self.v())

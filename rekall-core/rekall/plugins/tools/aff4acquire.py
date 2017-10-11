@@ -27,6 +27,8 @@ acquire more relevant information (e.g. mapped files etc).
 from builtins import str
 from builtins import object
 __author__ = "Michael Cohen <scudette@google.com>"
+
+import binascii
 import platform
 import glob
 import os
@@ -75,15 +77,15 @@ class AFF4ProgressReporter(aff4.ProgressContext):
 
         # Rate in MB/s.
         try:
-            rate = ((readptr - self.last_offset) /
-                    (self.now() - self.last_time) * 1000000 / 1024/1024)
+            rate = ((readptr - self.last_offset) //
+                    (self.now() - self.last_time) * 1000000 // 1024 // 1024)
         except ZeroDivisionError:
             rate = "?"
 
         self.session.report_progress(
             " Reading %sMiB / %sMiB  %s MiB/s     ",
-            readptr/1024/1024,
-            self.length/1024/1024,
+            readptr//1024//1024,
+            self.length//1024//1024,
             rate)
 
         self.last_time = self.now()
@@ -165,7 +167,7 @@ class AbstractAFF4Plugin(plugin.TypedProfileCommand, plugin.Command):
     def _get_aff4_volume(self, resolver, output_urn, action="Writing"):
         urn_parts = output_urn.Parse()
         if urn_parts.scheme == "file":
-            if urn_parts.path.endswith("/"):
+            if output_urn.value.endswith("/"):
                 self.session.logging.info(
                     "%s a directory volume on %s", action, output_urn)
                 return aff4_directory.AFF4Directory.NewAFF4Directory(
@@ -288,7 +290,7 @@ class AFF4Acquire(AbstractAFF4Plugin):
                     r"C:\Windows\SysNative\*.sys"]
 
         elif platform.system() == "Linux":
-            return ["/proc/kallsyms", "/boot/*"]
+            return ["/proc/kallsyms", "/proc/iomem", "/boot/*"]
 
         return []
 
@@ -323,7 +325,7 @@ class AFF4Acquire(AbstractAFF4Plugin):
             total_length = self._WriteToTarget(resolver, source, image_stream)
 
         yield ("Wrote {0} mb of Physical Memory to {1}\n".format(
-            total_length/1024/1024, image_stream.urn),)
+            total_length//1024//1024, image_stream.urn),)
 
     def _WriteToTarget(self, resolver, source_as, image_stream):
         # Prepare a temporary map to control physical memory acquisition.
@@ -754,7 +756,7 @@ class AFF4Ls(AbstractAFF4Plugin):
         with self.credential_manager, self._get_aff4_volume(
                 self.resolver, volume_urn, "Reading") as volume:
             if self.plugin_args.long:
-                subjects = self.resolver.QuerySubject(self.plugin_args.regex)
+                subjects = self.resolver.QuerySubject(self.plugin_args.regex.pattern)
             else:
                 subjects = self.interesting_streams(volume)
 
@@ -801,8 +803,7 @@ class AFF4Ls(AbstractAFF4Plugin):
                 urns[urn] = "Physical Memory"
 
         # Add metadata files.
-        for subject in self.resolver.QuerySubject(
-                re.compile(".+(yaml|turtle)")):
+        for subject in self.resolver.QuerySubject(".+(yaml|turtle)"):
             urn = str(subject)
             urns[urn] = volume.urn.RelativePath(urn)
 
@@ -825,7 +826,7 @@ class AFF4Dump(AFF4Ls):
         with self.credential_manager, self._get_aff4_volume(
                 self.resolver, volume_urn, "Reading") as volume:
             if self.plugin_args.long:
-                subjects = self.resolver.QuerySubject(self.plugin_args.regex)
+                subjects = self.resolver.QuerySubject(self.plugin_args.regex.pattern)
             else:
                 subjects = self.interesting_streams(volume)
 
@@ -865,7 +866,7 @@ class AFF4Export(core.DirectoryDumperMixin, AbstractAFF4Plugin):
             elif x.isalnum() or x in "_-=.,; ":
                 result.append(x)
             else:
-                result.append("%" + x.encode("hex"))
+                result.append("%" + binascii.hexlify(x))
 
         return "".join(result)
 

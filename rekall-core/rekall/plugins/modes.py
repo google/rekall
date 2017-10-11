@@ -128,7 +128,7 @@ class VistaMode(kb.ParameterHook):
     name = "mode_vista_plus"
 
     def calculate(self):
-        return self.session.profile.metadata("major") >= 6
+        return self.session.profile.metadata("major", 0) >= 6
 
 
 class WinMemoryMode(kb.ParameterHook):

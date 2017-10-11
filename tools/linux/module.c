@@ -243,77 +243,77 @@ struct module_sect_attrs module_sect_attrs;
 
 struct kmem_cache {
 /* 1) per-cpu data, touched during every alloc/free */
-	struct array_cache *array[NR_CPUS];
+        struct array_cache *array[NR_CPUS];
 /* 2) Cache tunables. Protected by cache_chain_mutex */
-	unsigned int batchcount;
-	unsigned int limit;
-	unsigned int shared;
+        unsigned int batchcount;
+        unsigned int limit;
+        unsigned int shared;
 
-	unsigned int buffer_size;
-	u32 reciprocal_buffer_size;
+        unsigned int buffer_size;
+        u32 reciprocal_buffer_size;
 /* 3) touched by every alloc & free from the backend */
 
-	unsigned int flags;		/* constant flags */
-	unsigned int num;		/* # of objs per slab */
+        unsigned int flags;             /* constant flags */
+        unsigned int num;               /* # of objs per slab */
 
 /* 4) cache_grow/shrink */
-	/* order of pgs per slab (2^n) */
-	unsigned int gfporder;
+        /* order of pgs per slab (2^n) */
+        unsigned int gfporder;
 
-	/* force GFP flags, e.g. GFP_DMA */
-	gfp_t gfpflags;
+        /* force GFP flags, e.g. GFP_DMA */
+        gfp_t gfpflags;
 
-	size_t colour;			/* cache colouring range */
-	unsigned int colour_off;	/* colour offset */
-	struct kmem_cache *slabp_cache;
-	unsigned int slab_size;
-	unsigned int dflags;		/* dynamic flags */
+        size_t colour;                  /* cache colouring range */
+        unsigned int colour_off;        /* colour offset */
+        struct kmem_cache *slabp_cache;
+        unsigned int slab_size;
+        unsigned int dflags;            /* dynamic flags */
 
-	/* constructor func */
-	void (*ctor)(void *obj);
+        /* constructor func */
+        void (*ctor)(void *obj);
 
 /* 5) cache creation/removal */
-	const char *name;
-	struct list_head next;
+        const char *name;
+        struct list_head next;
 
 /* 6) statistics */
 #if STATS
-	unsigned long num_active;
-	unsigned long num_allocations;
-	unsigned long high_mark;
-	unsigned long grown;
-	unsigned long reaped;
-	unsigned long errors;
-	unsigned long max_freeable;
-	unsigned long node_allocs;
-	unsigned long node_frees;
-	unsigned long node_overflow;
-	atomic_t allochit;
-	atomic_t allocmiss;
-	atomic_t freehit;
-	atomic_t freemiss;
+        unsigned long num_active;
+        unsigned long num_allocations;
+        unsigned long high_mark;
+        unsigned long grown;
+        unsigned long reaped;
+        unsigned long errors;
+        unsigned long max_freeable;
+        unsigned long node_allocs;
+        unsigned long node_frees;
+        unsigned long node_overflow;
+        atomic_t allochit;
+        atomic_t allocmiss;
+        atomic_t freehit;
+        atomic_t freemiss;
 #endif
 #if DEBUG
-	/*
-	 * If debugging is enabled, then the allocator can add additional
-	 * fields and/or padding to every object. buffer_size contains the total
-	 * object size including these internal fields, the following two
-	 * variables contain the offset to the user object and its size.
-	 */
-	int obj_offset;
-	int obj_size;
+        /*
+         * If debugging is enabled, then the allocator can add additional
+         * fields and/or padding to every object. buffer_size contains the total
+         * object size including these internal fields, the following two
+         * variables contain the offset to the user object and its size.
+         */
+        int obj_offset;
+        int obj_size;
 #endif
-	/*
-	 * We put nodelists[] at the end of kmem_cache, because we want to size
-	 * this array to nr_node_ids slots instead of MAX_NUMNODES
-	 * (see kmem_cache_init())
-	 * We still use [MAX_NUMNODES] and not [1] or [0] because cache_cache
-	 * is statically defined, so we reserve the max number of nodes.
-	 */
-	struct kmem_list3 *nodelists[MAX_NUMNODES];
-	/*
-	 * Do not add fields after nodelists[]
-	 */
+        /*
+         * We put nodelists[] at the end of kmem_cache, because we want to size
+         * this array to nr_node_ids slots instead of MAX_NUMNODES
+         * (see kmem_cache_init())
+         * We still use [MAX_NUMNODES] and not [1] or [0] because cache_cache
+         * is statically defined, so we reserve the max number of nodes.
+         */
+        struct kmem_list3 *nodelists[MAX_NUMNODES];
+        /*
+         * Do not add fields after nodelists[]
+         */
 };
 #else
 
@@ -422,7 +422,69 @@ struct slab slab;
  * TIMEKEEPING START
  ****************************************/
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,17,0)
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 9, 54)
+#define cycle_t u64
+#endif
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 11, 7)
+
+struct tk_read_base {
+  struct clocksource      *clock;
+  u64                     mask;
+  u64                     cycle_last;
+  u32                     mult;
+  u32                     shift;
+  u64                     xtime_nsec;
+  ktime_t                 base;
+};
+
+struct timekeeper {
+  struct tk_read_base     tkr_mono;
+  struct tk_read_base     tkr_raw;
+  u64                     xtime_sec;
+  unsigned long           ktime_sec;
+  struct timespec64       wall_to_monotonic;
+  ktime_t                 offs_real;
+  ktime_t                 offs_boot;
+  ktime_t                 offs_tai;
+  s32                     tai_offset;
+  unsigned int            clock_was_set_seq;
+  u8                      cs_was_changed_seq;
+  ktime_t                 next_leap_ktime;
+  struct timespec64       raw_time;
+
+  /* The following members are for timekeeping internal use */
+  u64                     cycle_interval;
+  u64                     xtime_interval;
+  s64                     xtime_remainder;
+  u64                     raw_interval;
+  /* The ntp_tick_length() value currently being used.
+   * This cached copy ensures we consistently apply the tick
+   * length for an entire tick, as ntp_tick_length may change
+   * mid-tick, and we don't want to apply that new value to
+   * the tick in progress.
+   */
+  u64                     ntp_tick;
+  /* Difference between accumulated time and NTP time in ntp
+   * shifted nano seconds. */
+  s64                     ntp_error;
+  u32                     ntp_error_shift;
+  u32                     ntp_err_mult;
+  #ifdef CONFIG_DEBUG_TIMEKEEPING
+  long                    last_warning;
+  /*
+   * These simple flag variables are managed
+   * without locks, which is racy, but they are
+   * ok since we don't really care about being
+   * super precise about how many events were
+   * seen, just that a problem was observed.
+   */
+  int                     underflow_seen;
+  int                     overflow_seen;
+  #endif
+};
+
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,17,0)
 struct tk_read_base {
         struct clocksource      *clock;
         cycle_t                 (*read)(struct clocksource *cs);
@@ -637,61 +699,61 @@ struct timekeeper {
 #elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,31)
 
 struct timekeeper {
-	/* Current clocksource used for timekeeping. */
-	struct clocksource *clock;
-	/* NTP adjusted clock multiplier */
-	u32	mult;
-	/* The shift value of the current clocksource. */
-	int	shift;
+        /* Current clocksource used for timekeeping. */
+        struct clocksource *clock;
+        /* NTP adjusted clock multiplier */
+        u32     mult;
+        /* The shift value of the current clocksource. */
+        int     shift;
 
-	/* Number of clock cycles in one NTP interval. */
-	cycle_t cycle_interval;
-	/* Number of clock shifted nano seconds in one NTP interval. */
-	u64	xtime_interval;
-	/* shifted nano seconds left over when rounding cycle_interval */
-	s64	xtime_remainder;
-	/* Raw nano seconds accumulated per NTP interval. */
-	u32	raw_interval;
+        /* Number of clock cycles in one NTP interval. */
+        cycle_t cycle_interval;
+        /* Number of clock shifted nano seconds in one NTP interval. */
+        u64     xtime_interval;
+        /* shifted nano seconds left over when rounding cycle_interval */
+        s64     xtime_remainder;
+        /* Raw nano seconds accumulated per NTP interval. */
+        u32     raw_interval;
 
-	/* Clock shifted nano seconds remainder not stored in xtime.tv_nsec. */
-	u64	xtime_nsec;
-	/* Difference between accumulated time and NTP time in ntp
-	 * shifted nano seconds. */
-	s64	ntp_error;
-	/* Shift conversion between clock shifted nano seconds and
-	 * ntp shifted nano seconds. */
-	int	ntp_error_shift;
+        /* Clock shifted nano seconds remainder not stored in xtime.tv_nsec. */
+        u64     xtime_nsec;
+        /* Difference between accumulated time and NTP time in ntp
+         * shifted nano seconds. */
+        s64     ntp_error;
+        /* Shift conversion between clock shifted nano seconds and
+         * ntp shifted nano seconds. */
+        int     ntp_error_shift;
 
-	/* The current time */
-	struct timespec xtime;
-	/*
-	 * wall_to_monotonic is what we need to add to xtime (or xtime corrected
-	 * for sub jiffie times) to get to monotonic time.  Monotonic is pegged
-	 * at zero at system boot time, so wall_to_monotonic will be negative,
-	 * however, we will ALWAYS keep the tv_nsec part positive so we can use
-	 * the usual normalization.
-	 *
-	 * wall_to_monotonic is moved after resume from suspend for the
-	 * monotonic time not to jump. We need to add total_sleep_time to
-	 * wall_to_monotonic to get the real boot based time offset.
-	 *
-	 * - wall_to_monotonic is no longer the boot time, getboottime must be
-	 * used instead.
-	 */
-	struct timespec wall_to_monotonic;
-	/* time spent in suspend */
-	struct timespec total_sleep_time;
-	/* The raw monotonic time for the CLOCK_MONOTONIC_RAW posix clock. */
-	struct timespec raw_time;
+        /* The current time */
+        struct timespec xtime;
+        /*
+         * wall_to_monotonic is what we need to add to xtime (or xtime corrected
+         * for sub jiffie times) to get to monotonic time.  Monotonic is pegged
+         * at zero at system boot time, so wall_to_monotonic will be negative,
+         * however, we will ALWAYS keep the tv_nsec part positive so we can use
+         * the usual normalization.
+         *
+         * wall_to_monotonic is moved after resume from suspend for the
+         * monotonic time not to jump. We need to add total_sleep_time to
+         * wall_to_monotonic to get the real boot based time offset.
+         *
+         * - wall_to_monotonic is no longer the boot time, getboottime must be
+         * used instead.
+         */
+        struct timespec wall_to_monotonic;
+        /* time spent in suspend */
+        struct timespec total_sleep_time;
+        /* The raw monotonic time for the CLOCK_MONOTONIC_RAW posix clock. */
+        struct timespec raw_time;
 
-	/* Offset clock monotonic -> clock realtime */
-	ktime_t offs_real;
+        /* Offset clock monotonic -> clock realtime */
+        ktime_t offs_real;
 
-	/* Offset clock monotonic -> clock boottime */
-	ktime_t offs_boot;
+        /* Offset clock monotonic -> clock boottime */
+        ktime_t offs_boot;
 
-	/* Seqlock for all timekeeper values */
-	seqlock_t lock;
+        /* Seqlock for all timekeeper values */
+        seqlock_t lock;
 };
 #endif
 

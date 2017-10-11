@@ -33,6 +33,7 @@ from rekall import plugin
 from rekall import obj
 from rekall_lib import utils
 
+from rekall.plugins.addrspaces import elfcore
 from rekall.plugins import core
 
 
@@ -106,12 +107,12 @@ class KAllSyms(object):
         else:
             # Try to fully read the file
             read_length = 1*1024*1024
-            data = kallsyms_as.read(0, read_length).strip("\x00")
+            data = kallsyms_as.read(0, read_length).strip(b"\x00")
             while len(data) == read_length and read_length < 2**30:
                 read_length *= 2
-                data = kallsyms_as.read(0, read_length).strip("\x00")
+                data = kallsyms_as.read(0, read_length).strip(b"\x00")
 
-        return self.parse_data(data)
+        return self.parse_data(utils.SmartUnicode(data))
 
     def parse_data(self, data):
         self.session.logging.debug(
@@ -130,7 +131,6 @@ class KAllSyms(object):
 
     def _OpenLiveSymbolsFile(self, physical_address_space):
         """Opens the live symbols file to parse."""
-
         return physical_address_space.get_file_address_space(
             self.KALLSYMS_FILE)
 
@@ -179,7 +179,8 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
             # XEN PV guests have a mapping in p2m_top. We verify this symbol
             # is not NULL.
-            pv_info_virt = self.profile.get_constant("pv_info")
+            pv_info_virt = self.profile.get_constant(
+                "pv_info", is_address=True)
 
             if pv_info_virt:
                 pv_info_phys = self.profile.phys_addr(pv_info_virt)
@@ -438,3 +439,16 @@ class LinuxInitTaskHook(AbstractLinuxParameterHook):
                 seen.add(task.obj_offset)
 
         return seen
+
+
+class LinuxIOMap(AbstractLinuxParameterHook):
+    """Parse and calculated all the ranges exported by the IOMap."""
+    name = "iomap"
+
+    def calculate(self):
+        io_map_vm = self.session.physical_address_space.get_file_address_space(
+            "/proc/iomem")
+        if io_map_vm != None:
+            io_map_data = utils.SmartUnicode(io_map_vm.read(
+                0, 100000).split(b"\x00")[0])
+            return elfcore.ParseIOMap(io_map_data)

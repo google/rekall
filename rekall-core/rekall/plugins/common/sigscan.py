@@ -20,7 +20,7 @@ from past.builtins import basestring
 from builtins import object
 __author__ = "Andreas Moser <grrrrrrrrr@surfsup.at>"
 
-
+import binascii
 import re
 
 from rekall import plugin
@@ -162,7 +162,7 @@ class SigScanMixIn(object):
             decoded_parts = []
             for p in parts:
                 try:
-                    decoded_parts.append(p.decode("hex"))
+                    decoded_parts.append(binascii.unhexlify(p))
                 except TypeError:
                     raise plugin.PluginError(
                         "Signature %s has invalid format." % sig)
@@ -199,7 +199,7 @@ class SigScanMixIn(object):
             renderer.table_header([("Offset", "offset", "[addrpad]"),
                                    ("Matching part", "part", "")])
             for offset, part in hit:
-                renderer.table_row(offset, part.encode("hex"))
+                renderer.table_row(offset, binascii.hexlify(part))
 
     def render_physical_scan(self, renderer):
         """This method scans the physical memory."""

@@ -71,7 +71,9 @@ def SmartStr(string, encoding="utf8"):
         elif hasattr(string, "__bytes__"):
             return string.__bytes__()
 
-        return bytes(string)
+        # If there is no dedicated __bytes__ method, just encode the
+        # unicode string as utf8.
+        return bytes(SmartUnicode(string), "utf8")
 
     if six.PY2:
         if isinstance(string, str):
@@ -103,8 +105,9 @@ def Hexdump(data, width=16):
     for offset in range(0, len(data), width):
         row_data = data[offset:offset + width]
         translated_data = [
-            x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data]
-        hexdata = " ".join(["{0:02x}".format(ord(x)) for x in row_data])
+            x if my_ord(x) < 127 and my_ord(x) > 32 else "."
+            for x in row_data]
+        hexdata = " ".join(["{0:02x}".format(my_ord(x)) for x in row_data])
 
         yield offset, hexdata, translated_data
 
@@ -387,7 +390,20 @@ class AgeBasedCache(FastStore):
 
         else:
             self.ExpireObject(key)
+
             raise KeyError("Item too old.")
+
+
+def my_ord(char):
+    """An ord() function which accepts both ints and chars.
+
+    In Python3 indexing a byte array returns ints already but in Py2
+    this returns string which need to have ord() called on them.
+    """
+    if isinstance(char, int):
+        return char
+
+    return ord(char)
 
 
 # Compensate for Windows python not supporting socket.inet_ntop and some
@@ -402,7 +418,7 @@ def inet_ntop(address_family, packed_ip):
         if len(packed_ip) != 4:
             raise ValueError("invalid length of packed IP address string")
 
-        return "{0}.{1}.{2}.{3}".format(*[ord(x) for x in packed_ip])
+        return "{0}.{1}.{2}.{3}".format(*[my_ord(x) for x in packed_ip])
 
     def inet_ntop6(packed_ip):
         if not isinstance(packed_ip, basestring):
@@ -413,7 +429,8 @@ def inet_ntop(address_family, packed_ip):
 
         words = []
         for i in range(0, 16, 2):
-            words.append((ord(packed_ip[i]) << 8) | ord(packed_ip[i + 1]))
+            words.append((my_ord(packed_ip[i]) << 8) |
+                         my_ord(packed_ip[i + 1]))
 
         # Replace a run of 0x00s with None
         numlen = [(k, len(list(g))) for k, g in itertools.groupby(words)]
@@ -808,7 +825,7 @@ class RangedCollection(object):
         Retuns:
           A tuple of start, end, data for the range that contains address.
         """
-        tmp, data = self.collection.get_value_smaller_than((address + 1, None))
+        tmp, data = self.collection.get_value_smaller_than((address + 1, address + 1))
         if tmp is not None:
             start, end = tmp
             if start <= address < end:
@@ -930,7 +947,8 @@ def issubclass(obj, cls):    # pylint: disable=redefined-builtin
 
 def XOR(string1, string2):
     """Returns string1 xor string2."""
-    return "".join(chr(ord(x) ^ ord(y)) for x, y in zip(string1, string2))
+    return "".join(chr(my_ord(x) ^ my_ord(y))
+                   for x, y in zip(string1, string2))
 
 
 def xrange(start, end, step=1):

@@ -573,6 +573,26 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
 }
 
 
+class pv_info(obj.Struct):
+    @utils.safe_property
+    def paravirt_enabled(self):
+        result = self.m("paravirt_enabled", None)
+        if result == None:
+            # This might need to be read without a kernel address
+            # space present so we use the GetPageOffset() to read
+            # directly from physical memory.
+            phys_offset = self.obj_session.profile.phys_addr(self.name.v())
+            paravirt_type = self.obj_session.profile.String(
+                offset=phys_offset,
+                vm=self.obj_session.physical_address_space)
+
+            self.obj_session.logging.debug(
+                "Found paravirtualization type %s", paravirt_type)
+            result = self.name == "KVM"
+
+        return result
+
+
 class list_head(basic.ListMixIn, obj.Struct):
     """A list_head makes a doubly linked list."""
     _forward = "next"
@@ -967,6 +987,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
     def Initialize(cls, profile):
         super(Linux, cls).Initialize(profile)
         profile.add_classes(dict(
+            pv_info=pv_info,
             InodePermission=InodePermission,
             PermissionFlags=PermissionFlags,
             dentry=dentry,
@@ -1086,6 +1107,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
     def getboottime(self, vm=None):
         """Returns the real time of system boot."""
         if self.get_constant("tk_core"):
+            # http://elixir.free-electrons.com/linux/v4.13.5/source/kernel/time/timekeeping.c#L2137
             tk_core = self.get_constant_object("tk_core", "tk_core")
             tk = tk_core.timekeeper
             t = self.ktime_sub(tk.offs_real, tk.offs_boot)
@@ -1097,25 +1119,32 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
 
     def ktime_sub(self, lhs, rhs):
         """Substracts two ktime_t instances."""
-        kt = self.ktime()
-        kt.tv64 = lhs.tv64 - rhs.tv64
-        return kt
+        try:
+            kt = self.ktime()
+            kt.tv64 = lhs.tv64 - rhs.tv64
+            return kt
+        except AttributeError:
+            # http://elixir.free-electrons.com/linux/v4.13.5/source/include/linux/ktime.h#L46
+            return lhs - rhs
 
     def ktime_to_timespec(self, kt):
         """Transforms a ktime_t to a timespec."""
-        return self.ns_to_timespec(kt.tv64)
+        if isinstance(kt, int):
+            nsec = kt
+        else:
+            nsec = kt.tv64
+        return self.ns_to_timespec(nsec)
 
     def ns_to_timespec(self, nsec):
         """Transforms nanoseconds to a timespec."""
+        # http://elixir.free-electrons.com/linux/v4.13.5/source/kernel/time/time.c#L486
         ts = self.timespec()
 
         if not nsec:
             ts.tv_sec = 0
             ts.tv_nsec = 0
         else:
-            tv_sec = old_div(nsec, timespec.NSEC_PER_SEC)
-            rem = nsec % timespec.NSEC_PER_SEC
-            ts.tv_sec = tv_sec
+            ts.tv_sec, rem = divmod(nsec, timespec.NSEC_PER_SEC)
 
             if rem < 0:
                 ts.tv_sec -= 1
@@ -1126,6 +1155,8 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
 
     def phys_addr(self, va):
         """Returns the physical address of a given virtual address va.
+
+        NOTE: This only works for kernel virtual addresses obviously.
 
         Linux has a direct mapping between the kernel virtual address space and
         the physical memory. This is the difference between the virtual and
@@ -1144,26 +1175,38 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
 
     def GetPageOffset(self):
         """Gets the page offset."""
+        result = self.session.GetParameter("page_offset")
+        if result != None:
+            return result
+
         # This calculation needs to be here instead of the LinuxPageOffset
         # parameter hook because it is used during profile autodetection, where
         # a profile is not yet set on the session object.
         self.session.logging.debug("Calculating page offset...")
 
-        if self.metadata("arch") == "I386":
-            return (self.get_constant("_text", False) -
-                    self.get_constant("phys_startup_32", False))
+        iomap = self.session.GetParameter("iomap")
+        if iomap != None and "Kernel code" in iomap:
+            # The page offset is the difference between the profile's
+            # _text symbol and the iomap's report of the kernel code
+            # page start.
+            result = (self.get_constant("_text", is_address=True) -
+                      iomap["Kernel code"][0].start)
+
+        elif self.metadata("arch") == "I386":
+            result = (self.get_constant("_text", True) -
+                      self.get_constant("phys_startup_32", True))
 
         elif self.metadata("arch") == "AMD64":
             # We use the symbol phys_startup_64. If it's not present in the
             # profile and it's different than the default, we should be able
             # to autodetect the difference via kernel_slide.
-            phys_startup_64 = (self.get_constant("phys_startup_64", False) or
+            phys_startup_64 = (self.get_constant("phys_startup_64", True) or
                                0x1000000)
 
-            return self.get_constant("_text", False) - phys_startup_64
+            result = self.get_constant("_text", True) - phys_startup_64
 
         elif self.metadata("arch") == "MIPS":
-            return 0x80000000
+            result = 0x80000000
 
         elif self.metadata("arch") == "ARM":
             # This might not be always the same. According to arm/Kconfig,
@@ -1178,10 +1221,14 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
             # 1567         default 0x80000000 if VMSPLIT_2G
             # 1568         default 0xC0000000
 
-            return 0xc0000000
+            result = 0xc0000000
 
         else:
             return obj.NoneObject("No profile architecture set.")
+
+        self.session.logging.debug("Page offset is %0x", result)
+        self.session.SetParameter("page_offset", result)
+        return result
 
     def nsec_to_clock_t(self, x):
         """Convers nanoseconds to a clock_t. Introduced in 3.17.

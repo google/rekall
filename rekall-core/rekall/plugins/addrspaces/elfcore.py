@@ -27,6 +27,7 @@
 # Note that as of version 1.6.0 WinPmem also uses ELF64 as the default imaging
 # format. Except that WinPmem stores image metadata in a YAML file stored in the
 # image. This address space supports both formats.
+import re
 import os
 import yaml
 
@@ -35,8 +36,25 @@ from rekall import constants
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays.linux import elf
 
+from rekall_lib import utils
+
 PT_PMEM_METADATA = 0x6d656d70  # Spells 'pmem'
 
+
+def ParseIOMap(string):
+    result = {}
+    line_re = re.compile("([0-9a-f]+)-([0-9a-f]+)\s*:\s*(.+)")
+    for line in string.splitlines():
+        m =  line_re.search(line)
+        if m:
+            result.setdefault(m.group(3), []).append(
+                addrspace.Run(
+                    start=int("0x"+m.group(1), 16),
+                    end=int("0x"+m.group(2), 16)))
+        else:
+            import pdb; pdb.set_trace()
+
+    return result
 
 
 class Elf64CoreDump(addrspace.RunBasedAddressSpace):
@@ -81,16 +99,6 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
             elif segment.p_type == PT_PMEM_METADATA:
                 self.LoadMetadata(segment.p_offset)
 
-        # NOTE: Deprecated! This will be removed soon. If you want to store
-        # metadata use AFF4 format.
-
-        # Search for the pmem footer signature.
-        footer = self.base.read(self.base.end() - 10000, 10000)
-        if "...\n" in footer[-6:]:
-            header_offset = footer.rfind("# PMEM")
-            if header_offset > 0:
-                self.LoadMetadata(self.base.end() - 10000 + header_offset)
-
     def check_file(self):
         """Checks the base file handle for sanity."""
 
@@ -98,7 +106,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
                        "Must stack on another address space")
 
         ## Must start with the magic for elf
-        self.as_assert((self.base.read(0, 4) == "\177ELF"),
+        self.as_assert((self.base.read(0, 4) == b"\177ELF"),
                        "Header signature invalid")
 
     def LoadMetadata(self, offset):
@@ -107,7 +115,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
             "DEPRECATED Elf metadata found! "
             "This will not be supported in the next release.")
         try:
-            data = self.base.read(offset, 1024*1024)
+            data = utils.SmartUnicode(self.base.read(offset, 1024*1024))
             yaml_file = data.split('...\n')[0]
 
             metadata = yaml.safe_load(yaml_file)
@@ -171,6 +179,11 @@ class KCoreAddressSpace(Elf64CoreDump):
 
     ffff880000000000 - ffffc7ffffffffff (=64 TB) direct mapping of all
     physical memory.
+
+    In recent versions of Ubuntu the CONFIG_RANDOMIZE_MEMORY is
+    enabled. This makes the ELF headers randomized and so we need to
+    read /proc/iomap to work out the correct mapped range for physical
+    memory mapping.
     """
     # We must run before the regular Elf64CoreDump address space in the voting
     # order.
@@ -186,13 +199,41 @@ class KCoreAddressSpace(Elf64CoreDump):
         self.volatile = True
         self.mapped_files = {}
 
-        # Collect all ranges between 0xffff880000000000 - 0xffffc7ffffffffff
         runs = []
+        range_start = 0xffff880000000000
+        range_end = 0xffffc7ffffffffff
+        range_len = range_end - range_start
 
-        for start, _, run in self.runs:
-            if 0xffff880000000000 < run.start < 0xffffc7ffffffffff:
-                runs.append((start - 0xffff880000000000,
-                             run.file_offset, run.length))
+        io_map_vm = self.get_file_address_space("/proc/iomem")
+        if io_map_vm != None:
+            io_map_data = utils.SmartUnicode(io_map_vm.read(0, 100000).split(b"\x00")[0])
+            io_map = ParseIOMap(io_map_data)
+
+            # Mapping in the ELF program header of the first physical
+            # memory range.
+            first_run = self.runs[0][2]
+
+            # Mapping in physical memory of the first physical memory
+            # range.
+            first_system_ram = io_map["System RAM"][0]
+
+            # The random offset added to all physical memory ranges
+            # when exported via the ELF header.
+            range_start = first_run.start - first_system_ram.start
+
+            # Only add the runs which correspond with the System RAM Io map.
+            for start, _, run in self.runs:
+                normalized_start = start - range_start
+                for ram_run in io_map["System RAM"]:
+                    if normalized_start == ram_run.start:
+                        runs.append((normalized_start,
+                                     run.file_offset, run.length))
+                        break
+        else:
+            for start, _, run in self.runs:
+                if range_start < run.start < range_end:
+                    runs.append((start - range_start,
+                                 run.file_offset, run.length))
 
         self.as_assert(runs, "No kcore compatible virtual ranges.")
         self.runs.clear()
@@ -276,7 +317,7 @@ def WriteElfFile(address_space, outfd, session=None):
         length = run.length
         while length > 0:
             data = address_space.read(offset, min(10000000, length))
-            session.report_progress("Writing %sMb", total_data/1024/1024)
+            session.report_progress("Writing %sMb", total_data//1024//1024)
             outfd.write(data)
             length -= len(data)
             offset += len(data)

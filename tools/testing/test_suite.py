@@ -116,9 +116,6 @@ pid = 2536
 """
 from __future__ import print_function
 
-from builtins import str
-from past.builtins import basestring
-from builtins import object
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
@@ -129,6 +126,7 @@ import subprocess
 import multiprocessing
 import os
 import shutil
+import six
 import sys
 import tempfile
 import threading
@@ -151,6 +149,9 @@ from rekall import tests
 # pylint: enable=unused-import
 
 from rekall_lib import utils
+
+if six.PY3:
+    unicode = str
 
 
 NUMBER_OF_CORES = multiprocessing.cpu_count()
@@ -278,7 +279,7 @@ exit 0
                 merged_config = defaults.copy()
                 merged_config.update(test_config)
 
-                if isinstance(v, basestring):
+                if isinstance(v, (str, unicode)):
                     v = v % merged_config
                     test_config[k] = v
 
@@ -414,7 +415,6 @@ exit 0
 
     def RunTests(self):
         if not os.access(self.FLAGS.config, os.R_OK):
-            import pdb; pdb.set_trace()
             logging.error("Config file %s not found.", self.FLAGS.config)
             sys.exit(-1)
 
@@ -540,8 +540,14 @@ exit 0
             current_run.setdefault("errors", {})[str(test_case)] = dict(
                 (str(x), y) for x, y in result.errors)
 
-            current_run.setdefault("failours", {})[str(test_case)] = dict(
-                (str(x), y) for x, y in result.failures)
+            failure_info = {}
+            for test_case, msg in result.failures:
+                if hasattr(test_case, "failure_info"):
+                    msg = dict(failure_info=test_case.failure_info,
+                               msg=msg)
+                failure_info[str(test_case)] = msg
+
+            current_run.setdefault("failures", {})[str(test_case)] = failure_info
 
             # Store the current run someplace for closer inspection.
             output_path = os.path.join(self.output_dir, plugin_cls.__name__)
