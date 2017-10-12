@@ -27,7 +27,7 @@ from rekall_agent import flow
 from rekall_agent import result_collections
 from rekall_agent.client_actions import collect as collect_action
 
-from rekall_lib.types import agent
+from rekall_lib.rekall_types import agent
 
 
 class CollectFlow(agent.Flow):

@@ -41,6 +41,8 @@ results back to the server. The agent goes through the following phases:
 
 4) These actions are executed and results are uploaded to the server.
 """
+from future import standard_library
+standard_library.install_aliases()
 
 import json
 import platform
@@ -49,9 +51,10 @@ import socket
 import time
 import traceback
 import threading
-import Queue
+import queue
 
 import psutil
+import six
 
 from rekall import plugin
 from rekall_agent import common
@@ -60,11 +63,14 @@ from rekall_agent import common
 from rekall_lib import crypto
 from rekall_lib import serializer
 from rekall_lib import utils
-from rekall_lib.types import agent
-from rekall_lib.types import client
-from rekall_lib.types import resources
+from rekall_lib.rekall_types import agent
+from rekall_lib.rekall_types import client
+from rekall_lib.rekall_types import resources
 
 from wheel import pep425tags
+
+if six.PY3:
+    unicode = str
 
 
 # Time the agent was first started.
@@ -298,7 +304,7 @@ class RunFlow(common.AgentConfigMixin,
 
     def collect(self):
         self.flow = self.plugin_args.flow
-        if isinstance(self.flow, basestring):
+        if isinstance(self.flow, (str, unicode)):
             self.flow = serializer.unserialize(
                 json.loads(self.flow), session=self.session,
                 # Allow for future addition of fields.
@@ -328,7 +334,7 @@ class RekallAgent(common.AbstractAgentCommand):
 
     def __init__(self, *args, **kwargs):
         super(RekallAgent, self).__init__(*args, **kwargs)
-        self._queue = Queue.Queue()
+        self._queue = queue.Queue()
 
     def _run_flow(self, flow_obj):
         # Flow has a condition - we only run the flow if the condition matches.
@@ -428,7 +434,7 @@ class RekallAgent(common.AbstractAgentCommand):
             try:
                 if data:
                     job_file = serializer.unserialize(
-                        json.loads(data), session=self.session,
+                        json.loads(utils.SmartUnicode(data)), session=self.session,
                         strict_parsing=False)
                     result.extend(job_file.flows)
             except Exception as e:

@@ -1,7 +1,11 @@
 import arrow
+import six
 
 from rekall_lib import registry
-from rekall_lib.types import collections
+from rekall_lib.rekall_types import collections
+
+if six.PY3:
+    unicode = str
 
 
 def _coerce_timestamp(value):
@@ -15,8 +19,6 @@ class JSONCollectionImpl(collections.JSONCollection):
     """A collection which writes its result as JSON."""
     _allowed_types = {
         "int": int,
-        "unicode": unicode,  # Unicode data.
-        "str": str, # Used for binary data.
         "float": float,
 
         # Dates as epoch timestamps are stored as floats.
@@ -26,14 +28,21 @@ class JSONCollectionImpl(collections.JSONCollection):
                             # processed.
     }
 
+    if six.PY3:
+        _allowed_types["unicode"] = str
+        _allowed_types["str"] = bytes
+    else:
+        _allowed_types["unicode"] = unicode  # Unicode data.
+        _allowed_types["str"] = str # Used for binary data.
+
     def __init__(self, *args, **kwargs):
         super(JSONCollectionImpl, self).__init__(*args, **kwargs)
         self._dirty = False
         self.part_number = 0
 
-    @registry.memoize
+    @registry.memoize_method
     def _find_table(self, table=None):
-        if isinstance(table, basestring):
+        if isinstance(table, (str, unicode)):
             for i in self.tables:
                 if i.name == table:
                     return i

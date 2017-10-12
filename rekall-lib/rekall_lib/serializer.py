@@ -110,10 +110,16 @@ import json
 import yaml
 
 import arrow
+import base64
 
 from rekall_lib import registry
 from rekall_lib import utils
 from future.utils import with_metaclass
+import six
+
+if six.PY3:
+    unicode = str
+
 
 
 def StripImpl(name):
@@ -220,18 +226,20 @@ class UnicodeDescriptor(FieldDescriptor):
 
 
 class StringDescriptor(FieldDescriptor):
+    """Stores raw bytes."""
+
     def validate(self, value, session=None):
         _ = session
         if not isinstance(value, basestring):
             raise ValueError("Value must be string")
 
-        return str(value)
+        return utils.SmartStr(value)
 
     def to_primitive(self, value, with_type=True):
-        return value.encode("base64")
+        return utils.SmartUnicode(base64.b64encode(value))
 
     def from_primitive(self, value, session=None):
-        return value.decode("base64")
+        return base64.b64decode(utils.SmartStr(value))
 
     def get_default(self, session=None):
         return str(self.descriptor.get("default", ""))
@@ -362,7 +370,7 @@ class RepeatedDescriptor(FieldDescriptor):
 
     def __init__(self, descriptor):
         super(RepeatedDescriptor, self).__init__(descriptor)
-        field_type = descriptor.get("type", str)
+        field_type = descriptor.get("type", "unicode")
         field_name = descriptor["name"]
 
         # If the type is a class then check the name in the dispatcher.
@@ -408,17 +416,19 @@ class RepeatedDescriptor(FieldDescriptor):
         return RepeatedHelper(self.descriptor_obj, session=session)
 
 
-# This dispatches the class implementing as declared type.
+# This dispatches the class implementing as declared type. The
+# dispatcher maps the declared field type to the descriptor which
+# handles it.
 DISPATCHER = dict(
     int=IntDescriptor,
-    str=UnicodeDescriptor,
-    str=StringDescriptor,
-    bytes=StringDescriptor,
     choices=ChoicesDescriptor,
     epoch=EpochDescriptor,
     dict=DictDescriptor,
     bool=BoolDescriptor,
     float=FloatDescriptor,
+    unicode=UnicodeDescriptor,
+    str=StringDescriptor,
+    bytes=StringDescriptor,
 )
 
 
@@ -687,7 +697,7 @@ class SerializedObject(with_metaclass(SerializedObjectCompiler, object)):
     def to_primitive(self, with_type=True):
         """Convert ourselves to a dict."""
         result = self._unknowns.copy()
-        for k, v in self.items():
+        for k, v in self.iteritems():
             result[k] = self._descriptors[k].to_primitive(
                 v, with_type=with_type)
 
@@ -701,7 +711,7 @@ class SerializedObject(with_metaclass(SerializedObjectCompiler, object)):
 
     @classmethod
     def from_json(cls, json_string, session=None, strict_parsing=False):
-        data = json.loads(json_string or "{}")
+        data = json.loads(utils.SmartUnicode(json_string) or "{}")
         return unserialize(data, session=session,
                            strict_parsing=strict_parsing, type=cls)
 

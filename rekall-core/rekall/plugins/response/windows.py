@@ -98,7 +98,11 @@ class WindowsRootFileInformation(common.FileInformation):
     def __init__(self, **kwargs):
         super(WindowsRootFileInformation, self).__init__(**kwargs)
         # The fake root is like a directory.
-        self.st_mode = common.Permissions(0o40755)
+        self.st_mode = common.Permissions(040755)
+        self.st_ino = 0
+        self.st_size = 0
+        self.st_uid = self.st_gid = 0
+        self.st_mtime = self.st_atime = self.st_ctime = obj.NoneObject("Not set")
 
     def open(self):
         return obj.NoneObject("Not set")

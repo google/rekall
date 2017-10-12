@@ -28,11 +28,12 @@ import json
 import os
 
 import arrow
+import six
 
 from rekall import obj
 from rekall_agent import common
 from rekall_lib import crypto
-from rekall_lib.types import agent
+from rekall_lib.rekall_types import agent
 from rekall_lib import serializer
 
 
@@ -58,7 +59,7 @@ class ExternalFileMixin(object):
         search_path = session.GetParameter("config_search_path", ["."])
 
         result = {}
-        for k, v in data.iteritems():
+        for k, v in six.iteritems(data):
             if "@" in k:
                 field_name, filter_name = k.split("@", 1)
                 if filter_name == "env":
@@ -98,14 +99,14 @@ class ExternalFileMixin(object):
         path = os.path.expandvars(os.path.expanduser(path))
         if os.path.isabs(path):
             try:
-                return open(path, "rb").read()
+                return open(path, "rt").read()
             except IOError:
                 return
         else:
             for search in search_paths:
                 try:
                     path_to_try = os.path.join(search, path)
-                    return open(path_to_try, "rb").read()
+                    return open(path_to_try, "rt").read()
                 except IOError:
                     continue
 
@@ -170,7 +171,7 @@ class ClientPolicyImpl(ExternalFileMixin,
             try:
                 self._session.logging.debug(
                     "Will load writeback from %s", self.writeback_path)
-                with open(self.writeback_path, "rb") as fd:
+                with open(self.writeback_path, "rt") as fd:
                     self._writeback = ClientWriteback.from_primitive(
                         session=self._session, data=json.loads(fd.read()))
             except (IOError, TypeError, AttributeError, ValueError) as e:
@@ -193,7 +194,7 @@ class ClientPolicyImpl(ExternalFileMixin,
         except (OSError, IOError):
             pass
 
-        with open(self.writeback_path, "wb") as fd:
+        with open(self.writeback_path, "wt") as fd:
             fd.write(self._writeback.to_json())
 
     _nonce = None

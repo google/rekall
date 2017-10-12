@@ -27,7 +27,7 @@ import os
 
 from rekall.plugins.response import common
 from rekall_agent import common as agent_common
-from rekall_lib.types import location
+from rekall_lib.rekall_types import location
 from rekall_agent.client_actions import collect
 from rekall_agent.client_actions import files
 

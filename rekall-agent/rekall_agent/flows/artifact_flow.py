@@ -37,7 +37,7 @@ from artifacts import definitions
 from rekall.plugins.response import forensic_artifacts
 from rekall_agent import flow
 from rekall_agent.flows import find
-from rekall_lib.types import agent
+from rekall_lib.rekall_types import agent
 
 
 class FileSourceType(forensic_artifacts.SourceType):

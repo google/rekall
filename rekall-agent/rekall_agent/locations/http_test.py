@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test the cloud locations for contacting Google Cloud Storage."""
 import os
-import StringIO
+import io
 import shutil
 import tempfile
 import threading
@@ -11,11 +11,12 @@ import portpicker
 
 from rekall import session as rekall_session
 from rekall import testlib
-from rekall_agent import crypto
-from rekall_agent.config import agent
-from rekall_agent.locations import http
-from rekall_agent.servers import http as http_server
-
+from rekall_lib import crypto
+from rekall_lib import serializer
+from rekall_lib.rekall_types import agent
+from rekall_lib.rekall_types import location
+from rekall_agent.locations import http_location
+from rekall_agent.servers import http_server
 global VERBOSITY
 VERBOSITY = os.environ.get("REKALL_TEST_VERBOSE")
 
@@ -41,8 +42,6 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
                 base_url="http://127.0.0.1:%s/" % port,
                 root_directory=cls.tempdir,
                 bind_port=port,
-                private_key=crypto.RSAPrivateKey(
-                    session=cls._session).generate_key(),
             )
         )
 
@@ -72,16 +71,8 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
         # Unique string to write to the bucket.
         self.string = str(time.time())
         self.filename = "%s.txt" % time.time()
-
-    def test_http_location(self):
-        location_obj = http.HTTPLocation.New(
-            path_prefix=self.filename, session=self.session)
-
-        canonical = location_obj.get_canonical()
-        self.assertEqual(type(canonical), http.HTTPLocation)
-        self.assertEqual(canonical.base, self.config.server.base_url)
-        self.assertEqual(canonical.path_prefix, self.filename)
-        self.assertEqual(canonical.path_template, "")
+        self.http_location_cls = serializer.SerializedObject.get_implemetation(
+            "HTTPLocation")
 
     def test_http_location_full_access(self):
         """The HTTPLocation is used by both the server and client.
@@ -94,7 +85,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
         """
         now = int(time.time())
 
-        read_location_obj = http.HTTPLocation.New(
+        read_location_obj = self.http_location_cls.from_keywords(
             path_prefix="/path/" + self.filename, access=["READ"],
             session=self.session)
 
@@ -103,7 +94,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
             read_location_obj.write_file("Hello world")
 
         # Try again with a location for writing.
-        write_location_obj = http.HTTPLocation.New(
+        write_location_obj = self.http_location_cls.from_keywords(
             path_prefix="/path/" + self.filename, access=["WRITE"],
             session=self.session)
 
@@ -125,7 +116,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
 
         # Now test the list_files() method. First try without the LIST
         # permission.
-        directory_obj = http.HTTPLocation.New(
+        directory_obj = self.http_location_cls.from_keywords(
             path_prefix="/path/", access=["READ"],
             session=self.session)
 
@@ -133,7 +124,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
         self.assertEqual(files, [])
 
         # In order to list the directories we need the list permission.
-        directory_obj = http.HTTPLocation.New(
+        directory_obj = self.http_location_cls.from_keywords(
             path_prefix="/path/", access=["LIST"],
             session=self.session)
 
@@ -156,7 +147,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
 
     def test_path_template(self):
         """Ensure that path templates are honored."""
-        location_obj = http.HTTPLocation.New(
+        location_obj = self.http_location_cls.from_keywords(
             path_prefix=self.filename, access=["READ", "WRITE"],
             session=self.session)
 
@@ -168,7 +159,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
             location_obj.write_file("Hello world", subdir="foo")
 
         # To make this work we need to provide a template and sign it.
-        location_obj = http.HTTPLocation.New(
+        location_obj = self.http_location_cls.from_keywords(
             path_prefix=self.filename, access=["READ", "WRITE"],
             path_template="{subdir}",
             session=self.session)
@@ -181,9 +172,9 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
 
     def _make_file(self):
         # Write 10Mb.
-        infd = StringIO.StringIO()
+        infd = io.BytesIO()
         for i in range(2 * 1024):
-            tag = "%#16x" % i
+            tag = b"%#16x" % i
             infd.write(1024 / 16 * tag)
 
         infd.seek(0)
@@ -191,7 +182,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
 
     def test_upload_file(self):
         # First write some unique string.
-        location_obj = http.HTTPLocation.New(
+        location_obj = self.http_location_cls.from_keywords(
             session=self.session, access=["WRITE", "READ"],
             path_prefix=self.filename)
 
@@ -205,7 +196,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
         """Check that we can upload unicode filenames."""
         self.filename = u"倍可亲/美国中文网.txt"
 
-        location_obj = http.HTTPLocation.New(
+        location_obj = self.http_location_cls.from_keywords(
             session=self.session,
             path_prefix="unicode", access=["READ", "WRITE"],
             path_template="{subpath}")
@@ -225,7 +216,7 @@ class TestHTTPServer(testlib.RekallBaseUnitTestCase):
             with open(filename, "wb") as fd:
                 fd.write("hello world")
 
-        location_obj = http.HTTPLocation.New(
+        location_obj = self.http_location_cls.from_keywords(
             session=self.session, access=["WRITE", "READ"],
             path_prefix=self.filename)
         location_obj.read_modify_write_local_file(modify)

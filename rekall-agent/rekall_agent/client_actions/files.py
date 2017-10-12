@@ -28,13 +28,17 @@ These client actions are designed to maintain the client's Virtual File System
 (VFS) view.
 """
 
+import re
+import os
+
+
 import psutil
 
 from rekall import kb
 from rekall.plugins.response import common
 
 from rekall_agent import action
-from rekall_lib.types import location
+from rekall_lib.rekall_types import location
 from rekall_agent import result_collections
 
 
@@ -182,6 +186,92 @@ class ListDirectoryAction(action.ActionImpl):
                        st_atime=int(result.st_atime),
                        st_mtime=int(result.st_mtime),
                        st_ctime=int(result.st_ctime))
+
+    def normalize_path(self, path):
+        return path.replace("\\", "/")
+
+    drive_re = re.compile("/([a-zA-Z]:)(.*)")
+    def splitdrive(self, path):
+        m = self.drive_re.match(path)
+        if m:
+            return m.group(1), m.group(2) or "/"
+
+        return "", path or "/"
+
+    def listdir(self, root):
+        drive, path = self.splitdrive(root)
+        if not drive:
+            from rekall.plugins.response import windows
+
+            for drive in windows.get_drives():
+                yield drive + os.path.sep
+
+        else:
+            for x in os.listdir(path):
+                yield x
+
+    def _process_files(self, root, files):
+        drive, path = self.splitdrive(root)
+        if not drive:
+            from rekall.plugins.response import windows
+
+            for drive in windows.get_drives():
+                yield dict(filename=self.normalize_path(drive + os.path.sep),
+                           dirname="/", st_mode=0775)
+
+            return
+
+        root = utils.normpath(root)
+        for f in files:
+            path = os.path.join(root, f)
+            result = dict(
+                filename=self.normalize_path(f),
+                dirname=self.normalize_path(root),
+                st_mode=0)
+
+            try:
+                s = os.lstat(path)
+                result["st_mode"] = s.st_mode
+                result["st_ino"] = s.st_ino
+                result["st_dev"] = s.st_dev
+                result["st_nlink"] = s.st_nlink
+                result["st_uid"] = s.st_uid
+                result["st_gid"] = s.st_gid
+                result["st_size"] = s.st_size
+                result["st_mtime"] = s.st_mtime
+                result["st_ctime"] = s.st_ctime
+                result["st_atime"] = s.st_atime
+            except Exception:
+                pass
+
+            self._session.report_progress("Processing %s", path)
+            yield result
+
+    def collect(self):
+        if self.recursive:
+            for root, directories, files in os.walk(self.path):
+                for x in helpers.ListFilter().filter(
+                        self.filter,
+                        self._process_files(root, files)):
+                    yield x
+
+                new_dirs = []
+                for x in helpers.ListFilter().filter(
+                        self.filter,
+                        self._process_files(root, directories)):
+                    yield x
+                    new_dirs.append(x["filename"])
+
+                # os.walk allows us to control recursion by mutating the
+                # data list.
+                directories[:] = new_dirs
+
+        else:
+            for x in helpers.ListFilter().filter(
+                    self.filter,
+                    self._process_files(self.path, self.listdir(self.path))):
+                yield x
+
 
     def run(self, flow_obj=None):
         if not self.is_active():

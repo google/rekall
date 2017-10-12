@@ -1,9 +1,9 @@
 import time
 
 from rekall_lib import serializer
-from rekall_lib.types import actions
-from rekall_lib.types import location
-from rekall_lib.types import resources
+from rekall_lib.rekall_types import actions
+from rekall_lib.rekall_types import location
+from rekall_lib.rekall_types import resources
 
 
 class Status(serializer.SerializedObject):

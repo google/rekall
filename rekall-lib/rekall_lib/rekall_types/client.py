@@ -1,6 +1,6 @@
 from rekall_lib import yaml_utils
-from rekall_lib.types import location
-from rekall_lib.types import actions
+from rekall_lib.rekall_types import location
+from rekall_lib.rekall_types import actions
 from rekall_lib import serializer
 
 ClientInformation = Uname = None

@@ -46,6 +46,21 @@ class classproperty(property):
         return self.fget(owner)
 
 
+def memoize_method(f):
+    cache = {}
+
+    def helper(self, *args):
+        cached = cache.get(args, memoize)
+        if cached is not memoize:
+            return cached
+
+        cached = f(self, *args)
+        cache[args] = cached
+        return cached
+
+    return helper
+
+
 def memoize(f):
     cache = {}
 

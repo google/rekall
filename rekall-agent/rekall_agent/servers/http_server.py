@@ -20,31 +20,39 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """A standalone http server for users that do not want to use Google cloud."""
 import base64
-import BaseHTTPServer
 import cgi
 import json
+import http
 import socket
-import SocketServer
+import socketserver
 import os
-import urlparse
+import urllib.parse
 import tempfile
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from email import utils as email_utils
 
 import ipaddr
 import arrow
 
+from rekall_lib.rekall_types import location
+
 from rekall_agent import cache
 from rekall_agent import common
-from rekall_agent import location
-from rekall_agent.config import agent
-from rekall_agent.locations import http
+from rekall_lib.rekall_types import agent
+from rekall_agent.locations import http_location
 from rekall_lib import utils
 
 
@@ -80,7 +88,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         name. Otherwise the jobs file is private to the client_id.
         """
         if queue:
-            return http.HTTPLocation.New(
+            return http_location.HTTPLocation.New(
                 session=self._session,
                 path_prefix="labels/%s/jobs/%s" % (
                     queue, self._config.client.secret),
@@ -88,29 +96,29 @@ class HTTPServerPolicy(agent.ServerPolicy):
 
         # The client's jobs queue itself is publicly readable since the client
         # itself has no credentials.
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix=utils.join_path(client_id, "jobs"),
             public=True)
 
     def client_db_for_server(self):
         """The global client database."""
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix="clients.sqlite")
 
     def flow_db_for_server(self, client_id=None, queue=None):
         if queue:
-            return http.HTTPLocation.New(
+            return http_location.HTTPLocation.New(
                 session=self._session,
                 path_prefix="hunts/%s/flows.sqlite" % queue)
 
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix=client_id + "/flows.sqlite")
 
     def manifest_for_server(self):
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix="/",
             path_template="?action=manifest",
@@ -118,7 +126,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         )
 
     def manifest_for_client(self):
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             expiration=time.time() + 365 * 24 * 60 *60,
             path_prefix="/",
@@ -127,35 +135,35 @@ class HTTPServerPolicy(agent.ServerPolicy):
         )
 
     def vfs_index_for_server(self, client_id=None):
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix=utils.join_path(client_id, "vfs.index"))
 
     def hunt_db_for_server(self, hunt_id):
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix="hunts/%s/stats.sqlite" % hunt_id)
 
     def hunt_result_collection_for_server(self, hunt_id, type):
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix="hunts/%s/%s" % (hunt_id, type))
 
     def client_record_for_server(self, client_id):
         """The client specific information."""
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix="%s/client.metadata" % client_id)
 
     def flows_for_server(self, flow_id):
         """A location to write flow objects."""
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix=utils.join_path("flows", flow_id))
 
     def ticket_for_server(self, batch_name, *args):
         """The location of the ticket queue for this batch."""
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session, access=["READ", "LIST"],
             path_prefix=utils.join_path("tickets", batch_name, *args),
             path_template="/")
@@ -166,7 +174,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         The server location has full read/write access.
         """
         canonical_location = location.get_canonical()
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix=canonical_location.path_prefix)
 
@@ -175,14 +183,14 @@ class HTTPServerPolicy(agent.ServerPolicy):
 
         Passed to the agent to write on client VFS.
         """
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session, access=["READ", "LIST"],
             path_prefix=utils.join_path(client_id, "vfs", vfs_type, path))
 
     def flow_metadata_collection_for_server(self, client_id):
         if not client_id:
             raise RuntimeError("client id expected")
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix=utils.join_path(client_id, "flows.sqlite")
         )
@@ -197,14 +205,14 @@ class HTTPServerPolicy(agent.ServerPolicy):
         if not path:
             path = "/"
 
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             path_prefix=path)
 
     def hunt_vfs_path_for_client(self, hunt_id, path_prefix="", expiration=None,
                                  vfs_type="analysis",
                                  path_template="{client_id}"):
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             access=["WRITE"],
             path_prefix=utils.join_path(
@@ -215,7 +223,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
     def vfs_prefix_for_client(self, client_id, path="", expiration=None,
                               vfs_type="files"):
         """Returns a Location suitable for storing a path using the prefix."""
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             access=["WRITE"],
             path_prefix=utils.join_path(
@@ -233,7 +241,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         """
         expiration = kw.pop("expiration", None)
         path_template = kw.pop("path_template", None)
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             access=["WRITE"],
             path_prefix=utils.join_path("tickets", batch_name, *ticket_names),
@@ -253,7 +261,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         else:
             raise ValueError("Invalid mode")
 
-        return http.HTTPLocation.New(
+        return http_location.HTTPLocation.New(
             session=self._session,
             access=access,
             path_prefix=utils.join_path(client_id, "vfs", vfs_type, path),
@@ -270,13 +278,13 @@ class HTTPClientPolicy(agent.ClientPolicy):
     def get_jobs_queues(self):
         # The jobs queue is world readable.
         result = [
-            http.HTTPLocation.from_keywords(
+            http_location.HTTPLocation.from_keywords(
                 session=self._session, base=self.manifest_location.base,
                 path_prefix=utils.join_path(self.client_id, "jobs"))
         ]
         for label in self.labels:
             result.append(
-                http.HTTPLocation.from_keywords(
+                http_location.HTTPLocation.from_keywords(
                     session=self._session,
                     base=self.manifest_location.base,
                     # Make sure to append the secret to the unauthenticated
@@ -289,7 +297,7 @@ class HTTPClientPolicy(agent.ClientPolicy):
 
 
 
-class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
+class RekallHTTPServerHandler(http.server.BaseHTTPRequestHandler, object):
     """HTTP handler for receiving client posts."""
     READ_BLOCK_SIZE = 10 * 1024 * 1024
     protocol_version = "HTTP/1.1"
@@ -319,7 +327,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             self._config.server.private_key.public_key().verify(
                 policy_data, signature)
 
-            policy = http.URLPolicy.from_json(policy_data, session=self.session)
+            policy = http_location.URLPolicy.from_json(policy_data, session=self.session)
         except (ValueError, AttributeError):
             return False
 
@@ -346,13 +354,13 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
     def _parse_qs(self):
         if "?" in self.path:
             self.base_path, qs = self.path.split("?", 1)
-            self.params = urlparse.parse_qs(qs)
+            self.params = urllib.parse.parse_qs(qs)
         else:
             self.params = {}
             self.base_path = self.path
 
         # base path is a unicode string so we must decode it from self.path.
-        self.base_path = urllib.unquote(self.base_path).decode(
+        self.base_path = urllib.parse.unquote(self.base_path).decode(
             "utf8", "ignore")
 
     def do_GET(self):
@@ -399,7 +407,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
                 updated=row["updated"],
                 size=row["size"],
                 generation=row["generation"],
-                location=http.HTTPLocation.from_keywords(
+                location=http_location.HTTPLocation.from_keywords(
                     session=self.session,
                     base=self._config.server.base_url,
                     path_prefix=row["path"],
@@ -440,7 +448,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
                     updated=row["updated"],
                     size=row["size"],
                     generation=row["generation"],
-                    location=http.HTTPLocation.from_keywords(
+                    location=http_location.HTTPLocation.from_keywords(
                         session=self.session,
                         base=self._config.server.base_url,
                         path_prefix=row["path"],
@@ -493,7 +501,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             if_modified_since = self.headers.get("If-Modified-Since")
             if if_modified_since:
                 since = email_utils.parsedate(if_modified_since)
-                if since >= time.gmtime(int(generation)/1e6):
+                if since >= time.gmtime(old_div(int(generation),1e6)):
                     self.send_response(304)
                     self.send_header("Content-Length", 0)
                     self.end_headers()
@@ -631,12 +639,12 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
 
     def send_error(self, code, message=None, close=True):
         try:
-            short, long = self.responses[code]
+            short, int = self.responses[code]
         except KeyError:
-            short, long = '???', '???'
+            short, int = '???', '???'
         if message is None:
             message = short
-        explain = long
+        explain = int
         content = (self.error_message_format %
                    {'code': code, 'message': cgi.escape(message),
                     'explain': explain})
@@ -651,7 +659,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             self.wfile.write(content)
 
 
-class RekallHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
+class RekallHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     """The HTTP frontend server."""
 
     allow_reuse_address = True
@@ -672,7 +680,7 @@ class RekallHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         elif version == 6:
             self.address_family = socket.AF_INET6
 
-        BaseHTTPServer.HTTPServer.__init__(
+        http.server.HTTPServer.__init__(
             self, server_address, handler, *args, **kwargs)
 
 

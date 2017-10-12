@@ -29,7 +29,7 @@ A location is an object which handles file transfer to a specific place.
 import os
 import filelock
 from rekall_agent import common
-from rekall_lib.types import location
+from rekall_lib.rekall_types import location
 
 
 class FileLocationImpl(location.FileLocation):

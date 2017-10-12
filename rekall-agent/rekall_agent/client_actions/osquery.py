@@ -33,7 +33,7 @@ import subprocess
 
 from rekall_agent.config import agent
 from rekall_agent import action
-from rekall_lib.types import location
+from rekall_lib.rekall_types import location
 from rekall_agent import result_collections
 
 

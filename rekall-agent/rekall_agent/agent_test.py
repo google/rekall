@@ -28,7 +28,7 @@ import uuid
 from rekall import testlib
 from rekall_agent import agent as rekall_agent
 from rekall_lib import serializer
-from rekall_lib.types import agent
+from rekall_lib.rekall_types import agent
 
 
 class TestAgent(testlib.RekallBaseUnitTestCase):

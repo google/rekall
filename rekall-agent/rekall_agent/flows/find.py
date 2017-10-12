@@ -24,6 +24,9 @@ __author__ = "Michael Cohen <scudette@google.com>"
 """This implements the file finder flow.
 
 This flow is the workhorse of filesystem operations.
+
+TODO: These operations are deprecated - everything they do is easier
+to do with efilter and the glob plugins.
 """
 import collections
 from rekall import plugin
@@ -35,7 +38,7 @@ from rekall_agent.client_actions import files
 from rekall_agent.flows import collect
 from rekall_lib import serializer
 from rekall_lib import utils
-from rekall_lib.types import agent
+from rekall_lib.rekall_types import agent
 
 class FileFilterCondition(serializer.SerializedObject):
     """Baseclass for all file filter conditions."""
