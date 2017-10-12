@@ -1,4 +1,4 @@
-from rekall_lib.types import collections
+from rekall_lib.rekall_types import collections
 from rekall_lib import serializer
 
 

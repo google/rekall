@@ -4,8 +4,8 @@ NOTE: The Google App Engine app does not use this code, therefore none of the
 *_for_server() handlers are implemented.
 """
 from rekall_agent.config import agent
-from rekall_agent.locations import http
-from rekall_lib.types import location
+from rekall_agent.locations import http_location
+from rekall_lib.rekall_types import location
 
 
 class GAEClientPolicy(agent.ClientPolicyImpl):
@@ -17,7 +17,7 @@ class GAEClientPolicy(agent.ClientPolicyImpl):
 
     def get_jobs_queues(self):
         return [
-            http.HTTPLocationImpl.from_keywords(
+            http_location.HTTPLocationImpl.from_keywords(
                 session=self._session, base=self.manifest_location.base,
                 path_prefix="jobs",
                 path_template="?last_flow_time=%s" % (

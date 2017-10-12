@@ -33,7 +33,7 @@ be possible.
 
 """
 from rekall_lib import serializer
-from rekall_lib.types import location
+from rekall_lib.rekall_types import location
 
 
 class ColumnSpec(serializer.SerializedObject):

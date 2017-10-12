@@ -6,6 +6,7 @@ as the agent using that library.
 """
 
 from rekall_lib import serializer
+from rekall_lib import utils
 from Crypto import Random
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
@@ -26,13 +27,13 @@ class RSAPublicKey(serializer.SerializedObject):
         if not self._value:
             raise RuntimeError("Key not initialized yet.")
 
-        return self._value.exportKey("PEM")
+        return utils.SmartUnicode(self._value.exportKey("PEM"))
 
     @classmethod
     def from_primitive(cls, pem_string, session=None):
         result = cls(session)
         try:
-            result._value = RSA.importKey(pem_string)
+            result._value = RSA.importKey(utils.SmartStr(pem_string))
         except (TypeError, ValueError) as e:
             raise CipherError("Public Key invalid: %s" % e)
         return result
@@ -75,13 +76,13 @@ class RSAPrivateKey(serializer.SerializedObject):
         if not self._value:
             raise RuntimeError("Key not initialized yet.")
 
-        return self._value.exportKey("PEM")
+        return utils.SmartUnicode(self._value.exportKey("PEM"))
 
     @classmethod
     def from_primitive(cls, pem_string, session=None):
         result = cls(session=session)
         try:
-            result._value = RSA.importKey(pem_string)
+            result._value = RSA.importKey(utils.SmartUnicode(pem_string))
         except (TypeError, ValueError) as e:
             raise CipherError("Private Key invalid: %s" % e)
 

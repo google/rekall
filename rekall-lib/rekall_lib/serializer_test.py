@@ -1,5 +1,6 @@
+
 from rekall import testlib
-from rekall_agent import serializer
+from rekall_lib import serializer
 
 
 class TestObject1(serializer.SerializedObject):
@@ -52,7 +53,10 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
 
         self.assertEqual(test_obj.N1.C1, 10)
         self.check_serialization(
-            test_obj, {'N1': {'C1': 10, '__type__': 'TestObject1'}})
+            test_obj, {
+                'N1': {'C1': 10, '__type__': 'TestObject1'},
+                '__type__': 'TestObject2'
+            }, with_type=True)
 
     def testUnknownFields(self):
         """Test handling of unknown fields.
@@ -77,8 +81,8 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
         self.assertEqual(obj.to_primitive(),
                          dict(C1=5, U1="foobar", __type__="TestObject1"))
 
-    def check_serialization(self, test_obj, primitive):
-        self.assertEqual(test_obj.to_primitive(with_type=False), primitive)
+    def check_serialization(self, test_obj, primitive, with_type=False):
+        self.assertEqual(test_obj.to_primitive(with_type=with_type), primitive)
 
         self.assertEqual(
             test_obj.__class__.from_primitive(
@@ -86,7 +90,7 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
             test_obj)
 
         self.assertEqual(test_obj.__class__.from_primitive(
-            primitive, session=self.session).to_primitive(with_type=False),
+            primitive, session=self.session).to_primitive(with_type=with_type),
                          primitive)
 
 
@@ -109,9 +113,9 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
         with self.assertRaises(ValueError):
             test_obj.C2 = 10
 
-        TestObject1.from_primitive({'C2': 'aGVsbG8=\n'}, session=self.session)
+        TestObject1.from_primitive({'C2': b'aGVsbG8='}, session=self.session)
 
-        self.check_serialization(test_obj, {'C2': 'aGVsbG8=\n'})
+        self.check_serialization(test_obj, {'C2': b'aGVsbG8='})
 
     def testInheritance(self):
         """We support a natural form of object inheritance.

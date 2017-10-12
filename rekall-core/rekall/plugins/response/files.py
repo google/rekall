@@ -33,6 +33,7 @@ import itertools
 import platform
 import re
 import os
+import six
 
 from rekall import plugin
 from rekall.plugins.response import common
@@ -414,7 +415,8 @@ class IRGlob(common.AbstractIRCommandPlugin):
 
     def _filter(self, node, path):
         """Path is the pathspec of the path we begin evaluation with."""
-        for component, child_node in node.items():
+        self.session.report_progress("Checking %s", path)
+        for component, child_node in six.iteritems(node):
             # Terminal node - yield the result.
             if not child_node:
                 for subpath in component.filter(path):

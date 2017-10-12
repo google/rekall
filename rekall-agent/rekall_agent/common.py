@@ -35,9 +35,10 @@ config.DeclareOption("agent_configuration", group="Rekall Agent",
 class Interpolator(dict):
     """A commonly used format interpolator for locations.
 
-The below supports path temple interpolations allowing various expansions to be
-    made dynamically. For example a file path template may include
-    "/path{client_id}/foo" to expand the client_id into the path.
+    The below supports path template interpolations allowing various
+    expansions to be made dynamically. For example a file path
+    template may include "/path{client_id}/foo" to expand the
+    client_id into the path.
     """
     def __init__(self, session, **kwargs):
         super(Interpolator, self).__init__(**kwargs)
@@ -45,7 +46,10 @@ The below supports path temple interpolations allowing various expansions to be
         self._config = session.GetParameter("agent_config_obj")
 
     def __getitem__(self, item):
-        return self.get(item) or getattr(self, "get_" + item)()
+        if item in self:
+            return self.get(item)
+
+        return getattr(self, "get_" + item, None)()
 
     def get_client_id(self):
         return self._config.client.writeback.client_id

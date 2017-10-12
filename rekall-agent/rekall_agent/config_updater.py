@@ -36,7 +36,7 @@ from rekall_agent.config import agent
 from rekall_agent.client_actions import interrogate
 from rekall_agent.locations import cloud
 from rekall_agent.policies import gcs
-from rekall_agent.servers import http
+from rekall_agent.servers import http_server
 
 
 class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
@@ -264,6 +264,7 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
 
         print yaml_utils.safe_dump(self._config.manifest.to_primitive())
 
+
     def collect(self):
         """This should be an interactive script."""
         self.config_dir = self.plugin_args.config_dir
@@ -329,7 +330,7 @@ class AgentServerInitializeLocalHTTP(AgentServerInitialize):
     ]
 
     def _build_config(self, config):
-        config.server = http.HTTPServerPolicy.from_keywords(
+        config.server = http_server.HTTPServerPolicy.from_keywords(
             session=self.session,
             base_url=self.plugin_args.base_url,
             bind_port=self.plugin_args.bind_port,
@@ -337,7 +338,7 @@ class AgentServerInitializeLocalHTTP(AgentServerInitialize):
             certificate=self.server_cert,
             private_key=self.server_private_key,
         )
-        config.client = http.HTTPClientPolicy.from_keywords(
+        config.client = http_location.HTTPClientPolicy.from_keywords(
             session=self.session,
             manifest_location=config.server.manifest_for_client()
         )

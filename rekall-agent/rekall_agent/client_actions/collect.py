@@ -21,7 +21,7 @@
 #
 
 __author__ = "Michael Cohen <scudette@google.com>"
-from rekall_lib.types import actions
+from rekall_lib.rekall_types import actions
 
 
 class CollectActionImpl(actions.CollectAction):

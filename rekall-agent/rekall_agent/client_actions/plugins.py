@@ -18,13 +18,15 @@ In this Action we include both the text and data export in each column output.
 import logging
 import tempfile
 import time
+import six
 
 from rekall import plugin
 from rekall.ui import renderer
 from rekall.plugins.renderers import data_export
 from rekall.plugins.response import common
 from rekall.ui import text
-from rekall_lib.types import actions
+from rekall_lib.rekall_types import actions
+from rekall_lib import utils
 
 
 class UploaderFileObject(object):
@@ -133,10 +135,10 @@ class PluginRenderer(renderer.BaseRenderer):
     def convert_row(self, row):
         """Render the row into the output collection."""
         result = {}
-        for k, v in row.iteritems():
+        for k, v in six.iteritems(row):
             # Render both text and data export for each object.
-            text_rendering = unicode(self._text_renderer.get_object_renderer(
-                target=v).render_row(v))
+            text_rendering = utils.SmartUnicode(
+                self._text_renderer.get_object_renderer(target=v).render_row(v))
             data_export_rendering = self._data_renderer.get_object_renderer(
                 target=v).EncodeToJsonSafe(v)
 
