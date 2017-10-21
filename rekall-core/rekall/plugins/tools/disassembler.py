@@ -200,6 +200,9 @@ class CapstoneInstruction(Instruction):
         target = self.session.profile.Object(
             type, offset=operand, vm=self.address_space).v()
 
+        if target == None:
+            return ""
+
         target_name = ", ".join(self.resolver.format_address(target))
         operand_name = ", ".join(self.resolver.format_address(operand))
 

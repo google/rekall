@@ -294,8 +294,8 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
 
 
 class StringRenderer(StateBasedObjectRenderer):
-    # Json is not able to encode strings, we therefore must implement a proper
-    # encoder/decoder.
+    # Json is not able to encode byte strings, we therefore must
+    # implement a proper encoder/decoder.
     if six.PY3:
         renders_type = "bytes"
     else:
@@ -528,7 +528,7 @@ class JsonRenderer(renderer_module.BaseRenderer):
                 fd = self.output
             else:
                 # This overwrites the output file with a new json message.
-                fd = open(self.output, "wb")
+                fd = open(self.output, "wt")
 
         if fd == None:
             fd = self.session.fd

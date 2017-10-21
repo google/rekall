@@ -17,7 +17,7 @@ class ProfileTest(testlib.RekallBaseUnitTestCase):
         self.session = session.Session()
         # Create an address space from a buffer for testing
         self.address_space = addrspace.BufferAddressSpace(
-            data="hello world" * 100, session=self.session)
+            data=b"hello world" * 100, session=self.session)
 
     def testNativeTypes(self):
         # We build a simple profile with just the native types here.
@@ -66,9 +66,9 @@ class ProfileTest(testlib.RekallBaseUnitTestCase):
     def testPointer(self):
         # Create an address space from a buffer for testing
         address_space = addrspace.BufferAddressSpace(
-            data="\x08\x00\x00\x00\x00\x00\x00\x00"
-            "\x66\x55\x44\x33\x00\x00\x00\x00"
-            "\x99\x88\x77\x66\x55\x44\x33\x22", session=self.session)
+            data=b"\x08\x00\x00\x00\x00\x00\x00\x00"
+            b"\x66\x55\x44\x33\x00\x00\x00\x00"
+            b"\x99\x88\x77\x66\x55\x44\x33\x22", session=self.session)
 
         vtype = {'Test': [0x10, {
             # Check simple type dereferencing
@@ -145,7 +145,7 @@ class ProfileTest(testlib.RekallBaseUnitTestCase):
         self.assertEqual(test.invalid.dereference(), 0)
 
         # Test nonzero.
-        self.assert_(test.ptr32)
+        self.assertTrue(test.ptr32)
 
         # Now dereference a struct.
         ptr3 = test._next
@@ -201,7 +201,7 @@ class ProfileTest(testlib.RekallBaseUnitTestCase):
     def testArray(self):
         # Create an address space from a buffer for testing
         address_space = addrspace.BufferAddressSpace(
-            data="abcdefghijklmnopqrstuvwxyz", session=self.session)
+            data=b"abcdefghijklmnopqrstuvwxyz", session=self.session)
 
         profile = obj.Profile.classes['Profile32Bits'](session=self.session)
         test = profile.Object("Array", vm=address_space, offset=0,

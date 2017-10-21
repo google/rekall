@@ -28,25 +28,25 @@ class RunBasedTest(testlib.RekallBaseUnitTestCase):
                   (1030, 50, 10),   # Contiguous runs.
                   (1050, 0, 2),
                   (1052, 5, 2)],
-            data="0123456789")
+            data=b"0123456789")
 
     def testRunsRead(self):
         # Read from an address without data
-        self.assertEqual(self.test_as.read(0, 20), "\x00" * 20)
+        self.assertEqual(self.test_as.read(0, 20), b"\x00" * 20)
 
         # Address translation.
         self.assertEqual(self.test_as.vtop(0), None)
         self.assertEqual(self.test_as.vtop(1005), 5)
 
         # Read spanning two runs
-        self.assertEqual(self.test_as.read(1050, 4), "0156")
+        self.assertEqual(self.test_as.read(1050, 4), b"0156")
 
         # Read in the middle of a run
         self.assertEqual(self.test_as.read(1005, 10),
-                         "56789" + "\x00" * 5)
+                         b"56789" + b"\x00" * 5)
         # Read past the end
         self.assertEqual(self.test_as.read(2000, 10),
-                         "\x00" * 10)
+                         b"\x00" * 10)
 
     def testDiscontiguousRunsGetRanges(self):
         """Test the range merging."""

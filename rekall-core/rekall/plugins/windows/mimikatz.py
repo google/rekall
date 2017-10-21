@@ -32,6 +32,7 @@ from builtins import str
 __author__ = ("Michael Cohen <scudette@google.com> and "
               "Francesco Picasso <francesco.picasso@gmail.com>")
 
+import binascii
 import logging
 
 from Crypto.Cipher import AES
@@ -342,15 +343,15 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
 
         if cred_obj.isLmOwfPassword.v() == 1:
             yield (domain, user_name, 'LM',
-                   cred_obj.LmOwfPassword.v().encode('hex'))
+                   binascii.hexlify(cred_obj.LmOwfPassword.v()))
 
         if cred_obj.isNtOwfPassword.v() == 1:
             yield (domain, user_name, 'NTLM',
-                   cred_obj.NtOwfPassword.v().encode('hex'))
+                   binascii.hexlify(cred_obj.NtOwfPassword.v()))
 
         if cred_obj.isShaOwPassword.v() == 1:
             yield (domain, user_name, 'SHA1',
-                   cred_obj.ShaOwPassword.v().encode('hex'))
+                   binascii.hexlify(cred_obj.ShaOwPassword.v()))
 
     def logons(self, lsass_logons):
         for luid, lsass_logon in lsass_logons.items():
@@ -380,7 +381,7 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
                 continue
             yield (logonId.Text, '',
                    '', '', 'masterkey',
-                   self.decrypt(entry.key.v()).encode('hex'))
+                   binascii.hexlify(self.decrypt(entry.key.v())))
 
 
 class Wdigest(pe_vtypes.BasicPEProfile):

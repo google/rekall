@@ -24,9 +24,12 @@
 from __future__ import print_function
 from future import standard_library
 standard_library.install_aliases()
+
 from builtins import chr
+from builtins import bytes
 from builtins import zip
 from builtins import range
+
 from past.builtins import basestring
 from builtins import object
 import builtins
@@ -79,6 +82,9 @@ def SmartStr(string, encoding="utf8"):
         if isinstance(string, str):
             return string
 
+        elif hasattr(string, "__bytes__"):
+            return string.__bytes__()
+
     # Encode the result of the __str__ method.
     return str(string).encode(encoding)
 
@@ -87,7 +93,7 @@ def SmartUnicode(string, encoding="utf8"):
     """Forces the string into a unicode object."""
     if six.PY3:
         if isinstance(string, bytes):
-            return string.decode(encoding)
+            return string.decode(encoding, "ignore")
 
         # Call the object's __str__ method which should return an unicode
         # object.
@@ -105,7 +111,7 @@ def Hexdump(data, width=16):
     for offset in range(0, len(data), width):
         row_data = data[offset:offset + width]
         translated_data = [
-            x if my_ord(x) < 127 and my_ord(x) > 32 else "."
+            my_chr(x) if my_ord(x) < 127 and my_ord(x) > 32 else "."
             for x in row_data]
         hexdata = " ".join(["{0:02x}".format(my_ord(x)) for x in row_data])
 
@@ -404,6 +410,13 @@ def my_ord(char):
         return char
 
     return ord(char)
+
+
+def my_chr(value):
+    if isinstance(value, str):
+        return value
+
+    return chr(value)
 
 
 # Compensate for Windows python not supporting socket.inet_ntop and some
@@ -1077,7 +1090,7 @@ def EscapeForFilesystem(filename):
 
     Very conservative.
     """
-    s = SmartStr(filename).strip().replace(" ", "_")
+    s = SmartUnicode(filename).strip().replace(" ", "_")
     return re.sub(r"(?u)[^-\w.]", "", s)
 
 
@@ -1103,3 +1116,20 @@ def intern_str(string):
         return sys.intern(str(string))
 
     return intern(str(string))
+
+
+def encode_string(string):
+    """Encode a string so that non printables are escaped.
+
+    Returns unicode string.
+    """
+    byte_string = SmartStr(string)
+    result = []
+    for c in byte_string:
+        c = my_ord(c)
+        if c > 128 or c < 32:
+            result.extend(b"\\x%02x" % c)
+        else:
+            result.append(c)
+
+    return SmartUnicode(bytes(result))

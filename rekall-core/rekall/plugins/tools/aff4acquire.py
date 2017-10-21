@@ -717,14 +717,16 @@ class AFF4Ls(AbstractAFF4Plugin):
              help="Volume to list."),
     ]
 
-    namespaces = {
+    # Must be sorted with longest prefix first because some keys are
+    # prefixes of each other.
+    namespaces = sorted({
         lexicon.AFF4_NAMESPACE: "aff4:",
         lexicon.XSD_NAMESPACE: "xsd:",
         lexicon.RDF_NAMESPACE: "rdf:",
         lexicon.AFF4_MEMORY_NAMESPACE: "memory:",
         lexicon.AFF4_DISK_NAMESPACE: "disk:",
         "http://www.google.com#": "google:",
-    }
+    }.items(), key=lambda pair: len(pair[0]), reverse=True)
 
     table_header = [
         dict(name="Size", width=10, align="r"),
@@ -743,7 +745,7 @@ class AFF4Ls(AbstractAFF4Plugin):
 
         urn = str(urn)
 
-        for k, v in self.namespaces.items():
+        for k, v in self.namespaces:
             if urn.startswith(k):
                 return "%s%s" % (v, urn[len(k):])
 

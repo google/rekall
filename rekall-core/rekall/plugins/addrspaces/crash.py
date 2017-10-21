@@ -68,7 +68,7 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
                        "Must stack on another address space")
 
         # Must start with the magic PAGEDUMP
-        self.as_assert((self.base.read(0, 8) == 'PAGEDUMP'),
+        self.as_assert((self.base.read(0, 8) == b'PAGEDUMP'),
                        "Header signature invalid")
 
         self.profile = crashdump.CrashDump32Profile(
@@ -95,7 +95,7 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
         """Check specifically for 64 bit crash dumps."""
 
         # Must start with the magic PAGEDU64
-        self.as_assert((self.base.read(0, 8) == 'PAGEDU64'),
+        self.as_assert((self.base.read(0, 8) == b'PAGEDU64'),
                        "Header signature invalid")
 
         self.profile = crashdump.CrashDump64Profile(
@@ -149,7 +149,7 @@ class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
         self.as_assert(self.base, "Must stack on another address space")
 
         # Must start with the magic PAGEDU64
-        self.as_assert((self.base.read(0, 8) == 'PAGEDU64'),
+        self.as_assert((self.base.read(0, 8) == b'PAGEDU64'),
                        "Header signature invalid")
 
         self.profile = crashdump.CrashDump64Profile(

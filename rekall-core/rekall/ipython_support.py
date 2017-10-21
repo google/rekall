@@ -210,7 +210,7 @@ class RekallShell(embed.InteractiveShellEmbed):
         # IPython 5 (4 should work too) is the one we standardize on right
         # now. This means we support earlier ones but turn off the bells and
         # whistles.
-        if "4.0.0" <= ipython_version < "6.0.0":
+        if "4.0.0" <= ipython_version < "7.0.0":
             self.inspector = RekallObjectInspector()
 
         else:

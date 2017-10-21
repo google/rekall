@@ -110,7 +110,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return data
 
     def write(self, data):
-        return self.obj_vm.write(self.obj_offset, data)
+        return self.obj_vm.write(self.obj_offset, utils.SmartStr(data))
 
     def __eq__(self, other):
         return utils.SmartStr(self) == utils.SmartStr(other)
@@ -129,7 +129,9 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return self.v().rstrip(b"\x00")
 
     def __str__(self):
-        return self.v().decode("utf8", "replace").split("\x00")[0] or u""
+        # Assume we are encoded as utf8 (This may not be true should
+        # we require decoding to be explicit?)
+        return self.__bytes__().decode("utf8", "replace")
 
     def __len__(self):
         return len(str(self))
@@ -156,8 +158,8 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return len(self.v())
 
     def __repr__(self):
-        return " [{0}:{1}]: {2}".format(self.obj_type, self.obj_name,
-                                        repr(self.v()))
+        return " [{0}:{1}]: '{2}'".format(self.obj_type, self.obj_name,
+                                          utils.encode_string(self.v()))
 
 
 class Signature(String):

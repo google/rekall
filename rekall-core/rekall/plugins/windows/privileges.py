@@ -71,7 +71,7 @@ class Privileges(common.WinProcessFilter):
         dict(name="Process", type="_EPROCESS"),
         dict(name="Value", width=3, align="r"),
         dict(name="Privileges", width=40),
-        dict(name="Attributes", type="list")
+        dict(name="Attributes")
     ]
 
     def collect(self):
@@ -86,4 +86,4 @@ class Privileges(common.WinProcessFilter):
                 yield (task,
                        value,
                        privilege_table.get(value),
-                       flags)
+                       tuple(flags))

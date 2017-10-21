@@ -4,8 +4,6 @@
 from elftools.elf import elffile
 
 # pyelftools does not officially support ARM but this seems to work anyway.
-
-
 class ELFFile(elffile.ELFFile):
     def get_machine_arch(self):
         result = super(ELFFile, self).get_machine_arch()
@@ -15,3 +13,9 @@ class ELFFile(elffile.ELFFile):
         return result
 
 elffile.ELFFile = ELFFile
+
+# Switch off parso's annoying logging messages.
+try:
+    from parso.python import diff
+    diff.logging.debug = lambda *args: None
+except: pass

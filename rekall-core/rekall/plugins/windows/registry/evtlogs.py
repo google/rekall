@@ -271,9 +271,6 @@ class EvtLogs(registry.RegistryPlugin):
                 utils.SmartUnicode(vad.ControlArea.FilePointer.FileName))
 
             for event in self.ScanEvents(vad, task.get_process_address_space()):
-                args = ";".join(
-                    repr(utils.SmartStr(x)) for x in event.Data)
-
                 renderer.table_row(
                     event.TimeWritten,
                     filename,
@@ -282,4 +279,4 @@ class EvtLogs(registry.RegistryPlugin):
                     event.Source,
                     event.EventID,
                     event.EventType,
-                    args)
+                    [x for x in event.Data])

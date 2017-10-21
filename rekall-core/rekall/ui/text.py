@@ -185,13 +185,13 @@ class Pager(object):
             return self.fd
 
         # Make a temporary filename to store output in.
-        self.fd = tempfile.NamedTemporaryFile(prefix="rekall", delete=False)
+        self.fd = tempfile.NamedTemporaryFile(prefix="rekall", mode="wt", delete=False)
 
         return self.fd
 
     def write(self, data):
         # Encode the data according to the output encoding.
-        data = utils.SmartUnicode(data).encode(self.encoding, "replace")
+        data = utils.SmartUnicode(data)
         if sys.platform == "win32":
             data = data.replace("\n", "\r\n")
 
@@ -393,7 +393,7 @@ class TextObjectRenderer(with_metaclass(registry.MetaclassRegistry, renderer_mod
         header_cell.rewrap(align="c", width=self.header_width)
 
         # Append a dashed line as a table header separator.
-        header_cell.append_line("-" * self.header_width)
+        header_cell.append_line("-" * int(self.header_width))
 
         return header_cell
 
@@ -837,8 +837,8 @@ class Cell(BaseCell):
             ladjust += padding
             ladjust += r
 
-            lpad = " " * ladjust
-            rpad = " " * radjust
+            lpad = " " * int(ladjust)
+            rpad = " " * int(radjust)
             return lpad + line + rpad, 0
         else:
             raise ValueError("Invalid cell alignment: %s." % self.align)
@@ -856,6 +856,10 @@ class Cell(BaseCell):
         for rule in self.highlights:
             start = rule.get("start")
             end = rule.get("end")
+
+            if start is None or end is None:
+                continue
+
             fg = rule.get("fg")
             bg = rule.get("bg")
             bold = rule.get("bold")
@@ -904,7 +908,6 @@ class Cell(BaseCell):
     def rebuild(self):
         self._lines = []
         last_highlight = None
-
         normalized_highlights = []
         for highlight in self.highlights:
             if isinstance(highlight, dict):
@@ -1176,6 +1179,10 @@ class TextTable(renderer_module.BaseTable):
                         except IndexError:
                             pass
 
+                    # Do not let huge column skew the width too much -
+                    # if the columns are too large they will just
+                    # wrap.
+                    length = min(length, total_width)
                     max_widths.append(length)
 
                 # Now we have the maximum widths of each column. The problem is
@@ -1184,7 +1191,7 @@ class TextTable(renderer_module.BaseTable):
                 sum_of_widths = sum(max_widths)
                 for column, max_width in zip(self.columns, max_widths):
                     width = min(
-                        max_width * total_width / sum_of_widths,
+                        max_width * total_width // sum_of_widths,
                         max_width + 1)
 
                     width = max(width, len(str(column.name)))

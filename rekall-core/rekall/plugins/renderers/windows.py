@@ -77,7 +77,7 @@ class STRINGDataExport(UNICODE_STRINGDataExport):
     renders_type = "String"
 
     def EncodeToJsonSafe(self, item, **_):
-        return utils.SmartStr(item)
+        return utils.SmartUnicode(item)
 
 
 class EPROCESS_TextObjectRenderer(text.TextObjectRenderer):

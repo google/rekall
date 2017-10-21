@@ -72,6 +72,7 @@ from builtins import next
 from builtins import str
 from builtins import object
 __author__ = "Adam Sindelar <adamsh@google.com>"
+import collections
 import itertools
 import re
 import six
@@ -86,13 +87,15 @@ from efilter.ext import row_tuple
 
 from efilter.transforms import asdottysql
 from efilter.transforms import solve
-from efilter.transforms import infer_type
 
 from efilter.protocols import applicative
 from efilter.protocols import associative
+from efilter.protocols import number
 from efilter.protocols import repeated
+from efilter.protocols import string
 from efilter.protocols import structured
 
+from rekall import config
 from rekall import obj
 from rekall import plugin
 from rekall import testlib
@@ -105,160 +108,6 @@ from rekall_lib import utils
 if six.PY3:
     long = int
     unicode = str
-
-
-class TestWhichPlugin(testlib.SimpleTestCase):
-    PLUGIN = "which_plugin"
-    PARAMETERS = dict(
-        commandline="which_plugin %(struct)s",
-        struct="proc"
-    )
-
-
-class TestCollect(testlib.SimpleTestCase):
-    PLUGIN = "collect"
-    PARAMETERS = dict(
-        commandline="collect %(struct)s",
-        struct="proc"
-    )
-
-
-class TestExplain(testlib.SimpleTestCase):
-    PLUGIN = "explain"
-    PARAMETERS = dict(
-        commandline="explain %(query)r",
-        query="select * from pslist() where (proc.pid == 1)"
-    )
-
-
-class TestSearch(testlib.SimpleTestCase):
-    PLUGIN = "search"
-    PARAMETERS = dict(
-        commandline="search %(query)r",
-        query="select * from pslist() where (proc.pid == 1)"
-    )
-
-
-class TestLookup(testlib.SimpleTestCase):
-    PLUGIN = "lookup"
-    PARAMETERS = dict(
-        commandline="lookup %(constant)r %(type_name)r",
-        constant="_PE_state",
-        type_name="PE_state"
-    )
-
-
-class FindPlugins(plugin.TypedProfileCommand, plugin.ProfileCommand):
-    """Find which plugin(s) are available to produce the desired output."""
-
-    name = "which_plugin"
-
-    type_name = None
-    producers_only = False
-
-    __args = [
-        dict(name="type_name", required=True, positional=True,
-             help="The name of the type we're looking for. "
-             "E.g.: 'proc' will find psxview, pslist, etc."),
-
-        dict(name="producers_only", required=False, type="Boolean",
-             help="Only include producers: plugins that output "
-             "only this struct and have no side effects.")
-    ]
-
-    def collect(self):
-        if self.plugin_args.producers_only:
-            pertinent_cls = plugin.Producer
-        else:
-            pertinent_cls = plugin.TypedProfileCommand
-
-        for plugin_cls in plugin.Command.classes.values():
-            if not plugin_cls.is_active(self.session):
-                continue
-
-            if not issubclass(plugin_cls, pertinent_cls):
-                continue
-
-            table_header = plugin_cls.table_header
-            if table_header:
-                if isinstance(table_header, list):
-                    table_header = plugin.PluginHeader(*table_header)
-
-                try:
-                    for t in table_header.types_in_output:
-                        if (isinstance(t, type) and
-                                self.plugin_args.type_name == t.__name__):
-                            yield plugin_cls(session=self.session)
-                        elif self.plugin_args.type_name == t:
-                            yield plugin_cls(session=self.session)
-                except plugin.Error:
-                    # We were unable to instantiate this plugin to figure out
-                    # what it wants to emit. We did our best so move on.
-                    continue
-
-    def render(self, renderer):
-        renderer.table_header([
-            dict(name="plugin", type="Plugin", style="compact", width=30)
-        ])
-
-        for command in self.collect():
-            renderer.table_row(command)
-
-
-class Collect(plugin.TypedProfileCommand, plugin.ProfileCommand):
-    """Collect instances of struct of type 'type_name'.
-
-    This plugin will find all other plugins that produce 'type_name' and merge
-    all their output. For example, running collect 'proc' will give you a
-    rudimentary psxview.
-
-    This plugin is mostly used by other plugins, like netstat and psxview.
-    """
-
-    name = "collect"
-
-    type_name = None
-
-    __args = [
-        dict(name="type_name", required=True, positional=True,
-             help="The type (struct) to collect.")
-    ]
-
-    @classmethod
-    def GetPrototype(cls, session):
-        """Instantiate with suitable default arguments."""
-        return cls(None, session=session)
-
-    def collect(self):
-        which = self.session.plugins.which_plugin(
-            type_name=self.plugin_args.type_name,
-            producers_only=True)
-
-        results = {}
-        for producer in which.collect():
-            # We know the producer plugin implements 'produce' because
-            # 'which_plugin' guarantees it.
-            self.session.logging.debug("Producing %s from producer %r",
-                                       self.type_name, producer)
-            for result in producer.produce():
-                previous = results.get(result.indices)
-                if previous:
-                    previous.obj_producers.add(producer.name)
-                else:
-                    result.obj_producers = set([producer.name])
-                    results[result.indices] = result
-
-        return iter(results.values())
-
-    def render(self, renderer):
-        renderer.table_header([
-            dict(name=self.plugin_args.type_name,
-                 type=self.plugin_args.type_name),
-            dict(name="producers")
-        ])
-
-        for result in self.collect():
-            renderer.table_row(result, result.obj_producers)
 
 
 class Lookup(plugin.TypedProfileCommand, plugin.ProfileCommand):
@@ -320,6 +169,15 @@ class CommandWrapper(object):
     def __init__(self, plugin_cls, session):
         self.plugin_cls = plugin_cls
         self.session = session
+        self.plugin_args = config.CommandMetadata(self.plugin_cls).Metadata()['arguments']
+
+    def _get_arg_desc(self, name):
+        for desc in self.plugin_args:
+            if desc["name"] == name:
+                return desc
+
+        raise plugins.PluginError("Unknown arg %s for plugin %s" % (
+            name, self.plugin_cls.name))
 
     def __repr__(self):
         return "<CommandWrapper: %r>" % (self.plugin_cls.__name__)
@@ -332,31 +190,121 @@ class CommandWrapper(object):
         This caches the output of the plugin. Subsequently, table_header,
         rows and columns will be populated.
 
-        The CommmandWrapper must not be applied twice with different
-        arguments - each instance represents a unique application.
+        Note that if the args came from efilter itself (e.g. in a
+        subquery) then they are always repeated. However if the arg is
+        not repeating, we can not just pass it or the plugin might
+        explode. We therefore run the plugin multiple times with each
+        value of the subquery.
 
         Arguments:
             args, kwargs: Arguments to the plugin.
+
         """
-        if self._applied_args is not None:
-            # Called before. Return what we cached.
-            if self._applied_args != (args, kwargs):
-                raise ValueError(
-                    "%r was previously called with %r but is now being called"
-                    " with %r. This should never happen."
-                    % (self, self._applied_args, (args, kwargs)))
-
-            return self.rows
-
-        kwargs = kwargs.copy()
         kwargs.pop("vars", None)
-        self._applied_args = (args, kwargs)
 
-        # First time - instantiate the plugin with arguments.
-        plugin_curry = getattr(self.session.plugins, self.plugin_cls.name)
-        self.plugin_obj = plugin_curry(session=self.session,
-                                       *args, **kwargs)
+        # Materialized kwargs. This is needed because we might expand
+        # into multiple plugins below and we might as well keep
+        # repeated values between invocations. Note that being lazy
+        # here does not buy anything because the args are already
+        # expanded in the TypedProfileCommand's arg validation
+        # routine.
+        kwargs = self._materialize_repeated_kwarg(kwargs)
 
+        # Expand repeating args into non repeating plugins.
+        kwargs_groups = [kwargs]
+
+        # Keep expanding until the kwargs_groups are stable.
+        while 1:
+            expanded_kw_groups = []
+            for kwargs in kwargs_groups:
+                expanded_kw_groups.extend(self._expand_kwargs(kwargs))
+
+            if len(expanded_kw_groups) == len(kwargs_groups):
+                kwargs_groups = expanded_kw_groups
+                break
+
+            kwargs_groups = expanded_kw_groups
+
+        row_groups = [self._generate_rows(args, k) for k in kwargs_groups]
+        return repeated.lazy(lambda: itertools.chain(*row_groups))
+
+    def _expand_kwargs(self, kwargs):
+        for name, value in six.iteritems(kwargs):
+            arg_repeating = self._is_arg_repeating(name)
+            value_repeating = repeated.isrepeating(value)
+
+            # If the arg expects a singleton and the value is
+            # repeating, then we run the plugin once per value.
+            if not arg_repeating and value_repeating:
+                result = []
+                for value_item in value:
+                    kwargs_copy = kwargs.copy()
+                    kwargs_copy[name] = value_item
+                    result.append(kwargs_copy)
+
+                return result
+
+        return [kwargs]
+
+    def _materialize_repeated_kwarg(self, kwargs):
+        """Materialize the result of the args.
+
+        This is a shim between a repeated plugin arg and the efilter
+        stream.  We handle the following cases.
+
+        1. EFilter LazyRepetition with unstructured elements (e.g. dicts).
+
+        2. EFilter LazyRepetition with structured elements. These are
+           usually returned from a subselect. In the special case
+           where the arg name is present in the structure
+
+        """
+        result = {}
+        for k, v in six.iteritems(kwargs):
+            if not repeated.isrepeating(v):
+                result[k] = v
+            else:
+                expanded_value = []
+                for item in v:
+                    if structured.isstructured(item):
+                        members = structured.getmembers(item)
+                        if len(members) == 1 or k in members:
+                            # A single column in the subquery - just
+                            # use that as the arg value.  If the name
+                            # emitted is the same as the expected arg
+                            # name we also just take that one.
+                            expanded_value.append(
+                                structured.resolve(item, members[0]))
+                            continue
+
+                    expanded_value.append(item)
+
+                result[k] = expanded_value
+
+        return result
+
+    def _is_arg_repeating(self, arg_name):
+        return "Array" in self._get_arg_desc(arg_name).get('type', 'String')
+
+    def _order_columns(self, output_header, collector):
+        """A generator which converts the collector output into an OrderedDict
+        with the right column order. This is important to ensure
+        output column ordering is stable.
+        """
+        for row in collector():
+            if isinstance(row, dict):
+                result = collections.OrderedDict()
+                for column in output_header:
+                    result[column["name"]] = row.get(column["name"])
+
+                yield result
+            else:
+                yield row
+
+    def _generate_rows(self, args, kwargs):
+        # instantiate the plugin with arguments.
+        self.plugin_obj = self.plugin_cls(session=self.session,
+                                          *args, **kwargs)
         output_header = getattr(self.plugin_cls, "table_header", None)
         collector = getattr(self.plugin_obj, "collect_as_dicts", None)
 
@@ -364,8 +312,11 @@ class CommandWrapper(object):
             # The plugin supports the collect API and declares its output ahead
             # of time. This is the ideal case.
             self.columns = output_header
-            self.rows = repeated.lazy(collector)
+            return repeated.lazy(lambda: self._order_columns(output_header, collector))
+
         else:
+            # TODO: Should we not support these kind of plugins?
+
             # We don't know enough about the plugin to do the easy thing. We
             # need to create a shim renderer that will cache the plugin output
             # and then use that.
@@ -377,25 +328,7 @@ class CommandWrapper(object):
             # The identity renderer will now contain the plugin output and
             # columns.
             self.columns = renderer.columns
-            self.rows = repeated.repeated(*list(renderer.rows))
-
-        return self.rows
-
-    def reflect_runtime_return(self):
-        """Return the return type* of this CommandWrapper.
-
-        This actually returns a dummy instance (prototype) of the plugin this
-        CommandWrapper wraps. EFILTER allows use of stand-in objects for type
-        inference. We make heavy use of prototypes to represent Rekall's
-        profile-dependent type system.
-        """
-        # Does this plugin implement the reflection helper?
-        try:
-            return self.plugin_cls.GetPrototype(session=self.session)
-        except NotImplementedError:
-            # GetPrototype is not overriden and the default implementation
-            # didn't work.
-            return None
+            return repeated.repeated(*list(renderer.rows))
 
 
 # Implementing the IApplicative protocol will let EFILTER call the
@@ -404,7 +337,6 @@ applicative.IApplicative.implicit_static(CommandWrapper)
 
 
 class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
-
     """Abstract base class for plugins that do something with queries.
 
     Provides implementations of the basic EFILTER protocols for selecting and
@@ -428,9 +360,10 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
         super(EfilterPlugin, self).__init__(*args, **kwargs)
 
         try:
+            self.scope = self._get_scope()
             self.query = q.Query(self.plugin_args.query,
-                                 params=self.plugin_args.query_parameters)
-            self.scopes = self._get_scopes()
+                                 params=self.plugin_args.query_parameters,
+                                 scope=self.scope)
         except errors.EfilterError as error:
             raise plugin.PluginError("Could not parse your query %r: %s." % (
                 self.plugin_args.query, error))
@@ -444,10 +377,21 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
             raise plugin.PluginError("Could not parse your query %r." % (
                 self.plugin_args.query,))
 
-    def _get_scopes(self):
-        """Builds the scopes for this query."""
-        scopes = helpers.EFILTER_SCOPES.copy()
-        scopes["timestamp"] = api.user_func(
+    def _get_scope(self):
+        """Builds the scope for this query.
+
+        We add some useful functions to be available to the query:
+
+        timestamp(): Wrap an int or float in a UnixTimeStamp so it
+           gets rendered properly.
+
+        substr(): Allows a string to be substringed.
+
+        file(): Marks a string as a file name. The Rekall Agent will
+           then potentially upload this file.
+        """
+        scope = helpers.EFILTER_SCOPES.copy()
+        scope["timestamp"] = api.user_func(
             lambda x, **_: basic.UnixTimeStamp(value=x, session=self.session),
             arg_types=[float, int, long])
 
@@ -455,15 +399,28 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
         # a filename. This will cause the agent to upload it if the
         # user requested uploading files.
         # > select file(path.filename.name).filename.name from glob("/*")
-        scopes["file"] = api.user_func(
+        scope["file"] = api.scalar_function(
             lambda x: common.FileInformation(session=self.session, filename=x),
-            arg_types=[unicode, str])
-        return scopes
+            arg_types=(string.IString,))
+
+        scope["substr"] = api.scalar_function(
+            lambda x, start, end: utils.SmartUnicode(x)[int(start):int(end)],
+            arg_types=(string.IString, number.INumber, number.INumber))
+
+        scope["hex"] = api.scalar_function(
+            lambda x: hex(int(x)),
+            arg_types=(number.INumber,))
+
+        scope["*"] = api.scalar_function(
+            lambda x: x.deref(),
+            arg_types=(obj.Pointer,))
+
+        return scope
 
     # IStructured implementation for EFILTER:
     def resolve(self, name):
         """Find and return a CommandWrapper for the plugin 'name'."""
-        function = self.scopes.get(name)
+        function = self.scope.get(name)
         if function:
             return function
 
@@ -477,23 +434,11 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
     def getmembers_runtime(self):
         """Get all available plugins."""
         result = dir(self.session.plugins)
-        result += list(self.scopes)
+        result += list(self.scope)
 
         return frozenset(result)
 
-    def reflect_runtime_member(self, name):
-        """Find the type* of 'name', which is a plugin.
-
-        * This returns a CommandWrapper which allows plugins to be called from
-        EFILTER queries as functions. EFILTER allows the use of stand-in objects
-        as proxies for actual types, so we make heavy use of plugin and struct
-        prototypes to represent Rekall's profile-dependent type system.
-        """
-        cls = self.session.plugins.plugin_db.GetActivePlugin(name).plugin_cls
-        return CommandWrapper(cls, self.session)
-
     # Plugin methods:
-
     def render_error(self, renderer):
         """Render the query parsing error in a user-friendly manner."""
         renderer.section("Query Error")
@@ -771,42 +716,12 @@ class Search(EfilterPlugin):
         if not self.query:
             return self.render_error(renderer)
 
-        # Figure out what the header should look like.
-        # Can we infer the type?
-
-        # For example for select statements the type will be
-        # associative.IAssociative because they return a dict like result.
-        try:
-            t = infer_type.infer_type(self.query, self)
-        except Exception:
-            t = None
-
-        if isinstance(t, CommandWrapper):
-            raise RuntimeError(
-                "%r is a plugin and must be called as a function. Try '%s()'"
-                " instead of '%s'"
-                % (t.plugin_cls, t.plugin_cls.name, t.plugin_cls.name))
-
         # Get the data we're rendering.
         try:
             rows = self.collect() or []
         except errors.EfilterError as error:
             self.query_error = error
             return self.render_error(renderer)
-
-        # If the query returns the output of a plugin then we have to render
-        # the same columns as the plugin. If the plugin declares its columns
-        # then that's easy. Otherwise we have to try and get the columns from
-        # cache.
-        # e.g. select * from pslist()
-        if isinstance(t, plugin.Command):
-            output_header = getattr(t, "table_header", None)
-            if output_header is None:
-                raise plugin.PluginError(
-                    "Query is using plugin %s which is not typed." % t.name)
-
-            renderer.table_header(output_header)
-            return self._render_plugin_output(renderer, output_header, rows)
 
         # For queries which name a list of columns we need to get the first row
         # to know which columns will be output. Surely efilter can provide this
@@ -823,11 +738,20 @@ class Search(EfilterPlugin):
             renderer.format("No results.")
             return
 
+        except errors.EfilterKeyError as e:
+            raise plugin.PluginError(
+                "Column %s not found. "
+                "Use the describe plugin to list all available "
+                "columns. (%s)" % (e.key, e))
+
+        except errors.EfilterError as e:
+            raise plugin.PluginError("EFilter Error: %s:" % e)
+
         all_rows = itertools.chain((first_row,), remaining_rows)
 
         # If we have some output but don't know what it is we can try to use
         # dict keys as columns.
-        if isinstance(first_row, row_tuple.RowTuple):
+        if isinstance(first_row, (dict, row_tuple.RowTuple)):
             columns = [dict(name=x)
                        for x in structured.getmembers(first_row)]
             renderer.table_header(columns, auto_widths=True)
@@ -836,153 +760,6 @@ class Search(EfilterPlugin):
         # Sigh. Give up, and render whatever you got, I guess.
         renderer.table_header([dict(name="result")])
         return self._render_whatever_i_guess(renderer, all_rows)
-
-
-class Explain(EfilterPlugin):
-    """Prints various information about a query.
-
-    Explains how a query was parsed and how it will be interpreted. It also
-    runs a full type inferencer, to attempt to determine the output of the
-    query once it's executed.
-
-    The Explain plugin can analyse a strict superset of expressions that
-    are valid in the Search plugin. It supports:
-
-     - Any search query that can be passed to Search.
-     - Expressions asking about types and members of profile types
-       (like structs).
-    """
-
-    name = "explain"
-
-    # As long as this is True, the input is a valid search query and will be
-    # analysed in the output. This may become False if we realize the input
-    # is not a valid search query, but instead asking about something like the
-    # structure of a native type.
-    input_is_regular_query = True
-
-    def reflect_runtime_member(self, name):
-        """Reflect what Search reflects, and also struct types."""
-        result = super(Explain, self).reflect_runtime_member(name)
-
-        if not result or result == protocol.AnyType:
-            result = self.session.profile.GetPrototype(name)
-            if result and result != protocol.AnyType:
-                # We found something that makes this not a query (aka a struct).
-                self.input_is_regular_query = False
-
-        return result
-
-    def getmembers_runtime(self):
-        """Reflect what Search reflects, and also struct types."""
-        result = super(Explain, self).getmembers_runtime()
-
-        return set(result) | set(self.session.profile.vtypes)
-
-    def recurse_expr(self, expr, depth):
-        yield expr, depth
-
-        if not isinstance(expr, ast.Expression):
-            return
-
-        for child in expr.children:
-            for expr_, depth in self.recurse_expr(child, depth + 1):
-                yield expr_, depth
-
-    def _render_node(self, query, node, renderer, depth=1):
-        """Render an AST node and recurse."""
-        t = infer_type.infer_type(node, self)
-
-        try:
-            name = "(%s) <%s>" % (t.__name__, type(node).__name__)
-        except AttributeError:
-            name = "(%r) <%s>" % (t, type(node).__name__)
-
-        renderer.table_row(
-            name,
-            utils.AttributedString(
-                str(query),
-                [dict(start=node.start, end=node.end, fg="RED", bold=True)]
-            ),
-            depth=depth
-        )
-
-        for child in node.children:
-            if isinstance(child, ast.Expression):
-                self._render_node(node=child, renderer=renderer, query=query,
-                                  depth=depth + 1)
-            else:
-                renderer.table_row(
-                    "(%s) <leaf: %r>" % (type(child).__name__, child),
-                    None,
-                    depth=depth + 1
-                )
-
-    def render(self, renderer):
-        # Do we have a query?
-        if not self.query:
-            return self.render_error(renderer)
-
-        # render_output_analysis must run before render_query_analysis
-        # because it decides whether the input is a regular query.
-        self.render_output_analysis(renderer)
-        self.render_query_analysis(renderer)
-
-    def render_output_analysis(self, renderer):
-        """Render analysis of the expression's return type and its members."""
-        output_type = infer_type.infer_type(self.query, self)
-
-        renderer.section("Type Analysis", width=140)
-        renderer.table_header([
-            dict(name="name", type="TreeNode", max_depth=2, width=60),
-            dict(name="type", width=40)
-        ])
-
-        renderer.table_row(self.query.source,
-                           repr(output_type),
-                           depth=1)
-
-        try:
-            for member in structured.getmembers(output_type):
-                subq = "(%s)[%r]" % (self.query.source, member)
-                subtype = infer_type.infer_type(q.Query(subq), self)
-                if isinstance(subtype, type):
-                    subtype = subtype.__name__
-                else:
-                    subtype = repr(subtype)
-
-                renderer.table_row(subq, subtype, depth=2)
-        except (NotImplementedError, TypeError, AttributeError):
-            pass
-
-    def render_query_analysis(self, renderer):
-        """Render query analysis if the input is a regular query.
-
-        A non-regular query could be the user asking us to explain (e.g.) a
-        struct.
-        """
-        if not self.input_is_regular_query:
-            return
-
-        original_query = self.query.source
-        canonical_query = asdottysql.asdottysql(self.query)
-
-        renderer.section("Query Analysis", width=140)
-        self.render_query(renderer, self.query)
-
-        if canonical_query != original_query:
-            renderer.section("Query Analysis (Using canonical syntax)",
-                             width=140)
-            self.render_query(renderer, q.Query(canonical_query))
-
-    def render_query(self, renderer, query):
-        """Render a single query object's analysis."""
-        renderer.table_header([
-            dict(name="expression", type="TreeNode", max_depth=15, width=40),
-            dict(name="query", width=100, nowrap=True),
-        ])
-
-        self._render_node(query, query.root, renderer)
 
 
 # Below we implement various EFILTER protocols for various Rekall types.
@@ -994,9 +771,6 @@ applicative.IApplicative.implement(
     implementations={
         applicative.apply:
             lambda x, *args, **kwargs: x(*args, **kwargs).collect(),
-
-        # Plugins "return" themselves, as far as the type inference cares.
-        applicative.reflect_runtime_return: lambda command: command
     }
 )
 
@@ -1009,8 +783,6 @@ structured.IStructured.implement(
     for_type=plugin.TypedProfileCommand,
     implementations={
         structured.resolve: lambda _, __: None,  # This should not happen.
-        structured.reflect_runtime_member:
-        lambda c, name: c.get_column_type(name),
         structured.getmembers_runtime: lambda c: c.table_header.all_names
     }
 )
@@ -1024,8 +796,6 @@ associative.IAssociative.implement(
     for_type=plugin.TypedProfileCommand,
     implementations={
         associative.select: lambda _, __: None,  # This should not happen.
-        associative.reflect_runtime_key:
-        lambda c, name: c.get_column_type(name),
         associative.getkeys_runtime: lambda c: c.table_header.all_names
     }
 )
@@ -1037,7 +807,6 @@ associative.IAssociative.implement(
     for_type=obj.Struct,
     implementations={
         associative.select: getattr,
-        associative.reflect_runtime_key: structured.reflect_runtime_member,
         associative.getkeys_runtime: structured.getmembers_runtime
     }
 )
@@ -1056,8 +825,6 @@ structured.IStructured.implement(
     for_type=obj.Struct,
     implementations={
         structured.resolve: lambda x, y: getattr(x, y, obj.NoneObject("")),
-        structured.reflect_runtime_member:
-            lambda s, m: type(getattr(s, m, None)),
         structured.getmembers_runtime: Struct_getmembers_runtime,
     }
 )
@@ -1075,8 +842,6 @@ structured.IStructured.implement(
     for_type=basic.Flags,
     implementations={
         structured.resolve: getattr,
-        structured.reflect_runtime_member:
-            lambda s, m: type(getattr(s, m, None)),
         structured.getmembers_runtime: lambda x: list(x.maskmap),
     }
 )
@@ -1158,3 +923,54 @@ structured.IStructured.implement(
         structured.getmembers_runtime: lambda d: d.__slots__,
     }
 )
+
+#repeated.IRepeated.implement(
+#    for_type=obj.Pointer,
+#    implementations={
+#        repeated.getvalues: lambda x: repeated.getvalues(x.deref())
+#    }
+#)
+
+repeated.IRepeated.implement(
+    for_type=obj.Array,
+    implementations={
+        repeated.getvalues: lambda x: iter(x)
+    }
+)
+
+
+string.IString.implement(
+    for_type=basic.String,
+    implementations={
+        string.string: lambda x: utils.SmartUnicode(x)
+    }
+)
+
+
+# Number operations on a pointer manipulate the pointer's value.
+number.INumber.implement(
+    for_type=obj.Pointer,
+    implementations={
+        number.sum: lambda x, y: int(x) + y,
+        number.product: lambda x, y: int(x) * y,
+        number.difference: lambda x, y: int(x) - y,
+        number.quotient: lambda x, y: int(x) / y
+    }
+)
+
+
+
+class TestSearch(testlib.SimpleTestCase):
+    PLUGIN = "search"
+    PARAMETERS = dict(
+        commandline="search %(query)r",
+        query="select * from pslist() where (proc.pid == 1)"
+    )
+
+class TestLookup(testlib.SimpleTestCase):
+    PLUGIN = "lookup"
+    PARAMETERS = dict(
+        commandline="lookup %(constant)r %(type_name)r",
+        constant="_PE_state",
+        type_name="PE_state"
+    )

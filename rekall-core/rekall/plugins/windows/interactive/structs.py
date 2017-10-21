@@ -106,7 +106,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
             # Try to find pointers to known pool allocations.
             pool = self.SearchForPoolHeader(member.v(), search=search)
             if pool:
-                address_info.append("Tag:%s" % pool.Tag)
+                address_info.append("Tag:%s" % utils.encode_string(pool.Tag))
                 proc = pool.m("ProcessBilled")
                 # Does the tag refer to a real _EPROCESS? If so it must have a
                 # valid environment block (and a corresponding address space).
@@ -141,7 +141,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
 
         if pool_header:
             name = (pool_header.m("ProcessBilled").name or
-                    str(pool_header.Tag).encode("string-escape"))
+                    utils.encode_string(pool_header.Tag))
 
             yield dict(divider=("{0:#x} is inside pool allocation with "
                                 "tag '{1}' ({2:#x}) and size {3:#x}".format(
@@ -159,4 +159,4 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
             yield dict(offset=relative_offset,
                        pool_offset=pool_offset,
                        content=" ".join(
-                [utils.SmartStr(x).encode("string-escape") for x in info]))
+                [utils.encode_string(x) for x in info]))

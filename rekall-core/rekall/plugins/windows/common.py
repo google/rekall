@@ -101,24 +101,18 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
 
     __name = "find_dtb"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(WinFindDTB, cls).args(parser)
-        parser.add_argument("--process_name",
-                            help="The name of the process to search for.")
-
-    def __init__(self, process_name="Idle", **kwargs):
-        super(WinFindDTB, self).__init__(**kwargs)
-        self.process_name = process_name
-        self.eprocess_index = self.session.LoadProfile("nt/eprocess_index")
+    __args = [
+        dict(name="process_name", default="Idle",
+             help="The name of the process to search for.")
+    ]
 
     def scan_for_process(self):
         """Scan the image for the idle process."""
         maxlen = self.session.GetParameter("autodetect_scan_length",
                                            10*1024*1024*1024)
         for process in WinDTBScanner(
-                session=self.session, process_name=self.process_name,
+                session=self.session,
+                process_name=self.plugin_args.process_name,
                 profile=self.profile,
                 address_space=self.physical_address_space).scan(
                     0, maxlen=maxlen):
@@ -181,7 +175,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         # always at a known offset since it must be shared with user space apps.
         # Note: We must get the raw value here since image base is not yet
         # known.
-        kuser_shared = self.eprocess_index._KUSER_SHARED_DATA(
+        eprocess_index = self.session.LoadProfile("nt/eprocess_index")
+        kuser_shared = eprocess_index._KUSER_SHARED_DATA(
             offset=self.profile.get_constant("KI_USER_SHARED_DATA_RAW"),
             vm=address_space)
 

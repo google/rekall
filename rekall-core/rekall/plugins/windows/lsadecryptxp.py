@@ -379,7 +379,7 @@ class XP_LsaDecryptMemory(object):
         if len(encrypted) % 8:
             raise ValueError("Encrypted length is not multiple of 8 bytes.")
 
-        decrypted = ''
+        decrypted = b''
         feedback = self.feedback
 
         for i in range(0, len(encrypted) >> 3, 1):

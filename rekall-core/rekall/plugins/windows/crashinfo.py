@@ -159,10 +159,10 @@ class Raw2Dump(common.WindowsCommandPlugin):
             vm=crash_as)
 
         # Clear the old data just in case.
-        crash_as.write(kdbg_physical_address, "\x00" * kdbg.obj_size)
+        crash_as.write(kdbg_physical_address, b"\x00" * kdbg.obj_size)
 
         # The KDBG header.
-        kdbg.Header.OwnerTag = "KDBG"
+        kdbg.Header.OwnerTag = b"KDBG"
         kdbg.Header.Size = kdbg.obj_size
         kdbg.Header.List.Flink = kdbg.Header.List.Blink = (
             self._pointer_to_int(kdbg_virtual_address))
@@ -222,7 +222,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
                 "KdpDataBlockEncoded", "byte")
 
             crash_as.write(
-                self.kernel_address_space.vtop(flag.obj_offset), "\x01")
+                self.kernel_address_space.vtop(flag.obj_offset), b"\x01")
 
         # Global constants.
         self._SetKDBG(kdbg, "CmNtCSDVersion")
@@ -288,13 +288,13 @@ class Raw2Dump(common.WindowsCommandPlugin):
         # Pad the header area with PAGE pattern:
         if self.profile.metadata("arch") == "AMD64":
             header = self.profile._DMP_HEADER64(vm=out_as)
-            out_as.write(0, "PAGE" * (old_div(header.obj_size, 4)))
-            out_as.write(4, "DU64")
+            out_as.write(0, b"PAGE" * (old_div(header.obj_size, 4)))
+            out_as.write(4, b"DU64")
         else:
             # 32 bit systems use a smaller structure.
             header = self.profile._DMP_HEADER(vm=out_as)
-            out_as.write(0, "PAGE" * (old_div(header.obj_size, 4)))
-            out_as.write(4, "DUMP")
+            out_as.write(0, b"PAGE" * (old_div(header.obj_size, 4)))
+            out_as.write(4, b"DUMP")
 
             # PEA address spaces.
             if getattr(self.kernel_address_space, "pae", None):
@@ -369,12 +369,12 @@ class Raw2Dump(common.WindowsCommandPlugin):
         # Zero out the remaining non-essential fields from ContextRecordOffset
         # to ExceptionOffset.
         out_as.write(header.ContextRecord.obj_offset,
-                     "\x00" * (header.m("Exception").obj_offset -
+                     b"\x00" * (header.m("Exception").obj_offset -
                                header.ContextRecord.obj_offset))
 
         # Set the "converted" comment
         out_as.write(header.Comment.obj_offset,
-                     "Created with Rekall Memory Forensics\x00")
+                     b"Created with Rekall Memory Forensics\x00")
 
         # Now copy the physical address space to the output file.
         output_offset = header.obj_size

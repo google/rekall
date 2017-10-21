@@ -54,8 +54,7 @@ class IOManagerTest(testlib.RekallBaseUnitTestCase):
             except (OSError, IOError):
                 pass
 
-            with opener(path, "wb") as fd:
-
+            with opener(path, "wt") as fd:
                 fd.write(data)
 
     def testDirectoryIOManager(self):
@@ -66,7 +65,7 @@ class IOManagerTest(testlib.RekallBaseUnitTestCase):
         # Cant decode from json.
         self.assertEqual(manager.GetData("foo"), None)
         self.assertEqual(manager.GetData("foo", raw=True),
-                         "hello")
+                         b"hello")
 
         # Test ListFiles().
         self.assertListEqual(sorted(manager.ListFiles()),

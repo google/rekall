@@ -57,7 +57,7 @@ install_requires = [
     "PyYAML == 3.11",
     "acora == 2.0",
     "arrow == 0.7.0",
-    "rekall-efilter == 1.5.2",
+    "rekall-efilter == 1.6",
     "intervaltree == 2.1.0",
     "pycrypto == 2.6.1",
     "pyelftools == 0.24",
@@ -68,7 +68,7 @@ install_requires = [
     "rekall-yara == 3.4.0.1",
     "pytsk3 == 20160721",
     "ipaddr==2.2.0",
-
+    "future",
     # Version 2.5.0 is broken with pyinstaller.
     # https://github.com/pyinstaller/pyinstaller/issues/1848
     "python-dateutil == 2.5.3",

@@ -387,6 +387,14 @@ class Services(registry.RegistryPlugin):
         0x00000002: 'SERVICE_ERROR_SEVERE'
         }
 
+    table_header = [
+        dict(name="divider", type="Divider"),
+        dict(name="Service", hidden=True),
+        dict(name="Key", width=20),
+        dict(name="Value", width=60),
+    ]
+
+
     def GenerateServices(self):
         for hive_offset in self.hive_offsets:
             reg = registry.RegistryHive(
@@ -398,21 +406,18 @@ class Services(registry.RegistryPlugin):
                 "Services").subkeys():
                 yield service
 
-    def render(self, renderer):
+    def collect(self):
         for service in self.GenerateServices():
-            renderer.section(service.Name.v())
-            renderer.table_header([("Key", "key", "20"),
-                                   ("Value", "value", "[wrap:60]")],
-                                  suppress_headers=True)
+            yield dict(Service=service, divider=service.Name)
 
-            for value in list(service.values()):
-                k = value.Name.v()
+            for value in service.values():
+                k = value.Name
                 v = value.DecodedData
                 if value.Type == "REG_BINARY":
                     continue
 
                 if isinstance(v, list):
-                    v = ",".join([x for x in v if x])
+                    v = ",".join([utils.SmartUnicode(x) for x in v if x])
 
                 if k == "Type":
                     v = self.SERVICE_TYPE.get(v, v)
@@ -423,4 +428,4 @@ class Services(registry.RegistryPlugin):
                 if k == "ErrorControl":
                     v = self.ERROR_CONTROL.get(v, v)
 
-                renderer.table_row(k, v)
+                yield dict(Service=service, Key=k, Value=v)
