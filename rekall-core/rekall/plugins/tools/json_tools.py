@@ -97,8 +97,7 @@ class JSONParser(plugin.TypedProfileCommand, plugin.Command):
         """
         # Make a json renderer to decode the json stream with.
         self.json_renderer = json_renderer.JsonRenderer(session=self.session)
-
-        self.fd = renderer.open(filename=self.plugin_args.file, mode="rb")
+        self.fd = renderer.open(filename=self.plugin_args.file, mode="rt")
         data = json.load(self.fd)
 
         for statement in data:

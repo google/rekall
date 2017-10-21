@@ -409,6 +409,7 @@ class DisabledTest(RekallBaseUnitTestCase):
 
 class HashChecker(SimpleTestCase):
     """A test comparing the hashes of all the files dumped in the tempdir."""
+    maxDiff = None
 
     def BuildBaselineData(self, config_options):
         """We need to calculate the hash of the image we produce."""

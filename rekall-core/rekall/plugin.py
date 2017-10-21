@@ -123,6 +123,10 @@ class CommandOption(object):
         if self.type == "Address" or self.type == "SymbolAddress":
             value = session.address_resolver.get_address_by_name(value)
 
+        elif self.type == "dict":
+            if not isinstance(value, dict):
+                raise TypeError("Parameter %s expects a dict" % self.name)
+
         elif self.type == "IntParser":
             if isinstance(value, basestring):
                 value = int(value, 0)
@@ -168,21 +172,15 @@ class CommandOption(object):
 
         elif self.type == "ArrayIntParser":
             try:
+                # If it is a single int, then make it an array with one int.
                 value = [int(value)]  # pylint: disable=redefined-variable-type
             except (ValueError, TypeError):
                 result = []
                 for x in value:
-                    # RowTuple are treated especially in order to simplify
-                    # Efilter syntax.
-                    if x.__class__.__name__ == "RowTuple":
-                        if len(x) != 1:
-                            raise PluginError(
-                                "Subselect must only select a single row when "
-                                "expanding into a list.")
-                        x = int(x[0])
-                    else:
-                        x = int(x)
-                    result.append(x)
+                    try:
+                        result.append(int(x))
+                    except TypeError:
+                        raise TypeError("Arg %s must be a list of integers" % self.name)
                 value = result
 
         # Allow address space to be specified.
@@ -610,8 +608,11 @@ class ArgsParserMixin(object):
                     not self.ignore_required):
                 raise InvalidArgs("%s is required." % definition.name)
 
-            self.plugin_args[definition.name] = definition.parse(
-                value, session=kwargs.get("session"))
+            try:
+                self.plugin_args[definition.name] = definition.parse(
+                    value, session=kwargs.get("session"))
+            except (ValueError, TypeError) as e:
+                raise InvalidArgs("%s invalid: %s." % (definition.name, e))
 
         super(ArgsParserMixin, self).__init__(**kwargs)
 

@@ -42,6 +42,7 @@ def find_data_files(source):
 
 install_requires = [
     "arrow == 0.7.0",
+    "future",
     "sortedcontainers == 1.4.4",
 ]
 

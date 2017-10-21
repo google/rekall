@@ -179,7 +179,7 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
                 kdbg.PsLoadedModuleList, num_modules)
 
             yield "KernelBase", "{0:#x} (Matches MZ: {1})".format(
-                kdbg.KernBase, kdbg.obj_vm.read(kdbg.KernBase, 2) == "MZ")
+                kdbg.KernBase, kdbg.obj_vm.read(kdbg.KernBase, 2) == b"MZ")
 
             # Parse the PE header of the kernel.
             pe_profile = self.session.LoadProfile("pe")

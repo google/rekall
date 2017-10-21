@@ -23,7 +23,10 @@ def hex_function(value):
     if value == None:
         return
 
-    return "%#x" % value
+    if repeated.isrepeating(value):
+        return [hex_function(x) for x in value]
+
+    return "%#x" % int(value)
 
 def str_function(value):
     if value == None:
@@ -84,15 +87,12 @@ class GeneratorRunner(object):
         return repeated.lazy(functools.partial(self.cb, *args, **kwargs))
 
 
-# Implement IApplicative for Command to get reflection APIs.
+# Implement IApplicative for Command.
 applicative.IApplicative.implement(
     for_type=GeneratorRunner,
     implementations={
         applicative.apply:
             lambda x, *args, **kwargs: x.apply(*args, **kwargs),
-
-        # Plugins "return" themselves, as far as the type inference cares.
-        applicative.reflect_runtime_return: lambda x: x
     }
 )
 

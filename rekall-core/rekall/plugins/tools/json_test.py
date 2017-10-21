@@ -25,6 +25,7 @@ from builtins import range
 import json
 import logging
 import io
+import six
 
 from rekall import testlib
 from rekall.ui import json_renderer
@@ -63,21 +64,31 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
 
     def testObjectRenderer(self):
         cases = [
-            ('\xff\xff\x00\x00', {'mro': u'str:basestring:object',
-                                  'b64': u'//8AAA=='}),
-
-            ("hello", u'hello'),  # A string is converted into unicode if
+            (b"hello", u'hello'),  # A string is converted into unicode if
                                   # possible.
 
             (1, 1),     # Ints are already JSON serializable.
             (dict(foo=2), {'foo': 2}),
             (set([1, 2, 3]), {'mro': u'set:object', 'data': [1, 2, 3]}),
             ([1, 2, 3], [1, 2, 3]),
-
-            ([1, "\xff\xff\x00\x00", 3], [1, {'mro': u'str:basestring:object',
-                                              'b64': u'//8AAA=='}, 3]),
-
             ]
+
+        if six.PY2:
+            cases.append(
+                ([1, b"\xff\xff\x00\x00", 3], [1, {'mro': u'str:basestring:object',
+                                                   'b64': u'//8AAA=='}, 3]))
+            cases.append(
+                (b'\xff\xff\x00\x00', {'mro': u'str:basestring:object',
+                                       'b64': u'//8AAA=='}))
+
+        else:
+            cases.append(
+                ([1, b"\xff\xff\x00\x00", 3], [1, {'mro': u'bytes:object',
+                                                   'b64': u'//8AAA=='}, 3]))
+            cases.append(
+                (b'\xff\xff\x00\x00', {'mro': u'bytes:object',
+                                       'b64': u'//8AAA=='}))
+
 
         for case in cases:
             encoded = self.encoder.Encode(case[0])
@@ -150,6 +161,8 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
         self.CheckObjectSerization(dict(a=1, b=dict(a=1)))
 
     def CheckObjectSerization(self, obj):
+        self.session.SetParameter("foo", b"bar")
+
         json_renderer_obj = json_renderer.JsonRenderer(session=self.session)
         data_export_renderer_obj = data_export.DataExportRenderer(
             session=self.session)

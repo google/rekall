@@ -1226,16 +1226,25 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
         return vtypes
 
     def _demangle_constants(self, constants):
-        result = {}
+        """Demangle the constants and handle repeated symbols.
+
+        This code sorts the symbols by their offset to ensure
+        repeatable results.
+        """
+        tmp = {}
         demangler = pe_vtypes.Demangler(self.metadata)
         for name, value in six.iteritems(constants):
-            root_name = demangled_name = demangler.DemangleName(name)
-            count = 0
-            while demangled_name in result:
-                demangled_name = "%s_%s" % (root_name, count)
-                count += 1
+            demangled_name = demangler.DemangleName(name)
+            tmp.setdefault(demangled_name, []).append(value)
 
-            result[demangled_name] = value
+        result = {}
+        for name, values in six.iteritems(tmp):
+            root_name = name
+            for i, value in enumerate(sorted(values)):
+                if i > 0:
+                    name = "%s_%s" % (root_name, i)
+
+                result[name] = value
 
         return result
 

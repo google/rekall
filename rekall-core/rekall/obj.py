@@ -663,8 +663,8 @@ class NativeType(NumericProxyMixIn, BaseObject):
         return self.obj_name
 
     def __repr__(self):
-        return " [{0}:{1}]: 0x{2:08X}".format(self.obj_type, self.obj_name,
-                                              self.v())
+        return " [{0}:{1}]: 0x{2:08x}".format(self.obj_type, self.obj_name,
+                                              int(self.v()))
 
 
 class Bool(NativeType):
@@ -1308,6 +1308,9 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         This allows us to interchange Struct and offsets.
         """
         return self.obj_offset
+
+    def __index__(self):
+        return self.__int__()
 
     def preamble_size(self):
         """The number of bytes before the object which are part of the object.

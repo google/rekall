@@ -89,6 +89,7 @@ __author__ = (
     "Jordi Sanchez <nop@google.com>"
 )
 
+import binascii
 import gzip
 import itertools
 import json
@@ -598,14 +599,16 @@ class BuildIndex(plugin.Command):
                 # should already be hex-encoded.
                 for value in sym_spec["data"]:
                     if value.startswith("lstr:"):
-                        value = value[5:].encode("utf-16le").encode("hex")
+                        value = binascii.hexlify(
+                            utils.SmartUnicode(value[5:]).encode("utf-16le"))
 
                     elif value.startswith("str:"):
-                        value = value[4:].encode("hex")
+                        value = binascii.hexlify(
+                            utils.SmartStr(value[4:]))
 
                     else:
                         try:
-                            value.decode("hex")
+                            binascii.unhexlify(value)
                         except TypeError:
                             raise ValueError(
                                 "String %r must be encoded in hex, "

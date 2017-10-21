@@ -22,7 +22,6 @@ from __future__ import division
 # pylint: disable=protected-access
 from builtins import chr
 from builtins import str
-from builtins import filter
 from builtins import object
 from past.utils import old_div
 from rekall import kb
@@ -543,7 +542,7 @@ class tagDESKTOP(tagWINDOWSTATION):
             cur = cur.spwndNext.dereference()
         while wins:
             cur = wins.pop()
-            if not list(filter(cur)):
+            if not filter(cur):
                 continue
 
             yield cur, level
@@ -828,8 +827,8 @@ class Win32k(pe_vtypes.BasicPEProfile):
 
         # Some constants - These will probably change in win8 which does not
         # allow non ascii tags.
-        profile.add_constants(dict(PoolTag_WindowStation="Win\xe4",
-                                   PoolTag_Atom="AtmT"))
+        profile.add_constants(dict(PoolTag_WindowStation=b"Win\xe4",
+                                   PoolTag_Atom=b"AtmT"))
 
         profile.add_classes({
             'tagWINDOWSTATION': tagWINDOWSTATION,

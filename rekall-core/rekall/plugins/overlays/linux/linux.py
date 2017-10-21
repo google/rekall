@@ -732,8 +732,9 @@ class task_struct(obj.Struct):
             proc_as = self.get_process_address_space()
 
             # read argv from userland
-            argv = proc_as.read(self.mm.arg_start,
-                                self.mm.arg_end - self.mm.arg_start)
+            argv = utils.SmartUnicode(
+                proc_as.read(self.mm.arg_start,
+                             self.mm.arg_end - self.mm.arg_start))
 
             if argv:
                 # split the \x00 buffer into args

@@ -46,7 +46,7 @@ from rekall import constants
 
 
 class CommandMetadata(object):
-    """A class that carried a plugin's configuration.
+    """A class that carries a plugin's configuration.
 
     A plugin is responsible for declaring its metadata by calling this
     configuration object's methods from the args() class method.

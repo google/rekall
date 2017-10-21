@@ -483,7 +483,7 @@ class DTBScan(common.WinProcessFilter):
                         task = dtb_descriptor.owner()
 
                         yield (dtb, va, task,
-                               task.obj_offset in known_tasks)
+                               task.obj_offset and task.obj_offset in known_tasks)
 
 
 class TestDTBScan(testlib.SimpleTestCase):

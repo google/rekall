@@ -26,6 +26,7 @@
 from __future__ import division
 from builtins import str
 from past.utils import old_div
+import codecs
 import datetime
 
 from rekall import obj
@@ -250,7 +251,7 @@ class UserAssist(registry.RegistryPlugin):
             outfd.write("Values:\n")
             for value in list(key.values()):
                 # In windows 7, folder names are replaced by guids.
-                value_name = str(value.Name).decode("rot13")
+                value_name = codecs.getdecoder("rot13")(utils.SmartUnicode(value.Name))[0]
                 value_name = self._resolve_gui_folders(value_name)
 
                 outfd.write("\n{0:13} {1:15} :\n".format(value.Type, value_name))

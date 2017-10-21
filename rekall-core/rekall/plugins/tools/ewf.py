@@ -102,7 +102,7 @@ EWF_TYPES = dict(
             )]],
 
         'size': [24, ['long long unsigned int']],
-        'checksum': [72, ['int']],
+        'checksum': [72, ['unsigned int']],
         }],
 
     ewf_volume=[94, {
@@ -172,7 +172,7 @@ class ewf_section_descriptor_v1(obj.Struct):
         data = self.obj_vm.read(
             self.obj_offset, self.checksum.obj_offset - self.obj_offset)
 
-        self.checksum = zlib.adler32(data)
+        self.checksum = zlib.adler32(data) & 0xffffffff
 
 
 class ewf_table_header_v1(obj.Struct):
@@ -394,7 +394,7 @@ class EWFFileWriter(object):
         file_header.fields_end = 1
 
         self.current_offset = file_header.obj_end
-        self.buffer = ""
+        self.buffer = b""
         self.table_count = 0
 
         # Get ready to accept data.
@@ -420,7 +420,7 @@ class EWFFileWriter(object):
 
         sectors_section = self.profile.ewf_section_descriptor_v1(
             offset=self.current_offset, vm=self.out_as)
-        sectors_section.type = "sectors"
+        sectors_section.type = b"sectors"
         self.AddNewSection(sectors_section)
 
         self.base_offset = self.current_offset = sectors_section.obj_end
@@ -463,7 +463,7 @@ class EWFFileWriter(object):
         """Flush the current table."""
         table_section = self.profile.ewf_section_descriptor_v1(
             offset=self.current_offset, vm=self.out_as)
-        table_section.type = "table"
+        table_section.type = b"table"
         self.AddNewSection(table_section)
 
         table_header = self.profile.ewf_table_header_v1(
@@ -498,7 +498,7 @@ class EWFFileWriter(object):
             offset=volume_section.obj_end, vm=self.out_as)
 
         volume_header.number_of_chunks = self.chunk_id
-        volume_header.sectors_per_chunk = old_div(self.chunk_size, 512)
+        volume_header.sectors_per_chunk = self.chunk_size // 512
         volume_header.number_of_sectors = (volume_header.number_of_chunks *
                                            volume_header.sectors_per_chunk)
 

@@ -447,7 +447,7 @@ windows_overlay = {
         'PoolType': lambda x: x.cast("Enumeration",
                                      enum_name="_POOL_TYPE",
                                      value=x.m("PoolType")),
-        'Tag': lambda x: str(x.PoolTag.cast("String", length=4)),
+        'Tag': lambda x: utils.SmartStr(x.PoolTag.cast("String", length=4)),
         }],
 
     '_DISPATCHER_HEADER': [None, {

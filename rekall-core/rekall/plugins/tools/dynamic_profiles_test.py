@@ -1,4 +1,5 @@
 from builtins import object
+import binascii
 import mock
 from rekall import testlib
 from rekall.plugins.tools import dynamic_profiles
@@ -9,6 +10,8 @@ class MockAddressResolver(object):
         self.name_map = name_map
 
     def format_address(self, address):
+        if address == None:
+            return ""
         return self.name_map.get(address, "")
 
 
@@ -112,7 +115,7 @@ class TestDynamicProfile(testlib.RekallBaseUnitTestCase):
                 session=self.session)
 
             match = matcher.Match(offset=case.get("offset", 0),
-                                  data=case["data"].decode("hex"))
+                                  data=binascii.unhexlify(case["data"]))
 
             for k, v in case["expected"].items():
                 self.assertEqual(match[k], v)

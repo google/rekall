@@ -104,7 +104,7 @@ class ResourcePointer(obj.Pointer):
             for parent in self.parents:
                 if isinstance(parent, _IMAGE_NT_HEADERS):
                     for section in parent.Sections:
-                        if section.Name.startswith(".rsrc"):
+                        if section.Name.startswith(b".rsrc"):
                             self.resource_base = (
                                 section.VirtualAddress +
                                 parent.OptionalHeader.ImageBase)
@@ -1065,43 +1065,44 @@ class Demangler(object):
     http://www.kegel.com/mangle.html
     """
     STRING_MANGLE_MAP = {
-        "^0": ",",
-        "^2": r"\\",
-        "^4": ".",
-        "^3": ":",
-        "^5": "_",  # Really space.
-        "^6": ".",  # Really \n.
-        r"\$AA": "",
-        r"\$AN": "", # Really \r.
-        r"\$CF": "%",
-        r"\$EA": "@",
-        r"\$CD": "#",
-        r"\$CG": "&",
-        r"\$HO": "~",
-        r"\$CI": "(",
-        r"\$CJ": ")",
-        r"\$DM1": "</",
-        r"\$DMO": ">",
-        r"\$DN": "=",
-        r"\$CK": "*",
-        r"\$CB": "!",
-
+        r"?0": ",",
+        r"?1": "/",
+        r"?2": r"\\",
+        r"?4": ".",
+        r"?3": ":",
+        r"?5": "_",  # Really space.
+        r"?6": ".",  # Really \n.
+        r"?7": '"',
+        r"?8": "'",
+        r"?9": "-",
+        r"?$AA": "",
+        r"?$AN": "", # Really \r.
+        r"?$CF": "%",
+        r"?$EA": "@",
+        r"?$CD": "#",
+        r"?$CG": "&",
+        r"?$HO": "~",
+        r"?$CI": "(",
+        r"?$CJ": ")",
+        r"?$DM1": "</",
+        r"?$DMO": ">",
+        r"?$DN": "=",
+        r"?$CK": "*",
+        r"?$CB": "!",
         }
+
+    STRING_MANGLE_RE = re.compile("(" + "|".join(
+        [x.replace("?", "\\?").replace("$", "\\$")
+         for x in STRING_MANGLE_MAP]) + ")")
 
     def __init__(self, metadata):
         self._metadata = metadata
 
     def _UnpackMangledString(self, string):
         string = string.split("@")[3]
-
-        result = []
-        for cap in string.split("?"):
-            for k, v in six.iteritems(self.STRING_MANGLE_MAP):
-                cap = re.sub(k, v, cap)
-
-            result.append(cap)
-
-        return "str:" + "".join(result).strip()
+        result =  "str:" + self.STRING_MANGLE_RE.sub(
+            lambda m: self.STRING_MANGLE_MAP[m.group(0)], string)
+        return result
 
     SIMPLE_X86_CALL = re.compile(r"[_@]([A-Za-z0-9_]+)@(\d{1,3})$")
     FUNCTION_NAME_RE = re.compile(r"\?([A-Za-z0-9_]+)@")

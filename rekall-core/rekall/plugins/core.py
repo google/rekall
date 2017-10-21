@@ -852,7 +852,7 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
              help="Number of bytes per row"),
 
         dict(name="rows", type="IntParser",
-             help="Number of bytes per row"),
+             help="Number of rows to dump"),
     ]
 
     table_header = [
@@ -910,7 +910,8 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
             hex_data = utils.HexDumpedString(
                 self.plugin_args.address_space.read(offset, end_of_line),
                 highlights=self.address_map.HighlightRange(
-                    offset, offset + end_of_line, relative=True))
+                    offset, offset + end_of_line, relative=True),
+                hex_width=self.width)
 
             comment = self.address_map.GetComment(offset, offset + self.width)
 
@@ -950,7 +951,7 @@ class Grep(plugin.TypedProfileCommand, plugin.ProfileCommand):
 
     def render(self, renderer):
         scanner = scan.MultiStringScanner(
-            needles=self.plugin_args.keyword,
+            needles=[utils.SmartStr(x) for x in self.plugin_args.keyword],
             address_space=self.plugin_args.address_space,
             session=self.session)
 
