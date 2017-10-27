@@ -407,11 +407,12 @@ class ProfileCommand(Command):
     def args(cls, metadata):
         # Top level args.
         metadata.add_argument(
-            "-p", "--profile", critical=True, hidden=True,
+            "-p", "--profile", critical=True,
+            group="Autodetection Overrides",
             help="Name of the profile to load. This is the "
             "filename of the profile found in the profiles "
             "directory. Profiles are searched in the profile "
-            "path order.")
+            "path order (If specified we disable autodetection).")
 
         metadata.add_requirement("profile")
 

@@ -865,7 +865,7 @@ class net_device(obj.Struct):
     def mac_addr(self):
         addr = self.perm_addr
         if (addr.obj_vm.read(addr.obj_offset, addr.obj_size) ==
-                "\x00" * addr.obj_size):
+                b"\x00" * addr.obj_size):
             addr = self.dev_addr.deref()
 
         return addr.cast("MacAddress")
@@ -962,7 +962,7 @@ class page(obj.Struct):
         if to_read:
             data = phys_as.read(phys_offset, to_read)
         if to_read <= size:
-            data += "\x00" * (size - to_read)
+            data += b"\x00" * (size - to_read)
         return data
 
 

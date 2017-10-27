@@ -391,7 +391,7 @@ class FixupAddressSpace(addrspace.BaseAddressSpace):
                 raise NTFSParseError("Fixup error")
 
             self.buffer[fixup_offset:fixup_offset+2] = array.array(
-                "c", fixup_value.v())
+                "B", fixup_value.v())
 
     def read(self, address, length):
         buffer_offset = address - self.base_offset
@@ -475,11 +475,11 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
             if end is None:
                 end = addr + length
 
-            return "\x00" * min(end - addr, length)
+            return b"\x00" * min(end - addr, length)
 
         if run.data.get("compression"):
             block_data = lznt1.decompress_data(
-                self.base.read(run.file_offset, run.length) + "\x00" * 10,
+                self.base.read(run.file_offset, run.length) + b"\x00" * 10,
                 logger=self.session.logging.getChild("ntfs"))
 
             available_length = (self.compression_unit_size - (addr - run.start))
@@ -492,7 +492,7 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
 
             # Decompression went wrong - just zero pad.
             if len(result) < length:
-                result += "\x00" * (length - len(result))
+                result += b"\x00" * (length - len(result))
 
             return result
 
@@ -1253,7 +1253,7 @@ class IDump(NTFSPlugins):
             self.plugin_args.type, self.plugin_args.id)
         data = attribute.data
 
-        if data:
+        if data and self.offset:
             dump_plugin = self.session.plugins.dump(
                 offset=self.offset, address_space=data)
             dump_plugin.render(renderer)

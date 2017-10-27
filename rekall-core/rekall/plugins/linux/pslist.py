@@ -59,7 +59,7 @@ class LinuxPsList(common.LinProcessFilter):
             binary="")
 
     def collect(self):
-        for task in self.filter_processes():
+        for task in sorted(self.filter_processes()):
             dtb = self.kernel_address_space.vtop(task.mm.pgd)
             path = task.get_path(task.mm.m("exe_file"))
             yield (task,

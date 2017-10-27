@@ -51,8 +51,6 @@ class _MM_SESSION_SPACE(win32k_core._MM_SESSION_SPACE):
         handle_entry_offset = self.obj_profile.get_obj_offset(
             "tagSHAREDINFO", "HeEntrySize")
 
-        import pdb; pdb.set_trace()
-
         for chunk in self._section_chunks(".data"):
 
             if chunk != handle_table_size:

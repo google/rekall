@@ -164,7 +164,7 @@ class CheckSyscall(common.LinuxPlugin):
 
             resolver = self.session.address_resolver
             for i, entry in enumerate(table):
-                sym_name = resolver.format_address(entry.deref())[:2]
+                sym_name = tuple(resolver.format_address(entry.deref())[:2])
                 yield dict(
                     table=table_name, index=i,
                     address=entry,

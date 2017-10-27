@@ -48,7 +48,8 @@ class TSKMode(kb.ParameterHook):
     name = "mode_tsk"
 
     def calculate(self):
-        return isinstance(self.session.profile, tsk.TSKProfile)
+        if self.session.profile:
+            return isinstance(self.session.profile, tsk.TSKProfile)
 
 
 
@@ -56,35 +57,40 @@ class WinXPMode(kb.ParameterHook):
     name = "mode_xp"
 
     def calculate(self):
-        return self.session.profile.metadata("major") == 5
+        if self.session.profile:
+            return self.session.profile.metadata("major") == 5
 
 
 class AMD64Mode(kb.ParameterHook):
     name = "mode_amd64"
 
     def calculate(self):
-        return self.session.profile.metadata("arch") == "AMD64"
+        if self.session.profile:
+            return self.session.profile.metadata("arch") == "AMD64"
 
 
 class WinMode(kb.ParameterHook):
     name = "mode_windows"
 
     def calculate(self):
-        return self.session.profile.metadata("os") == "windows"
+        if self.session.profile:
+            return self.session.profile.metadata("os") == "windows"
 
 
 class LinMode(kb.ParameterHook):
     name = "mode_linux"
 
     def calculate(self):
-        return self.session.profile.metadata("os") == "linux"
+        if self.session.profile:
+            return self.session.profile.metadata("os") == "linux"
 
 
 class DarwinMode(kb.ParameterHook):
     name = "mode_darwin"
 
     def calculate(self):
-        return self.session.profile.metadata("os") == "darwin"
+        if self.session.profile:
+            return self.session.profile.metadata("os") == "darwin"
 
 
 class LiveMode(kb.ParameterHook):
@@ -106,7 +112,8 @@ class LiveAPIMode(kb.ParameterHook):
     name = "mode_live_api"
 
     def calculate(self):
-        return self.session.GetParameter("live_mode") == "API"
+        if self.session.profile:
+            return self.session.GetParameter("live_mode") == "API"
 
 
 class ImageMode(kb.ParameterHook):
@@ -128,7 +135,8 @@ class VistaMode(kb.ParameterHook):
     name = "mode_vista_plus"
 
     def calculate(self):
-        return self.session.profile.metadata("major", 0) >= 6
+        if self.session.profile:
+            return self.session.profile.metadata("major", 0) >= 6
 
 
 class WinMemoryMode(kb.ParameterHook):
@@ -146,9 +154,10 @@ class LinMemoryMode(kb.ParameterHook):
     name = "mode_linux_memory"
 
     def calculate(self):
-        return (self.session.GetParameter("mode_live_memory") or
-                self.session.GetParameter("mode_image")) and (
-                    self.session.GetParameter("mode_linux"))
+        if self.session.profile:
+            return (self.session.GetParameter("mode_live_memory") or
+                    self.session.GetParameter("mode_image")) and (
+                        self.session.GetParameter("mode_linux"))
 
 
 class DarwinMemoryMode(kb.ParameterHook):
@@ -166,5 +175,6 @@ class MountainLionMode(kb.ParameterHook):
     name = "mode_darwin_mountain_lion_plus"
 
     def calculate(self):
-        return (self.session.profile.get_constant("_BootPML4", False) and
-                self.session.GetParameter("mode_darwin_memory"))
+        if self.session.profile:
+            return (self.session.profile.get_constant("_BootPML4", False) and
+                    self.session.GetParameter("mode_darwin_memory"))

@@ -304,7 +304,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
         # If default is specified we assume the parameter is not required.
         # However, defaults are not passed on to argparse in most cases, and
         # instead applied separately through ApplyDefaults. For exceptions,
-        # see below.
+# see below.
         default = kwargs.pop("default", None)
         try:
             required = kwargs.pop("required")

@@ -304,7 +304,7 @@ class StringRenderer(StateBasedObjectRenderer):
     def DecodeFromJsonSafe(self, value, options):
         result = value.get("str")
         if result is None:
-            result = value.get("b64").decode("base64")
+            result = base64.b64decode(value.get("b64"))
         else:
             return result.encode("utf8")
 

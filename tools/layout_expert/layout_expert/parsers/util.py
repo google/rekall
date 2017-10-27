@@ -67,8 +67,6 @@ def action(function):
             raise
         except Exception as e:
             print(e)
-            import pdb
-            pdb.post_mortem()
             raise
 
     @functools.wraps(function)

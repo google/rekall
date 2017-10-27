@@ -525,13 +525,13 @@ class LinuxBannerDetector(DetectionMethod):
         if m:
             # Try to guess the distribution.
             distribution = "LinuxGeneric"
-            if "Ubuntu" in guess:
+            if b"Ubuntu" in guess:
                 distribution = "Ubuntu"
 
-            if "Debian" in guess:
+            if b"Debian" in guess:
                 distribution = "Debian"
 
-            profile_name = "%s/%s" % (distribution, m.group(1))
+            profile_name = "%s/%s" % (distribution, utils.SmartUnicode(m.group(1)))
             profile = self.session.LoadProfile(profile_name)
             if profile:
                 self.session.logging.info(

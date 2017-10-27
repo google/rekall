@@ -244,7 +244,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             if not pte_value & self.valid_mask:
                 continue
 
-            vaddr = tmp3 + i << 12
+            vaddr = tmp3 + (i << 12)
             if vaddr > end:
                 return
 
@@ -681,7 +681,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
             if not pte_value & self.valid_mask:
                 continue
 
-            vaddr = tmp3 | i << 12
+            vaddr = tmp3 | (i << 12)
             if vaddr > end:
                 return
 

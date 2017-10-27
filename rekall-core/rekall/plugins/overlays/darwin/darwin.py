@@ -1168,6 +1168,13 @@ class proc(obj.Struct):
     """Represents a Darwin process."""
 
     @utils.safe_property
+    def address_mode(self):
+        if not self.is_64bit:
+            return "I386"
+
+        return self.obj_session.profile.metadata("arch")
+
+    @utils.safe_property
     def vads(self):
         return self.task.map.hdr.walk_list("links.next", include_current=False)
 
@@ -1199,16 +1206,17 @@ class proc(obj.Struct):
         ofiles = self.p_fd.fd_ofiles.deref()
         ofileflags = self.p_fd.fd_ofileflags
 
-        for fd in range(last_fd + 1):  # xrange stops at N-1.
-            file_obj = ofiles[fd].deref()
+        if last_fd != None:
+            for fd in range(last_fd + 1):  # xrange stops at N-1.
+                file_obj = ofiles[fd].deref()
 
-            # file_obj will be None if the pointer is NULL (see ref [4]), and
-            # also when the pointer is simply invalid, which can happen
-            # sometimes. Currently, I chalk it up to inconsistencies in the
-            # volatile RAM image (since it's rare) but it might have another
-            # explanation.
-            if file_obj:
-                yield (fd, file_obj, ofileflags[fd])
+                # file_obj will be None if the pointer is NULL (see ref [4]), and
+                # also when the pointer is simply invalid, which can happen
+                # sometimes. Currently, I chalk it up to inconsistencies in the
+                # volatile RAM image (since it's rare) but it might have another
+                # explanation.
+                if file_obj:
+                    yield (fd, file_obj, ofileflags[fd])
 
     def get_process_address_space(self):
         cr3 = self.task.map.pmap.pm_cr3
@@ -1229,7 +1237,7 @@ class proc(obj.Struct):
 
     @utils.safe_property
     def is_64bit(self):
-        return proc.task.map.pmap.pm_task_map == "TASK_MAP_64BIT"
+        return self.task.map.pmap.pm_task_map == "TASK_MAP_64BIT"
 
     @utils.safe_property
     def argv(self):
@@ -1293,9 +1301,8 @@ class vnode(obj.Struct):
                                                  int(_vnode))
                 return "<Orphan>"
 
-        path = "/" + "/".join((str(x) for x in reversed(result) if x))
-        return str(path.encode("string-escape"))
-        # return "/" + "/".join((unicode(x) for x in reversed(result) if x))
+        path = "/" + "/".join((utils.SmartUnicode(x) for x in reversed(result) if x))
+        return path
 
     @utils.safe_property
     def human_type(self):
@@ -1482,7 +1489,7 @@ class ifnet(obj.Struct):
 class session(obj.Struct):
     @utils.safe_property
     def tty(self):
-        return self.session.s_ttyp
+        return self.s_ttyp
 
     @utils.safe_property
     def name(self):

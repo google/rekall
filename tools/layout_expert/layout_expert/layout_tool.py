@@ -200,8 +200,6 @@ def main():
 
         _args.action(_args)
     except (Exception, KeyboardInterrupt):
-        import pdb
-        pdb.post_mortem()
         raise
 
 

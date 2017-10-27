@@ -176,7 +176,7 @@ class CommandWrapper(object):
             if desc["name"] == name:
                 return desc
 
-        raise plugins.PluginError("Unknown arg %s for plugin %s" % (
+        raise plugin.PluginError("Unknown arg %s for plugin %s" % (
             name, self.plugin_cls.name))
 
     def __repr__(self):

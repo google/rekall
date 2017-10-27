@@ -284,7 +284,7 @@ class DarwinFindKASLR(plugin.PhysicalASMixin, DarwinOnlyMixin,
           True if vm_kernel_slide value appears sane. False otherwise.
         """
         version_string = self._lookup_version_string(vm_kernel_slide)
-        return version_string[0:13] == "Darwin Kernel"
+        return version_string[0:13] == b"Darwin Kernel"
 
     def render(self, renderer):
         renderer.table_header([
@@ -421,7 +421,7 @@ class DarwinFindDTB(DarwinKASLRMixin, DarwinOnlyMixin, core.FindDTB):
             if not address_space.is_valid_address(address):
                 return
 
-            if address_space.read(address, 13) != "Darwin Kernel":
+            if address_space.read(address, 13) != b"Darwin Kernel":
                 return
 
             return address_space

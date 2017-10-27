@@ -1359,7 +1359,8 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         return result + u"\n".join(
             [u"  0x%02X %s%s %s" % (offset, k, " " * (width_name - len(k)), v)
-             for offset, k, v in fields]) + "\n"
+             for offset, k, v in fields
+             if offset != None]) + "\n"
 
     def v(self, vm=None):
         """ When a struct is evaluated we just return our offset.

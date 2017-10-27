@@ -471,7 +471,10 @@ class MacAddress(obj.NativeType):
 
     def v(self, vm=None):
         return ":".join(
-            ["{0:02X}".format(ord(y)) for y in super(MacAddress, self).v()])
+            ["{0:02X}".format(utils.my_ord(y)) for y in super(MacAddress, self).v()])
+
+    def __repr__(self):
+        return " [{0}:{1}]: {2}".format(self.obj_type, self.obj_name, self.v())
 
 
 class ListMixIn(object):

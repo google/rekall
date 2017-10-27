@@ -119,8 +119,6 @@ class TestAgent(testlib.RekallBaseUnitTestCase):
             print row
 
         print self.temp_directory
-        import pdb; pdb.set_trace()
-
         print self.session.plugins.run_flow(flow.to_primitive())
 
 

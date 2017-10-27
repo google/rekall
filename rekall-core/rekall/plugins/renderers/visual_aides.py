@@ -247,6 +247,7 @@ class RunBasedMap(MemoryMap):
         # Loop over cells and set up their string contents with sigils.
         rows = []
         row = None
+
         for i, cell in enumerate(cells):
             if i % column_count == 0:
                 row = []
@@ -254,13 +255,12 @@ class RunBasedMap(MemoryMap):
 
             room = cell_width
             string = ""
-            for sigil, _ in sorted(six.iteritems(cell["_sigils"]),
-                                   key=lambda x: x[1], reverse=True):
+            for sigil in sorted(cell["_sigils"], reverse=True):
                 if len(sigil) < room:
                     string += sigil
                     room -= len(sigil)
 
-                if not room:
+                if room <= 0:
                     break
 
             cell["value"] = string or "-"

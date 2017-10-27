@@ -30,7 +30,7 @@ import posixpath
 
 from rekall import testlib
 from rekall.plugins.linux import common
-
+from rekall_lib import utils
 
 class CheckProcFops(common.LinuxPlugin):
     """Checks the proc filesystem for hooked f_ops."""
@@ -78,7 +78,7 @@ class CheckProcFops(common.LinuxPlugin):
             return
         seen.add(current)
 
-        yield current, posixpath.join(path, current.Name)
+        yield current, posixpath.join(path, utils.SmartUnicode(current.Name))
 
         # Yield our peers.
         for proc_dir_entry in current.walk_list("next"):
