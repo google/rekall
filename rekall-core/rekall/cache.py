@@ -34,7 +34,7 @@ class RestrictedUnpickler(pickle.Unpickler):
 
 def RestrictedPickler(raw):
     if six.PY3:
-        return RestrictedUnpickler(io.BytesIO(utils.SmartStr(raw))).load()
+        return RestrictedUnpickler(io.BytesIO(utils.SmartStr(raw)))
 
     unpickler = pickle.Unpickler(io.BytesIO(utils.SmartStr(raw)))
     unpickler.find_global = None

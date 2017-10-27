@@ -58,7 +58,6 @@ class Ifconfig(common.LinuxPlugin):
 
     def gather_net_dev_info(self, net_dev):
         mac_addr = net_dev.mac_addr
-
         for dev in net_dev.ip_ptr.ifa_list.walk_list("ifa_next"):
             yield dev.ifa_label, dev.ifa_address, mac_addr, net_dev.flags
 

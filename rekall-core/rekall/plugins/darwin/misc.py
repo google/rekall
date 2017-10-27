@@ -56,7 +56,7 @@ class DarwinDMSG(common.AbstractDarwinCommand):
         if 0 < msgbuf.msg_bufx < size:
             data = self.kernel_address_space.read(msgbuf.msg_bufc, size)
             data = data[msgbuf.msg_bufx: size] + data[0:msgbuf.msg_bufx]
-            data = re.sub("\x00", "", data)
+            data = re.sub(b"\x00", b"", data)
 
             for x in data.splitlines():
                 renderer.table_row(x)

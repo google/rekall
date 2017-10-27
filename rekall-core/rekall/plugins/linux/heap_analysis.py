@@ -261,6 +261,7 @@ class HeapAnalysis(common.LinProcessFilter):
         minor_version = None
         match = None
         libc_filename = get_libc_filename(self.vmas)
+        libc_profile = None
 
         if libc_filename:
             match = re.search(r'(\d+)\.(\d+)', libc_filename)
@@ -1094,7 +1095,7 @@ class HeapAnalysis(common.LinProcessFilter):
         self._size_sz = None
         self._malloc_alignment = None
         self._malloc_align_mask = None
-        self._minsize = None
+        self._minsize = 0
 
         self.mp_ = None
         self.mp_offset = self.plugin_args.malloc_par
@@ -2461,10 +2462,12 @@ class HeapAnalysis(common.LinProcessFilter):
         first_chunk_offsets = set()
         for arena in self.arenas:
             if arena.is_main_arena:
-                first_chunk_offsets.add(arena.first_chunk.v())
+                if arena.first_chunk:
+                    first_chunk_offsets.add(arena.first_chunk.v())
 
             for heapinfo in arena.heaps:
-                first_chunk_offsets.add(heapinfo.first_chunk.v())
+                if heapinfo.first_chunk:
+                    first_chunk_offsets.add(heapinfo.first_chunk.v())
 
 
         addresses_to_remove = set()
@@ -3334,7 +3337,7 @@ class HeapObjects(HeapAnalysis):
 class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
     """Dumps allocated/freed chunks from selected processes """
 
-    __name = "heapdump"
+    name = "heapdump"
     _filename_format_string = ("{:d}.{}-chunk_offset-0x{:0{:d}X}_size-{:d}"
                                "_dumped-{:d}_stripped-{:d}.dmp")
 
@@ -3429,14 +3432,17 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
 
         try:
             data = chunk.to_string()
-            start, _ = chunk.start_and_length()
+            if data != None:
+                start, _ = chunk.start_and_length()
 
-            filename = self._filename_format_string.format(
-                self.task.pid, identifier, chunk.v(), self._size_sz * 2,
-                chunksize, len(data), start - chunk.v() - fd_offset)
+                filename = self._filename_format_string.format(
+                    self.task.pid, identifier, chunk.v(), self._size_sz * 2,
+                    chunksize, len(data), start - chunk.v() - fd_offset)
 
-            output_file = open(self.dump_dir + os.sep + filename, 'wb')
-            output_file.write(data)
+                with self.session.GetRenderer().open(
+                        directory=self.dump_dir,
+                        filename=filename, mode='wb') as output_file:
+                    output_file.write(data)
 
         except:
             print(traceback.format_exc())
@@ -3945,7 +3951,7 @@ class malloc_chunk(obj.Struct):
 
 
         if size <= 0:
-            return ""
+            return b""
 
         data = self.obj_vm.read(data_offset, size)
 

@@ -247,7 +247,7 @@ class Mcat(core.DirectoryDumperMixin, Mfind):
 
             page_size = self.session.kernel_address_space.PAGE_SIZE
             buffer_size = 1024*1024
-            buffer = ""
+            buffer = b""
 
             # Write buffered output as a sparse file.
             path = file_info["path"]
@@ -268,17 +268,17 @@ class Mcat(core.DirectoryDumperMixin, Mfind):
                         if data != None:
                             buffer += data[:to_write]
                         else:
-                            buffer += "\x00" * to_write
+                            buffer += b"\x00" * to_write
 
                         # Dump the buffer when it's full.
                         if len(buffer) >= buffer_size:
                             fd.write(buffer)
-                            buffer = ""
+                            buffer = b""
 
                     # Dump the remaining data in the buffer.
-                    if buffer != "":
+                    if buffer != b"":
                         fd.write(buffer)
-                        buffer = ""
+                        buffer = b""
 
 
 class TestMfind(testlib.HashChecker):

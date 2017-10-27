@@ -136,9 +136,9 @@ class CapstoneInstruction(Instruction):
 
                 # Simple indirect address.
                 if not operand["base"] and not operand["index"]:
-                    operand["address"] = mem.disp
-                    operand["target"] = self._read_target(mem.disp, operand)
-                    self._comment = self.format_indirect(mem.disp, op.size)
+                    operand["address"] = mem.disp & 0xffffffffffffffff
+                    operand["target"] = self._read_target(operand["address"], operand)
+                    self._comment = self.format_indirect(operand["address"], op.size)
 
             elif operand["type"] == "IMM":
                 operand["target"] = operand["address"] = op.imm.real
@@ -524,7 +524,7 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         return self.obj_offset
 
     def __hash__(self):
-        return self.obj_offset + hash(self.obj_vm)
+        return self.obj_offset + hash(str(self.obj_vm))
 
     def __str__(self):
         if self.mode == "AMD64":

@@ -67,7 +67,7 @@ class LsmodSections(common.LinuxPlugin):
     ]
 
     def get_module_sections(self, module):
-        num_sects = module.sect_attrs.nsections
+        num_sects = module.sect_attrs.nsections or 0
         for i in range(num_sects):
             section_attr = module.sect_attrs.attrs[i]
             yield section_attr
@@ -116,6 +116,9 @@ class Lsmod_parameters(common.LinuxPlugin):
 
     def get_module_parameters(self, module):
         for kernel_param in module.m("kp"):
+            if kernel_param.getter_addr == None:
+                continue
+
             getter_function = self.profile.Function(
                 offset=kernel_param.getter_addr,
                 vm=self.kernel_address_space)

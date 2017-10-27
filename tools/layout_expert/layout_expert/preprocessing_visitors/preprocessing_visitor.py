@@ -94,8 +94,6 @@ class PreprocessingVisitor(object):
                 if self._expression_evaluator.evaluate(expression):
                     return block.accept(self)
             except c_ast.IrreducibleFunction as e:
-                import pdb
-                pdb.post_mortem()
                 print("Unable to evaluate conditional_expression: %s"
                       % block.conditional_expression)
                 print("Expanded to: %s"

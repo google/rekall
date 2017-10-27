@@ -194,9 +194,12 @@ class WritableAddressSpaceMixIn(object):
         return self.fhandle.tell()
 
     def read(self, addr, length):
-        # Just null pad the file - even if we read past the end.
-        self.fhandle.seek(addr)
-        data = self.fhandle.read(length)
+        try:
+            # Just null pad the file - even if we read past the end.
+            self.fhandle.seek(addr)
+            data = self.fhandle.read(length)
+        except OverflowError:
+            data = b""
 
         if len(data) < length:
             data += addrspace.ZEROER.GetZeros(length - len(data))

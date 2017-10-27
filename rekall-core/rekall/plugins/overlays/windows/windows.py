@@ -74,7 +74,7 @@ class Ntoskrnl(pe_vtypes.BasicPEProfile):
                 version = 10.0
 
             elif profile._EPROCESS().m(
-                    "VadRoot.BalancedRoot").obj_type == "_MMADDRESS_NODE":
+                "VadRoot.BalancedRoot").obj_type == "_MMADDRESS_NODE":
                 version = 6.1
 
             elif profile._EPROCESS().m("VadRoot").obj_type == "_MM_AVL_TABLE":

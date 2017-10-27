@@ -76,7 +76,6 @@ class Connections(tcpip_vtypes.TcpipPluginMixin,
         # Walk the hash table and print all the conenctions.
         for slot in TCBTable.deref():
             for conn in slot.walk_list("Next"):
-                import pdb; pdb.set_trace()
                 offset = conn.obj_offset
                 local = "{0}:{1}".format(conn.LocalIpAddress, conn.LocalPort)
                 remote = "{0}:{1}".format(conn.RemoteIpAddress, conn.RemotePort)
