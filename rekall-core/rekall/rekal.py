@@ -92,9 +92,10 @@ def main(argv=None):
             print(rekall.get_versions())
             sys.exit(0)
 
-    plugin_cls, flags = args.parse_args(
-        argv=argv, global_arg_cb=global_arg_cb,
-        user_session=user_session)
+    with user_session.GetRenderer().start():
+        plugin_cls, flags = args.parse_args(
+            argv=argv, global_arg_cb=global_arg_cb,
+            user_session=user_session)
 
     # Install any quotas the user requested.
     user_session = quotas.wrap_session(user_session)

@@ -47,9 +47,16 @@ class classproperty(property):
 
 
 def memoize_method(f):
-    cache = {}
 
     def helper(self, *args):
+        # Attach the cache to the instance.
+        cache_name = "_%s_cache" % f.__name__
+
+        if not(hasattr(self, cache_name)):
+            setattr(self, cache_name, {})
+
+        cache = getattr(self, cache_name)
+
         cached = cache.get(args, memoize)
         if cached is not memoize:
             return cached

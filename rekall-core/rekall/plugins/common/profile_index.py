@@ -102,9 +102,11 @@ class Index(obj.Profile):
                 possible_values=possible_values)
 
             if match:
-                self.session.logging.debug(
-                    "%s matched offset %#x+%#x=%#x (%r)",
-                    profile, offset, image_base, offset+image_base, match)
+                self.session.report_progress(
+                    "%s matched offset %#x+%#x=%#x (%s)",
+                    profile, offset, image_base, offset+image_base,
+                    utils.encode_string (match))
+
                 count_matched += 1
 
             else:
@@ -118,7 +120,7 @@ class Index(obj.Profile):
             return 0
 
         if count_matched > 0:
-            self.session.logging.debug(
+            self.session.report_progress(
                 "%s matches %d/%d comparison points",
                 profile, count_matched, count_matched + count_unmatched)
 

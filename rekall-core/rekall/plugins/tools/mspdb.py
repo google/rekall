@@ -162,6 +162,74 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
                            mode="wb") as fd:
             fd.write(pdb_file_data)
 
+    def DownloadCompressedPDBFile(self, url, pdb_filename, guid, basename):
+        url += "/%s/%s/%s.pd_" % (pdb_filename, guid, basename)
+
+        self.session.report_progress("Trying to fetch %s\n", url)
+        request = urllib.request.Request(url, None, headers={
+            'User-Agent': self.USER_AGENT})
+
+        url_handler = urllib.request.urlopen(request)
+        with utils.TempDirectory() as temp_dir:
+            compressed_output_file = os.path.join(
+                temp_dir, "%s.pd_" % basename)
+
+            output_file = os.path.join(
+                temp_dir, "%s.pdb" % basename)
+
+            # Download the compressed file to a temp file.
+            with open(compressed_output_file, "wb") as outfd:
+                while True:
+                    data = url_handler.read(8192)
+                    if not data:
+                        break
+
+                    outfd.write(data)
+                    self.session.report_progress(
+                        "%s: Downloaded %s bytes", basename, outfd.tell())
+
+            # Now try to decompress it with system tools. This might fail.
+            try:
+                if platform.system() == "Windows":
+                    # This should already be installed on windows systems.
+                    subprocess.check_call(
+                        ["expand", compressed_output_file, output_file],
+                        cwd=temp_dir)
+                else:
+                    # In Linux we just hope the cabextract program was
+                    # installed.
+                    subprocess.check_call(
+                        ["cabextract", compressed_output_file],
+                        cwd=temp_dir,
+                        stdout=sys.stderr)
+
+            except (subprocess.CalledProcessError, OSError):
+                raise RuntimeError(
+                    "Failed to decompress output file %s. "
+                    "Ensure cabextract is installed.\n" % output_file)
+
+            # Sometimes the CAB file contains a PDB file with a different
+            # name or casing than we expect. We use glob to find any PDB
+            # files in the temp directory.
+            output_file = glob.glob("%s/*pdb" % temp_dir)[0]
+
+            # We read the entire file into memory here - it should not be
+            # larger than approximately 10mb.
+            with open(output_file, "rb") as fd:
+                return fd.read(50 * 1024 * 1024)
+
+    def DownloadUncompressedPDBFile(self, url, pdb_filename, guid, basename):
+        url += "/%s/%s/%s.pdb" % (pdb_filename, guid, basename)
+
+        self.session.report_progress("Trying to fetch %s\n", url)
+        request = urllib.request.Request(url, None, headers={
+            'User-Agent': self.USER_AGENT})
+
+        url_handler = urllib.request.urlopen(request)
+        # We read the entire file into memory here - it should not be
+        # larger than approximately 10mb.
+        return url_handler.read(50 * 1024 * 1024)
+
     def FetchPDBFile(self):
         # Ensure the pdb filename has the correct extension.
         pdb_filename = self.plugin_args.pdb_filename
@@ -172,60 +240,12 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
 
         for url in self.SYM_URLS:
             basename = ntpath.splitext(pdb_filename)[0]
-            url += "/%s/%s/%s.pd_" % (pdb_filename, guid, basename)
-
-            self.session.report_progress("Trying to fetch %s\n", url)
-            request = urllib.request.Request(url, None, headers={
-                'User-Agent': self.USER_AGENT})
-
-            url_handler = urllib.request.urlopen(request)
-            with utils.TempDirectory() as temp_dir:
-                compressed_output_file = os.path.join(
-                    temp_dir, "%s.pd_" % basename)
-
-                output_file = os.path.join(
-                    temp_dir, "%s.pdb" % basename)
-
-                # Download the compressed file to a temp file.
-                with open(compressed_output_file, "wb") as outfd:
-                    while True:
-                        data = url_handler.read(8192)
-                        if not data:
-                            break
-
-                        outfd.write(data)
-                        self.session.report_progress(
-                            "%s: Downloaded %s bytes", basename, outfd.tell())
-
-                # Now try to decompress it with system tools. This might fail.
-                try:
-                    if platform.system() == "Windows":
-                        # This should already be installed on windows systems.
-                        subprocess.check_call(
-                            ["expand", compressed_output_file, output_file],
-                            cwd=temp_dir)
-                    else:
-                        # In Linux we just hope the cabextract program was
-                        # installed.
-                        subprocess.check_call(
-                            ["cabextract", compressed_output_file],
-                            cwd=temp_dir,
-                            stdout=sys.stderr)
-
-                except (subprocess.CalledProcessError, OSError):
-                    raise RuntimeError(
-                        "Failed to decompress output file %s. "
-                        "Ensure cabextract is installed.\n" % output_file)
-
-                # Sometimes the CAB file contains a PDB file with a different
-                # name or casing than we expect. We use glob to find any PDB
-                # files in the temp directory.
-                output_file = glob.glob("%s/*pdb" % temp_dir)[0]
-
-                # We read the entire file into memory here - it should not be
-                # larger than approximately 10mb.
-                with open(output_file, "rb") as fd:
-                    return fd.read(50 * 1024 * 1024)
+            try:
+                return self.DownloadUncompressedPDBFile(
+                    url, pdb_filename, guid, basename)
+            except urllib.error.HTTPError:
+                return self.DownloadCompressedPDBFile(
+                    url, pdb_filename, guid, basename)
 
 
 class TestFetchPDB(testlib.DisabledTest):
