@@ -241,9 +241,11 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
         for url in self.SYM_URLS:
             basename = ntpath.splitext(pdb_filename)[0]
             try:
-                return self.DownloadUncompressedPDBFile(url, pdb_filename, guid, basename)
+                return self.DownloadUncompressedPDBFile(
+                    url, pdb_filename, guid, basename)
             except urllib.error.HTTPError:
-                return self.DownloadCompressedPDBFile(url, pdb_filename, guid, basename)
+                return self.DownloadCompressedPDBFile(
+                    url, pdb_filename, guid, basename)
 
 
 class TestFetchPDB(testlib.DisabledTest):

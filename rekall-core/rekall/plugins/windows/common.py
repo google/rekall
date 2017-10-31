@@ -64,31 +64,9 @@ class AbstractWindowsParameterHook(kb.ParameterHook):
     mode = "mode_windows_memory"
 
 
-DEFAULT_PROCESS_NAMES = [
-    b"cmd.exe\x00\x00", b"System\x00\x00", b"csrss.exe\x00\x00",
-    b"svchost.exe\x00\x00", b"lsass.exe\x00\x00",
-    b"winlogon.exe\x00\x00", b"Idle\x00\x00"]
-
-
-class WinDTBScanner(scan.BaseScanner):
-    def __init__(self, process_names=DEFAULT_PROCESS_NAMES, **kwargs):
-        super(WinDTBScanner, self).__init__(**kwargs)
-        needle_process_name = utils.SmartStr(process_name)
-        needle = needle_process_name + b"\x00" * (15 - len(needle_process_name))
-        self.image_name_offset = self.profile.get_obj_offset(
-            "_EPROCESS", "ImageFileName")
-        self.checks = [["StringCheck", {"needle": needle}]]
-
-    def scan(self, offset=0, maxlen=None):
-        for offset in super(WinDTBScanner, self).scan(offset, maxlen):
-            self.eprocess = self.profile.Object(
-                "_EPROCESS", offset=offset - self.image_name_offset,
-                vm=self.session.physical_address_space)
-            self.session.logging.debug(u"Found _EPROCESS @ 0x%X (DTB: 0x%X)",
-                                       self.eprocess.obj_offset,
-                                       self.eprocess.Pcb.DirectoryTableBase.v())
-
-            yield self.eprocess
+DEFAULT_PROCESS_NAMES = [x + b"\x00" * (15 - len(x)) for x in [
+    b"cmd.exe", b"System", b"csrss.exe", b"svchost.exe", b"lsass.exe",
+    b"winlogon.exe", b"Idle"]]
 
 
 class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
@@ -132,7 +110,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
                 "_EPROCESS", offset=offset - self.image_name_offset,
                 vm=self.session.physical_address_space)
 
-            self.session.logging.debug(
+            self.session.report_progress(
                 u"Found possible _EPROCESS @ 0x%X (In process %s) (DTB: 0x%X)",
                 eprocess.obj_offset,
                 utils.SmartUnicode(hit),
@@ -171,7 +149,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
 
         me = list_head.dereference(vm=address_space).Blink.Flink
         if me.v() != list_head.v():
-            self.session.logging.debug(
+            self.session.report_progress(
                 "_EPROCESS.ThreadListHead does not reflect.")
             return
 

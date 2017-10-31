@@ -273,7 +273,6 @@ class WindowsIndexDetector(DetectionMethod):
                 return self._match_profile_for_kernel_base(
                     kernel_base, test_as)
 
-            import pdb; pdb.set_trace()
             for offset, _ in scanner.scan(
                     offset=0xF80000000000, maxlen=0x10000000000):
                 kernel_base = offset & 0xFFFFFFFFFFFFFF000
