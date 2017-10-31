@@ -25,12 +25,14 @@
 # pylint: disable=protected-access
 
 from rekall import addrspace
+from rekall import args
 from rekall import scan
 from rekall import kb
 from rekall import plugin
 
 from rekall.plugins import core
 from rekall.plugins.common import scanners
+from rekall_lib import registry
 from rekall_lib import utils
 
 
@@ -62,8 +64,14 @@ class AbstractWindowsParameterHook(kb.ParameterHook):
     mode = "mode_windows_memory"
 
 
+DEFAULT_PROCESS_NAMES = [
+    b"cmd.exe\x00\x00", b"System\x00\x00", b"csrss.exe\x00\x00",
+    b"svchost.exe\x00\x00", b"lsass.exe\x00\x00",
+    b"winlogon.exe\x00\x00", b"Idle\x00\x00"]
+
+
 class WinDTBScanner(scan.BaseScanner):
-    def __init__(self, process_name=b"Idle", **kwargs):
+    def __init__(self, process_names=DEFAULT_PROCESS_NAMES, **kwargs):
         super(WinDTBScanner, self).__init__(**kwargs)
         needle_process_name = utils.SmartStr(process_name)
         needle = needle_process_name + b"\x00" * (15 - len(needle_process_name))
@@ -102,21 +110,35 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
     __name = "find_dtb"
 
     __args = [
-        dict(name="process_name", default="Idle",
-             help="The name of the process to search for.")
+        dict(name="process_name", default=DEFAULT_PROCESS_NAMES,
+             help="The names of the processes to search for.")
     ]
 
     def scan_for_process(self):
         """Scan the image for the idle process."""
         maxlen = self.session.GetParameter("autodetect_scan_length",
                                            10*1024*1024*1024)
-        for process in WinDTBScanner(
+
+        self.image_name_offset = self.profile.get_obj_offset(
+            "_EPROCESS", "ImageFileName")
+
+        for offset, hit in scan.MultiStringScanner(
                 session=self.session,
-                process_name=self.plugin_args.process_name,
+                needles=self.plugin_args.process_name,
                 profile=self.profile,
                 address_space=self.physical_address_space).scan(
                     0, maxlen=maxlen):
-            yield process
+            eprocess = self.profile.Object(
+                "_EPROCESS", offset=offset - self.image_name_offset,
+                vm=self.session.physical_address_space)
+
+            self.session.logging.debug(
+                u"Found possible _EPROCESS @ 0x%X (In process %s) (DTB: 0x%X)",
+                eprocess.obj_offset,
+                utils.SmartUnicode(hit),
+                eprocess.Pcb.DirectoryTableBase.v())
+
+            yield eprocess
 
     def address_space_hits(self):
         """Finds DTBs and yields virtual address spaces that expose kernel.
@@ -153,7 +175,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
                 "_EPROCESS.ThreadListHead does not reflect.")
             return
 
-        # We passed the tests.X
+        # We passed the tests.
         return True
 
     def VerifyHit(self, dtb):
@@ -176,6 +198,12 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         # Note: We must get the raw value here since image base is not yet
         # known.
         eprocess_index = self.session.LoadProfile("nt/eprocess_index")
+
+        # The profile does not have the KI_USER_SHARED_DATA_RAW
+        # symbol. This does not look like a kernel profile.
+        if self.profile.get_constant("KI_USER_SHARED_DATA_RAW") == None:
+            return
+
         kuser_shared = eprocess_index._KUSER_SHARED_DATA(
             offset=self.profile.get_constant("KI_USER_SHARED_DATA_RAW"),
             vm=address_space)
@@ -224,7 +252,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
 
     def collect(self):
         for dtb, eprocess in self.dtb_eprocess_hits():
-            yield (eprocess.obj_offset, dtb,
+            yield (eprocess, dtb,
                    self.VerifyHit(dtb) is not None)
 
 
@@ -414,10 +442,12 @@ class WinProcessFilter(WindowsCommandPlugin):
         ]
 
     __args = [
-        dict(name="eprocess", type="ArrayIntParser", default=[],
+        dict(name="eprocess", type="ArrayIntParser",
+             default=plugin.Sentinel(),
              help="Kernel addresses of eprocess structs."),
 
-        dict(name="pids", positional=True, type="ArrayIntParser", default=[],
+        dict(name="pids", positional=True, type="ArrayIntParser",
+             default=plugin.Sentinel(),
              help="One or more pids of processes to select."),
 
         dict(name="proc_regex", default=None, type="RegEx",
@@ -429,13 +459,14 @@ class WinProcessFilter(WindowsCommandPlugin):
 
     @utils.safe_property
     def filtering_requested(self):
-        return (self.plugin_args.pids or self.plugin_args.proc_regex or
-                self.plugin_args.eprocess)
+        return (not isinstance(self.plugin_args.pids, plugin.Sentinel) or
+                self.plugin_args.proc_regex is not None or
+                not isinstance(self.plugin_args.eprocess, plugin.Sentinel))
 
     def filter_processes(self):
         """Filters eprocess list using pids lists."""
         # If eprocess are given specifically only use those.
-        if self.plugin_args.eprocess:
+        if not isinstance(self.plugin_args.eprocess, plugin.Sentinel):
             for task in self.list_from_eprocess():
                 yield task
 
@@ -444,14 +475,14 @@ class WinProcessFilter(WindowsCommandPlugin):
                 if not self.filtering_requested:
                     yield proc
 
-                else:
+                elif not isinstance(self.plugin_args.pids, plugin.Sentinel):
                     if int(proc.pid) in self.plugin_args.pids:
                         yield proc
 
-                    elif (self.plugin_args.proc_regex and
-                          self.plugin_args.proc_regex.match(
-                              utils.SmartUnicode(proc.name))):
-                        yield proc
+                elif (self.plugin_args.proc_regex and
+                      self.plugin_args.proc_regex.match(
+                          utils.SmartUnicode(proc.name))):
+                    yield proc
 
     def virtual_process_from_physical_offset(self, physical_offset):
         """Tries to return an eprocess in virtual space from a physical offset.
@@ -473,6 +504,9 @@ class WinProcessFilter(WindowsCommandPlugin):
                 "_EPROCESS", "ThreadListHead")
 
     def list_from_eprocess(self):
+        if isinstance(self.plugin_args.eprocess, plugin.Sentinel):
+            return
+
         for eprocess_offset in self.plugin_args.eprocess:
             eprocess = self.profile._EPROCESS(
                 offset=eprocess_offset, vm=self.kernel_address_space)

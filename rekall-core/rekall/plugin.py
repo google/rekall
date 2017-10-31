@@ -57,6 +57,14 @@ class Abort(Error):
     """Signal aborting of the plugin."""
 
 
+class Sentinel(object):
+    """A Sentinel object to set as default for an arg.
+
+    Use this to mark the arg as unset. The plugin can then tell the
+    difference between an unset arg and an arg with a default value.
+    """
+
+
 class CommandOption(object):
     """An option specification."""
 
@@ -608,6 +616,17 @@ class ArgsParserMixin(object):
             if (value is None and definition.required and
                     not self.ignore_required):
                 raise InvalidArgs("%s is required." % definition.name)
+
+            # A sentinel means that the option is unset. We pass the
+            # sentinel directly to the plugin so it can determine for
+            # example, if the option was set at all or set to an empty
+            # list on purpose. Without this behavior it is impossible
+            # to specify e.g. pslist pids=[] to make pslist display no
+            # pids as opposed to pslist pids=Sentienl to make pslist
+            # ignore the pids arg.
+            if isinstance(value, Sentinel):
+                self.plugin_args[definition.name] = value
+                continue
 
             try:
                 self.plugin_args[definition.name] = definition.parse(

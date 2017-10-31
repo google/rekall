@@ -265,7 +265,7 @@ class WindowsIndexDetector(DetectionMethod):
             # taking more than a single search point.
             scanner = scan.MultiStringScanner(
                 address_space=test_as, needles=[
-                    "This program cannot be run in DOS mode",
+                    b"This program cannot be run in DOS mode",
                 ])
 
             if self.session.HasParameter("kernel_base"):
@@ -273,6 +273,7 @@ class WindowsIndexDetector(DetectionMethod):
                 return self._match_profile_for_kernel_base(
                     kernel_base, test_as)
 
+            import pdb; pdb.set_trace()
             for offset, _ in scanner.scan(
                     offset=0xF80000000000, maxlen=0x10000000000):
                 kernel_base = offset & 0xFFFFFFFFFFFFFF000
@@ -280,7 +281,11 @@ class WindowsIndexDetector(DetectionMethod):
                     kernel_base, test_as)
 
                 if profile_obj:
-                    return profile_obj
+                    self.session.logging.debug(
+                        "Verifying profile %s by scanning processes for a valid DTB",
+                        profile_obj)
+                    if self.VerifyProfile(profile_obj):
+                        return profile_obj
 
 
 class PEImageFileDetector(DetectionMethod):

@@ -411,7 +411,7 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
             lambda x: hex(int(x)),
             arg_types=(number.INumber,))
 
-        scope["*"] = api.scalar_function(
+        scope["deref"] = api.scalar_function(
             lambda x: x.deref(),
             arg_types=(obj.Pointer,))
 
@@ -931,6 +931,11 @@ structured.IStructured.implement(
 #    }
 #)
 
+# Pointers are only repeated if the thing they are pointing to is.
+repeated.isrepeating.implement(
+    for_type=obj.Pointer,
+    implementation=lambda x: repeated.isrepeating(x.deref()))
+
 repeated.IRepeated.implement(
     for_type=obj.Array,
     implementations={
@@ -949,7 +954,7 @@ string.IString.implement(
 
 # Number operations on a pointer manipulate the pointer's value.
 number.INumber.implement(
-    for_type=obj.Pointer,
+    for_types=(obj.Pointer, obj.NumericProxyMixIn),
     implementations={
         number.sum: lambda x, y: int(x) + y,
         number.product: lambda x, y: int(x) * y,

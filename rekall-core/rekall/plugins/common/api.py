@@ -25,7 +25,12 @@ import textwrap
 
 from rekall import config
 from rekall import plugin
+from rekall import testlib
 from rekall_lib import yaml_utils
+
+
+class DisabledAPIGeneratorTest(testlib.DisabledTest):
+    PARAMETERS = dict(commandline="api")
 
 
 class APIGenerator(plugin.TypedProfileCommand,
