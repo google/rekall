@@ -59,14 +59,14 @@ install_requires = [
     "arrow == 0.7.0",
     "rekall-efilter == 1.6",
     "intervaltree == 2.1.0",
-    "pycrypto == 2.6.1",
+    "pycryptodome == 3.4.7",
     "pyelftools == 0.24",
     "pyparsing==2.1.5",
     "pytz == 2016.4",
     "psutil >= 5.0, < 6.0",
-    "rekall-capstone == 3.0.5",
-    "rekall-yara == 3.4.0.1",
-    "pytsk3 == 20160721",
+    "rekall-capstone == 3.0.5.post1",
+    "rekall-yara == 3.6.3.1",
+    "pytsk3 == 20170802",
     "ipaddr==2.2.0",
     "future",
     # Version 2.5.0 is broken with pyinstaller.
@@ -174,7 +174,7 @@ setup(
     extras_require={
         # The following requirements are needed in Windows.
         ':sys_platform=="win32"': [
-            "pypiwin32==219",
+            "pypiwin32==220",
         ],
     }
 )

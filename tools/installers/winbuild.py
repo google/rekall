@@ -3,6 +3,7 @@ from __future__ import print_function
 from rekall import constants
 
 import glob
+import io
 import os
 import platform
 import shutil
@@ -83,7 +84,7 @@ Root: HKCR; Subkey: "RekallForensicFile"; ValueType: string; ValueName: ""; Valu
 Root: HKCR; Subkey: "RekallForensicFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Rekal.exe"
 Root: HKCR; Subkey: "RekallForensicFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Rekal.exe"" -v webconsole --browser ""%1"""
 '''
-    with tempfile.NamedTemporaryFile(delete=False) as fd:
+    with tempfile.NamedTemporaryFile(mode="wt", delete=False) as fd:
         fd.write(template)
         fd.close()
 
@@ -127,7 +128,7 @@ def rm(fileglob):
 
 def touch(path):
     try:
-        with open(path, "wb") as fd:
+        with io.open(path, "wt", encoding='utf8') as fd:
             fd.write("")
     except (IOError, OSError):
         pass

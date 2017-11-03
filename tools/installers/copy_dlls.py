@@ -46,7 +46,7 @@ def EnumMissingModules():
   else:
     handle_type = ctypes.c_ulong
 
-  module_list = (handle_type * (count.value / ctypes.sizeof(handle_type)))()
+  module_list = (handle_type * (count.value // ctypes.sizeof(handle_type)))()
 
   ctypes.windll.psapi.EnumProcessModulesEx(
       process_handle, ctypes.byref(module_list), ctypes.sizeof(module_list),

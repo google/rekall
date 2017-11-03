@@ -12,6 +12,9 @@ from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 
+# Needed to make PyInstaller include these modules.
+from Crypto.Cipher import ARC2
+from Crypto.Cipher import DES
 
 rng = Random.new().read
 
