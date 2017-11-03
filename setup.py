@@ -24,6 +24,7 @@
 from __future__ import print_function
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
+import io
 import os
 import sys
 import subprocess
@@ -105,7 +106,7 @@ setup(
     version=VERSION["pep440"],
     cmdclass=commands,
     description=rekall_description,
-    long_description=open("README.md").read(),
+    long_description=io.open("README.md", "rt", encoding='utf8').read(),
     license="GPL",
     url="https://www.rekall-forensic.com/",
     author="The Rekall team",

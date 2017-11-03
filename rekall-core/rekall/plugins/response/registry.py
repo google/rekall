@@ -11,7 +11,6 @@ from past.utils import old_div
 from builtins import object
 import ctypes
 import ctypes.wintypes
-import exceptions
 import stat
 import io
 import winreg
@@ -168,7 +167,7 @@ def QueryValueEx(key, value_name):
 
         # We limit the size here to ~10 MB so the response doesn't get too big.
         if size > 10 * 1024 * 1024:
-            raise exceptions.WindowsError("Value too big to be read.")
+            raise WindowsError("Value too big to be read.")
 
         size *= 2
 
@@ -286,7 +285,7 @@ class RegistryKeyInformation(common.FileInformation):
         # Maybe its a key.
         try:
             self._read_key(path_components)
-        except exceptions.WindowsError:
+        except WindowsError:
             # Nop - maybe its a value then.
             self._read_value(path_components)
 
@@ -315,7 +314,7 @@ class RegistryKeyInformation(common.FileInformation):
                 self.value, value_type = QueryValueEx(key, self.value_name)
                 self.value_type = self.registry_map[value_type]
                 self.st_size = len(utils.SmartStr(self.value))
-            except exceptions.WindowsError:
+            except WindowsError:
                 pass
 
     @classmethod
@@ -362,7 +361,7 @@ class RegistryKeyInformation(common.FileInformation):
                         subkey.st_mtime = st_mtime
 
                         yield subkey
-                    except exceptions.WindowsError:
+                    except WindowsError:
                         pass
 
                 # Now Values - These will look like files.
@@ -375,10 +374,10 @@ class RegistryKeyInformation(common.FileInformation):
                         subkey.st_mtime = st_mtime
 
                         yield subkey
-                    except exceptions.WindowsError:
+                    except WindowsError:
                         pass
 
-        except exceptions.WindowsError as e:
+        except WindowsError as e:
             raise IOError("Unable to list key %s: %s" % (
                 self.key_name, e))
 

@@ -223,7 +223,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         return as_class
 
     table_header = [
-        dict(name="_EPROCESS (P)", style="address"),
+        dict(name="_EPROCESS (P)", type="_EPROCESS"),
         dict(name="dtv", style="address"),
         dict(name="valid", width=10)
     ]
