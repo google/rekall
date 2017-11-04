@@ -59,6 +59,7 @@ install_requires = [
     "arrow == 0.7.0",
     "rekall-efilter == 1.6",
     "intervaltree == 2.1.0",
+    "parsedatetime==2.4",
     "pycryptodome == 3.4.7",
     "pyelftools == 0.24",
     "pyparsing==2.1.5",
