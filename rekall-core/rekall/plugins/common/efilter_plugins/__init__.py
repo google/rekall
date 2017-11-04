@@ -1,5 +1,6 @@
 from rekall.plugins.common.efilter_plugins import collection
 from rekall.plugins.common.efilter_plugins import info
+from rekall.plugins.common.efilter_plugins import protocols
 from rekall.plugins.common.efilter_plugins import search
 
 try:

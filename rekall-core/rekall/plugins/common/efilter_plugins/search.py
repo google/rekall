@@ -18,54 +18,12 @@
 
 """Rekall's search function.
 
-The following queries should work and not break.
+Refer to the documentation:
+http://blog.rekall-forensic.com/2016/07/searching-memory-with-rekall.html
 
-1) On Windows with --live API
 
-* regex match on array of strings - case insensitive.
-
-select proc, proc.environ from pslist() where proc.environ.TMP =~ "temp"
-
-2) Format using the hex() method, using as to name columns.
-
-select hex(VAD.start) as start, hex(VAD.end) as end, Protect from vad(proc_regex: "rekal")
-
-3) Autoselect column names - second column can not clash with first
-column name (should be hex, column 1).
-
-select hex(VAD.start), hex(VAD.end), Protect from vad(proc_regex: "rekal")
-
-4) Timestamp user function - requires a session to be passed (returns UnixTimeStamp).
-
-select timestamp(proc.create_time) from pslist()
-
-5) Yarascan with sub query
-
-select * from file_yara(paths: (select path.filename from glob("c:\windows\*.exe")).filename, yara_expression: "rule r1 {strings: $a = \"Microsoft\" wide condition: any of them}")
-
-6) Parameter interpolations:
-
-a =  "select * from file_yara(paths: ( select path.filename from glob({0})).filename, yara_expression: {1})"
-
-plugins.search(a, query_parameters=[r"c:\windows\*.exe", "rule r1 {strings: $a = \"Microsoft\" wide condition: any of them}"])
-
-7) WMI integration + unknown field:
-
- select Result.Name, Result.SessionId, Result.foo from wmi("select * from Win32_Process")
-
- select Result.Name, Result.BootDevice from wmi("select * from Win32_OperatingSystem")
-
-8) Describe WMI dynamic query
-
-describe wmi, dict(query="select * from Win32_Process")
-
-9) Substitute a single string
-
-select sub("Microsoft", "MS", Result.Name) from wmi("select * from Win32_OperatingSystem")
-
-10) Substiture an array
-select sub("rekal", "REKALL", proc.cmdline) from pslist()
-
+And the test file:
+https://github.com/rekall-innovations/rekall-test/blob/master/tigger/tests.config#L52
 """
 
 from builtins import next
@@ -90,7 +48,9 @@ from efilter.transforms import solve
 
 from efilter.protocols import applicative
 from efilter.protocols import associative
+from efilter.protocols import eq
 from efilter.protocols import number
+from efilter.protocols import ordered
 from efilter.protocols import repeated
 from efilter.protocols import string
 from efilter.protocols import structured
@@ -505,21 +465,8 @@ class Search(EfilterPlugin):
       select * from lsof() where proc.name =~ "rekall" order by fd
       ```
 
-    * Is there any proc with PID 1, that has a TCPv6 connection and
-      isn't a dead process?
-
-      ```
-      search("(any lsof where (proc.pid == 1 and fileproc.human_type == 'TCPv6'))
-      and not (any dead_procs where (proc.pid == 1))")
-      ```
-
-    Note: "ANY" is just a short hand for "SELECT ANY FROM" which does what
-    it sounds like, and returns True or False depending on whether the
-    query has any results.
-
     You will probably need to use the *describe* plugin to help
     discover the exact column structure.
-
 
     * regex match on array of strings - case insensitive.
 
@@ -829,40 +776,6 @@ structured.IStructured.implement(
     }
 )
 
-# This lets us recurse into a NoneObject without raising errors.
-structured.IStructured.implement(
-    for_type=obj.NoneObject,
-    implementations={
-        structured.resolve: lambda x, y: x,
-    }
-)
-
-# This lets us do flags.member.
-structured.IStructured.implement(
-    for_type=basic.Flags,
-    implementations={
-        structured.resolve: getattr,
-        structured.getmembers_runtime: lambda x: list(x.maskmap),
-    }
-)
-
-# This lets us get indices out of Arrays.
-associative.IAssociative.implement(
-    for_type=obj.Array,
-    implementations={
-        associative.select: lambda obj, key: obj[key],
-    }
-)
-
-
-# This lets us do some_array.some_member. Useful for accessing properties.
-structured.IStructured.implement(
-    for_type=obj.Array,
-    implementations={
-        structured.resolve: getattr
-    }
-)
-
 
 def select_Pointer(ptr, key):
     """Delegate to target of the pointer, if any."""
@@ -881,89 +794,6 @@ associative.IAssociative.implement(
         associative.select: select_Pointer
     }
 )
-
-
-def resolve_Pointer(ptr, member):
-    """Delegate to target of the pointer, if any."""
-    target_obj = ptr.deref()
-    if not target_obj:
-        ptr.session.logging.warn(
-            "Attempting to access member %r of a void pointer %r.", member, ptr)
-    if target_obj:
-        return structured.resolve(target_obj, member)
-
-
-# Pointer.member is implemented as Pointer.dereference().member.
-structured.IStructured.implement(
-    for_type=obj.Pointer,
-    implementations={
-        structured.resolve: resolve_Pointer
-    }
-)
-
-# AttributeDict is like a dict, except it does not raise when accessed
-# via an attribute - it just returns None. Plugins can return an
-# AttributeDict when they may return arbitrary columns and then
-# Efilter can simply reference these columns via the "." operator. If
-# the field does not exist, the column will simply have None there.
-structured.IStructured.implement(
-    for_type=utils.AttributeDict,
-    implementations={
-        structured.resolve: lambda d, m: d.get(m),
-        structured.getmembers_runtime: lambda d: list(d),
-    }
-)
-
-# SlottedObject is similar in functionality to AttributeDict but it is much
-# faster and so it is preferred.
-structured.IStructured.implement(
-    for_type=utils.SlottedObject,
-    implementations={
-        structured.resolve: lambda s, m: getattr(s, m, None),
-        structured.getmembers_runtime: lambda d: d.__slots__,
-    }
-)
-
-#repeated.IRepeated.implement(
-#    for_type=obj.Pointer,
-#    implementations={
-#        repeated.getvalues: lambda x: repeated.getvalues(x.deref())
-#    }
-#)
-
-# Pointers are only repeated if the thing they are pointing to is.
-repeated.isrepeating.implement(
-    for_type=obj.Pointer,
-    implementation=lambda x: repeated.isrepeating(x.deref()))
-
-repeated.IRepeated.implement(
-    for_type=obj.Array,
-    implementations={
-        repeated.getvalues: lambda x: iter(x)
-    }
-)
-
-
-string.IString.implement(
-    for_type=basic.String,
-    implementations={
-        string.string: lambda x: utils.SmartUnicode(x)
-    }
-)
-
-
-# Number operations on a pointer manipulate the pointer's value.
-number.INumber.implement(
-    for_types=(obj.Pointer, obj.NumericProxyMixIn),
-    implementations={
-        number.sum: lambda x, y: int(x) + y,
-        number.product: lambda x, y: int(x) * y,
-        number.difference: lambda x, y: int(x) - y,
-        number.quotient: lambda x, y: int(x) / y
-    }
-)
-
-
 
 class TestSearch(testlib.SimpleTestCase):
     PLUGIN = "search"
