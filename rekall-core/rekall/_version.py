@@ -6,7 +6,6 @@
 # setup.py. Configuration is maintain in version.yaml at the project's top
 # level.
 
-from builtins import str
 def get_versions():
     return tag_version_data(raw_versions(), """version.yaml""")
 
@@ -14,9 +13,9 @@ def raw_versions():
     return json.loads("""
 {
     "codename": "Hurricane Ridge",
-    "post": "1",
-    "rc": "1",
-    "version": "1.7.0"
+    "post": "0",
+    "rc": "0",
+    "version": "1.7.1"
 }
 """)
 

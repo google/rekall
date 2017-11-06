@@ -13,9 +13,9 @@ def raw_versions():
     return json.loads("""
 {
     "codename": "Hurricane Ridge",
-    "post": "1",
-    "rc": "1",
-    "version": "1.7.0"
+    "post": "0",
+    "rc": "0",
+    "version": "1.7.1"
 }
 """)
 

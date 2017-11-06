@@ -646,7 +646,7 @@ class UnixTimeStamp(obj.NativeType):
             # Mark UTC timezone with a Z
             formatted_date = arw.format(self.timeformat)
             formatted_tz = arw.format("Z")
-            if formatted_tz == "-0000":
+            if formatted_tz in ("-0000", "+0000"):
                 formatted_tz = "Z"
 
             return formatted_date + formatted_tz

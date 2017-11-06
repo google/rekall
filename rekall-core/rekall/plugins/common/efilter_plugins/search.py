@@ -41,8 +41,6 @@ from efilter import errors
 from efilter import protocol
 from efilter import query as q
 
-from efilter.ext import row_tuple
-
 from efilter.transforms import asdottysql
 from efilter.transforms import solve
 
@@ -698,7 +696,7 @@ class Search(EfilterPlugin):
 
         # If we have some output but don't know what it is we can try to use
         # dict keys as columns.
-        if isinstance(first_row, (dict, row_tuple.RowTuple)):
+        if isinstance(first_row, dict):
             columns = [dict(name=x)
                        for x in structured.getmembers(first_row)]
             renderer.table_header(columns, auto_widths=True)
