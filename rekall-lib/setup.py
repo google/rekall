@@ -41,9 +41,9 @@ def find_data_files(source):
     return result
 
 install_requires = [
-    "arrow == 0.7.0",
+    "arrow==0.10.0",
     "future",
-    "sortedcontainers == 1.4.4",
+    "sortedcontainers==1.5.7",
 ]
 
 data_files = (find_data_files("test_data") +
