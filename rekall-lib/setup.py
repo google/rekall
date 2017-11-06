@@ -27,7 +27,7 @@ import sys
 from setuptools import find_packages, setup, Command
 
 ENV = {"__file__": __file__}
-exec(open("_version.py").read(), ENV)
+exec(open("rekall_lib/_version.py").read(), ENV)
 VERSION = ENV["get_versions"]()
 
 rekall_description = "Rekall Support Libraries"
