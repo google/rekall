@@ -722,7 +722,9 @@ class Session(with_metaclass(registry.MetaclassRegistry, object)):
 
     def __getattr__(self, attr):
         """This will only get called if the attribute does not exist."""
-        return obj.NoneObject("Attribute not set")
+        if not attr.startswith("__"):
+            return obj.NoneObject("Attribute not set")
+        raise AttributeError(attr)
 
     def HasParameter(self, item):
         """Returns if the session has the specified parameter set.

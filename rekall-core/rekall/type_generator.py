@@ -89,7 +89,7 @@ import re
 
 from rekall import registry
 from rekall import obj
-from rekall import utils
+from rekall_lib import utils
 
 
 class DynamicParser(with_metaclass(registry.MetaclassRegistry, object)):

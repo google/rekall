@@ -27,6 +27,7 @@
 from rekall import obj
 from rekall.ui import text
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class Sessions(common.WinProcessFilter):

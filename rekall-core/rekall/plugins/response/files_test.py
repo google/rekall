@@ -3,7 +3,7 @@ import os
 import mock
 
 from rekall import testlib
-from rekall import utils
+from rekall_lib import utils
 from rekall.plugins.response import common
 from rekall.plugins.response import files
 

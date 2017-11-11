@@ -194,7 +194,7 @@ class WinVirtualMap(common.WindowsCommandPlugin):
                 if range_type:
                     yield dict(virt_start=range_start,
                                virt_end=range_start + range_length,
-                               type=range_type)
+                               type=utils.SmartUnicode(range_type))
 
                 range_type = page_type
                 range_start = offset

@@ -563,10 +563,11 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
             # Non paged pool selection.
             if self.plugin_args.scan_kernel_nonpaged_pool:
                 for region in regions:
-                    if "NonPagedPool" not in region["type"]:
+                    type = utils.SmartUnicode(region["type"])
+                    if "NonPagedPool" not in type:
                         continue
 
-                    comment = "Pool %s" % region["type"]
+                    comment = "Pool %s" % type
                     self.session.logging.info(
                         "Scanning in: %s. [%#x-%#x]" % (
                             comment, region["virt_start"], region["virt_end"]))

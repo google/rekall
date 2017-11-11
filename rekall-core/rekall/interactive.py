@@ -5,7 +5,7 @@ from rekall import ipython_support
 
 # Load all the plugins to register them.
 from rekall import plugins  # pylint: disable=unused-import
-from rekall import utils
+from rekall_lib import utils
 from rekall import session
 
 IPython = utils.ConditionalImport("IPython")

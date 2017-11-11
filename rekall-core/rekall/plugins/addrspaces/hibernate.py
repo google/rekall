@@ -28,7 +28,7 @@
 from builtins import range
 from rekall import addrspace
 from rekall import obj
-from rekall import utils
+from rekall_lib import utils
 from rekall.plugins.addrspaces import xpress
 import struct
 
