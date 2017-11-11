@@ -196,6 +196,7 @@ class KCoreAddressSpace(Elf64CoreDump):
         super(KCoreAddressSpace, self).__init__(**kwargs)
 
         # This is a live address space.
+        self.as_assert(self.base == None, 'Must be first Address Space')
         self.volatile = True
         self.mapped_files = {}
 

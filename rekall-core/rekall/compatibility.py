@@ -19,3 +19,12 @@ try:
     from parso.python import diff
     diff.logging.debug = lambda *args: None
 except: pass
+
+
+## The following are needed to get Pyinstaller to include these files.
+
+if 0:
+    from  parsedatetime.pdt_locales import (
+        de_DE, en_AU, en_US,
+        es, nl_NL, pt_BR,
+        ru_RU, fr_FR)

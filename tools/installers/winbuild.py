@@ -5,6 +5,7 @@ from rekall import constants
 import glob
 import io
 import os
+import parso
 import platform
 import shutil
 import subprocess
@@ -160,6 +161,10 @@ def main():
     print("Copy resources into the package.")
     # Recent versions of Pyinstaller already copy resources they know about.
     copy("rekall-core/resources", "dist/rekal")
+
+    # Copy parso syntax files.
+    parso_dir = os.path.dirname(parso.__file__)
+    copy(os.path.join(parso_dir, "python"), "dist/rekal/parso")
 
     # Copy osqueryi.exe from the default location into the dist. NOTE:
     # Install osquery using chocolaty

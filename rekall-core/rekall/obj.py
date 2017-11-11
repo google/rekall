@@ -2402,11 +2402,16 @@ class Profile(with_metaclass(registry.MetaclassRegistry, object)):
 
         return offset, names
 
-    def get_enum(self, enum_name, field=None):
+    @registry.memoize_method
+    def get_enum(self, enum_name):
         result = self.enums.get(enum_name)
-        if result and field != None:
-            result = result.get(field)
-        return result
+
+        # Enum keys are encoded into strings for JSON compatibility,
+        # but callers do not expect this, so convert to int on
+        # returning the enum.
+        if result:
+            return dict(
+                (int(x), y) for x, y in six.iteritems(result))
 
     def get_reverse_enum(self, enum_name, field=None):
         result = self.reverse_enums.get(enum_name)

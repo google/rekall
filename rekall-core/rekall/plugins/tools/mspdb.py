@@ -545,7 +545,7 @@ class lfClass(obj.Struct):
             # The field type is an LF_ENUM which determines which struct this
             # is.
             type_enum_name = self.obj_profile.get_enum(
-                "_LEAF_ENUM_e").get(utils.SmartUnicode(field_type))
+                "_LEAF_ENUM_e").get(field_type)
 
             type_name = LEAF_ENUM_TO_TYPE.get(type_enum_name)
 
@@ -897,8 +897,6 @@ class PDBParser(object):
         self.functions = {}
         self.profile = self.session.LoadProfile("mspdb")
         self._TYPE_ENUM_e = self.profile.get_enum("_TYPE_ENUM_e")
-        self._TYPE_ENUM_e = dict(
-            (int(x), y) for x, y in list(self._TYPE_ENUM_e.items()))
 
         self.address_space = standard.FileAddressSpace(
             filename=filename, session=self.session)

@@ -361,7 +361,6 @@ class PoolScanProcess(common.PoolScanner):
             # Also fetch freed objects.
             for object_header in pool_obj.IterObject("Process", freed=True):
                 eprocess = object_header.Body.cast("_EPROCESS")
-
                 if eprocess.Pcb.DirectoryTableBase == 0:
                     continue
 
