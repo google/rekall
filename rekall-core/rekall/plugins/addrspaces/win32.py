@@ -228,7 +228,7 @@ class WinPmemAddressSpace(Win32AddressSpace):
             struct.pack("I", PMEM_MODE_PTE), 4, None)
 
         result = win32file.DeviceIoControl(
-            fhandle, INFO_IOCTRL, "", 102400, None)
+            fhandle, INFO_IOCTRL, b"", 102400, None)
 
         fmt_string = "Q" * len(self.FIELDS)
         self.memory_parameters = dict(zip(self.FIELDS, struct.unpack_from(

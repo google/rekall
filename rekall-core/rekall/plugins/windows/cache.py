@@ -39,6 +39,7 @@ from rekall import testlib
 
 from rekall.plugins import core
 from rekall.plugins.windows import common
+from rekall_lib import registry
 from rekall_lib import utils
 
 
@@ -244,6 +245,11 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
         return dict(type="VACB", p_offset=0, f_offset=0,
                     f_length=0x1000, filename="")
 
+    @registry.memoize_method
+    def _sanitized_filename(self, file_object):
+        return utils.SmartUnicode(
+            file_object.file_name_with_device()).replace("\\", "_")
+
     def collect(self):
 
         self.file_objects = set()
@@ -257,15 +263,9 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                 [self.session.profile._FILE_OBJECT(int(x))
                  for x in self.plugin_args.file_objects])
 
-        seen_filenames = set()
-        for file_object in self.file_objects:
-            filename = str(
-                file_object.file_name_with_device()).replace("\\", "_")
-
-            if filename in seen_filenames:
-                continue
-
-            seen_filenames.add(filename)
+        for file_object in utils.Deduplicate(
+                self.file_objects, key=self._sanitized_filename):
+            filename = self._sanitized_filename(file_object)
 
             self.session.report_progress(" Dumping %s", filename)
             with renderer.open(directory=self.dump_dir,

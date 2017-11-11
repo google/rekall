@@ -61,8 +61,6 @@ class InspectHeap(common.WinProcessFilter):
 
     def enumerate_lfh_heap_allocations(self, heap, skip_freed=False):
         """Dump the low fragmentation heap."""
-        seen_blocks = set()
-
         for lfh_block in heap.FrontEndHeap.SubSegmentZones.list_of_type(
                 "_LFH_BLOCK_ZONE", "ListEntry"):
             block_length = lfh_block.FreePointer.v() - lfh_block.obj_end
@@ -71,13 +69,9 @@ class InspectHeap(common.WinProcessFilter):
                 offset=lfh_block.obj_end,
                 size=block_length)
 
-            for segment in segments:
+            for segment in utils.Deduplicate(
+                    segments, key=lambda segment: segment.UserBlocks.v()):
                 allocation_length = segment.BlockSize * 16
-
-                if segment.UserBlocks.v() in seen_blocks:
-                    break
-
-                seen_blocks.add(segment.UserBlocks.v())
 
                 for entry in segment.UserBlocks.Entries:
                     # http://www.leviathansecurity.com/blog/understanding-the-windows-allocator-a-redux/

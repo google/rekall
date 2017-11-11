@@ -889,6 +889,9 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
                 self.plugin_args.length = len(self.plugin_args.data)
 
     def collect(self):
+        if self.offset == None:
+            return
+
         to_read = min(
             self.width * self.rows,
             self.plugin_args.address_space.end() - self.plugin_args.offset)

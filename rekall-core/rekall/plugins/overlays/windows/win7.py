@@ -28,11 +28,14 @@ This file provides support for windows Windows 7 SP 0.
 # pylint: disable=protected-access
 from builtins import chr
 from builtins import range
+
 from rekall import addrspace
 from rekall import kb
 from rekall import obj
 from rekall.plugins.overlays.windows import common
 from rekall_lib import utils
+
+import six
 
 
 def TagOffset(x):
@@ -305,7 +308,7 @@ class _POOL_HEADER(common._POOL_HEADER):
         ObpInfoMaskToOffset = self.obj_session.GetParameter(
             "ObpInfoMaskToOffset")
 
-        self.lookup["\x00"] = 0
+        self.lookup[0] = 0
 
         # Iterate over all the possible InfoMask values (Bytes can take on 256
         # values).
@@ -316,7 +319,7 @@ class _POOL_HEADER(common._POOL_HEADER):
             while bit_position > 0:
                 # This is the optional header with the largest offset.
                 if bit_position & i:
-                    self.lookup[chr(i)] = ObpInfoMaskToOffset[
+                    self.lookup[i] = ObpInfoMaskToOffset[
                         i & (bit_position | (bit_position - 1))]
 
                     break
@@ -370,6 +373,9 @@ class _POOL_HEADER(common._POOL_HEADER):
                               start + allocation_size - info_mask_offset,
                               pool_align):
             possible_info_mask = cached_data[i - start + info_mask_offset]
+            if six.PY2:
+                possible_info_mask = ord(possible_info_mask)
+
             #if possible_info_mask > '\x7f':
             #    continue
 

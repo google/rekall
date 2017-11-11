@@ -27,6 +27,7 @@
 from rekall import obj
 from rekall.ui import text
 from rekall.plugins.windows import common
+from rekall_lib import utils
 
 
 class Sessions(common.WinProcessFilter):
@@ -58,19 +59,13 @@ class Sessions(common.WinProcessFilter):
           _MM_SESSION_SPACE instantiated from the session space's address space.
         """
         # Dedup based on sessions.
-        seen = set()
-        for proc in self.filter_processes():
+        for proc in utils.Deduplicate(self.filter_processes()):
             ps_ad = proc.get_process_address_space()
 
             session = proc.Session
             # Session pointer is invalid (e.g. for System process).
             if not session:
                 continue
-
-            if session in seen:
-                continue
-
-            seen.add(session)
 
             yield proc.Session.deref(vm=ps_ad)
 

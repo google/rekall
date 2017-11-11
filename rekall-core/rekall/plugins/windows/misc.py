@@ -23,6 +23,7 @@ from builtins import range
 from past.utils import old_div
 __author__ = "Michael Cohen <scudette@google.com>"
 import hashlib
+import itertools
 
 # pylint: disable=protected-access
 from rekall import obj
@@ -65,6 +66,9 @@ class WindowsSetProcessContext(core.SetProcessContextMixin,
 class WinVirtualMap(common.WindowsCommandPlugin):
     """Prints the Windows Kernel Virtual Address Map.
 
+    Windows allocates virtual address ranges to various purposes. This
+    plugin deduces the virtual address map.
+
     On 32 bit windows, the kernel virtual address space can be managed
     dynamically. This plugin shows each region and what it is used for.
 
@@ -72,22 +76,93 @@ class WinVirtualMap(common.WindowsCommandPlugin):
     about it. In that case, the offsets and regions are hard coded.
 
     http://www.woodmann.com/forum/entry.php?219-Using-nt!_MiSystemVaType-to-navigate-dynamic-kernel-address-space-in-Windows7
+
+    The kernel debugger shows the virtual address map using the !vm
+    extension. For example:
+
+    > !vm 20
+    System Region               Base Address    NumberOfBytes
+
+    NonPagedPool          : ffff810000000000     100000000000
+    Session               : ffff910000000000       8000000000
+    SpecialPoolPaged      : ffff978000000000       8000000000
+    SystemCache           : ffff988000000000     100000000000
+    SystemPtes            : ffffae8000000000     100000000000
+    UltraZero             : ffffc00000000000     100000000000
+    PageTables            : ffffd40000000000       8000000000
+    PagedPool             : ffffd48000000000     100000000000
+    SpecialPoolNonPaged   : ffffe50000000000       8000000000
+    PfnDatabase           : ffffe80000000000      38000000000
+    Cfg                   : ffffebdd84214da8      28000000000
+    HyperSpace            : ffffee8000000000      10000000000
+    SystemImages          : fffff80000000000       8000000000
+
+
+    Rekall uses this information to refine its operations to increase
+    both efficiency and correctness. For example, when scanning
+    objects which should exist in non paged pools, by default, Rekall
+    only examines the NonPagedPool region. This speeds up operations
+    as well as reducing false positives from unrelated memory regions.
+
+    Later kernel version (Windows 10+) use a global nt!MiVisibleState
+    to maintain state information, including the virtual address
+    map. This plugin implements support for various versions.
     """
 
-    __name = "virt_map"
+    name = "virt_map"
 
     table_header = [
+        dict(name="region", hidden=True),
+        dict(name="type", width=30),
         dict(name="virt_start", style="address"),
+        dict(name="length", style="address"),
         dict(name="virt_end", style="address"),
-        dict(name="type", width=10),
     ]
 
-    @classmethod
-    def is_active(cls, session):
-        return (super(WinVirtualMap, cls).is_active(session) and
-                session.profile.get_constant('MiSystemVaType'))
-
     def collect(self):
+        self.rows = 0
+        for x in utils.Deduplicate(
+                itertools.chain(
+                    self.collect_from_MiSystemVaType(),
+                    self.collect_from_MiVisibleState(),
+                    self.collect_from_pools()),
+                key=lambda x: (int(x["virt_start"]), int(x["virt_end"]))):
+            self.rows += 1
+            yield x
+
+    def collect_from_pools(self):
+        """Fallback returns info from the pools plugin."""
+        if self.rows > 0:
+            return
+
+        pools_plugin = self.session.plugins.pools()
+        for pool_desc in pools_plugin.collect():
+            desc = pool_desc["descriptor"]
+            yield dict(type=desc.PoolType,
+                       virt_start=desc.PoolStart,
+                       virt_end=desc.PoolEnd,
+                       length=desc.PoolEnd - desc.PoolStart)
+
+    def collect_from_MiVisibleState(self):
+        visible_state = self.session.profile.get_constant_object(
+            "MiVisibleState", target="Pointer", target_args=dict(
+                target="_MI_VISIBLE_STATE"))
+
+        region_types = self.session.profile.get_enum("_MI_ASSIGNED_REGION_TYPES")
+
+        # Types are described in the _MI_SYSTEM_VA_TYPE enum and are
+        # listed in the vector of regions.
+        for i, region in enumerate(visible_state.SystemVaRegions):
+            if region.NumberOfBytes > 0:
+                yield dict(
+                    type=utils.MaybeConsume(
+                        "AssignedRegion", region_types.get(i, "Unknown")),
+                    region=region,
+                    virt_start=region.BaseAddress.v(),
+                    length=region.NumberOfBytes,
+                    virt_end=region.BaseAddress.v() + region.NumberOfBytes)
+
+    def collect_from_MiSystemVaType(self):
         system_va_table = self.profile.get_constant_object(
             "MiSystemVaType",
             target="Array",
@@ -99,6 +174,9 @@ class WinVirtualMap(common.WindowsCommandPlugin):
                     ),
                 )
             )
+
+        if system_va_table == None:
+            return
 
         system_range_start = self.profile.get_constant_object(
             "MiSystemRangeStart", "unsigned int")
@@ -114,7 +192,9 @@ class WinVirtualMap(common.WindowsCommandPlugin):
             page_type = system_va_table[table_index]
             if page_type != range_type:
                 if range_type:
-                    yield (range_start, range_start + range_length, range_type)
+                    yield dict(virt_start=range_start,
+                               virt_end=range_start + range_length,
+                               type=utils.SmartUnicode(range_type))
 
                 range_type = page_type
                 range_start = offset
@@ -380,6 +460,7 @@ class ObjectTree(common.WindowsCommandPlugin):
 
             elif next_node["type"] == "SymbolicLink":
                 object_header = self.session.profile._OBJECT_HEADER(
+
                     next_node["offset"])
 
                 target = object_header.Object.LinkTarget.v()
@@ -397,11 +478,7 @@ class ObjectTree(common.WindowsCommandPlugin):
         return new_components
 
     def _collect_directory(self, directory, seen, depth=0):
-        for obj_header in directory.list():
-            if obj_header in seen:
-                continue
-            seen.add(obj_header)
-
+        for obj_header in utils.Deduplicate(directory.list()):
             name = str(obj_header.NameInfo.Name)
             obj_type = str(obj_header.get_object_type())
 

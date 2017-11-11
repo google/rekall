@@ -284,7 +284,7 @@ class Pools(common.WindowsCommandPlugin):
             yield dict(descriptor=desc,
                        type=desc.PoolType,
                        index=desc.PoolIndex,
-                       size=desc.m("TotalBytes") or desc.TotalPages * 0x1000,
+                       size=desc.m("TotalBytes") or desc.m("TotalPages") * 0x1000,
                        start=desc.PoolStart,
                        end=desc.PoolEnd,
                        comment=getattr(desc, "Comment", ""))

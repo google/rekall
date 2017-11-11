@@ -591,5 +591,5 @@ class SystemInfo(plugin.TypedProfileCommand, plugin.Command):
 
     def collect(self):
         uname = UnameImpl.from_current_system(session=self.session)
-        for k, v in uname.to_primitive(with_type=False).iteritems():
+        for k, v in six.iteritems(uname.to_primitive(with_type=False)):
             yield dict(key=k, value=v)

@@ -32,7 +32,7 @@ from openpyxl import styles
 from openpyxl.styles import colors
 from openpyxl.styles import fills
 
-from rekall import utils
+from rekall_lib import utils
 from rekall.ui import renderer
 from rekall.ui import text
 

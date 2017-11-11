@@ -25,7 +25,7 @@
 @organization: Volatile Systems
 """
 
-from rekall import utils
+from rekall_lib import utils
 
 from rekall.plugins.windows.registry import lsasecrets
 from rekall.plugins.windows.registry import hashdump

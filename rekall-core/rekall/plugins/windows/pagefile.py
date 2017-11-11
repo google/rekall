@@ -448,10 +448,11 @@ class WindowsPagedMemoryMixin(object):
             # the iteration.
             if self.vad:
                 start, _, _ = self.vad.get_containing_range(vaddr)
-                if pte_value == 0 and start is None:
+                if start is None:
+                    start = 0
                     continue
 
-            elif pte_value == 0:
+            if pte_value == 0:
                 continue
 
             phys_addr = self._get_phys_addr_from_pte(vaddr, pte_value)

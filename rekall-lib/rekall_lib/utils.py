@@ -106,6 +106,13 @@ def SmartUnicode(string, encoding="utf8"):
         return unicode(string)
 
 
+def MaybeConsume(prefix, string):
+    """Try to strip prefix from string."""
+    if string.startswith(prefix):
+        return string[len(prefix):]
+    return string
+
+
 def Hexdump(data, width=16):
     """Hexdump function shared by various plugins """
     for offset in range(0, len(data), width):
@@ -1133,3 +1140,23 @@ def encode_string(string):
             result.append(c)
 
     return SmartUnicode(bytes(result))
+
+
+class Deduplicate(object):
+    """Deduplicate an iterator.
+
+    Key values which have previously been seen are omitted. The key is
+    derived from iterator items by applying a callable on each
+    iterated item.
+    """
+    def __init__(self, iterator, key=lambda x: x):
+        self._key = key
+        self._seen = set()
+        self._iterator = iterator
+
+    def __iter__(self):
+        for item in self._iterator:
+            key = self._key(item)
+            if key not in self._seen:
+                self._seen.add(key)
+                yield item

@@ -299,17 +299,11 @@ class WinDNSCache(common.WindowsCommandPlugin):
             session=self.session,
             address_space=self.session.GetParameter("default_address_space"))
 
-        seen = set()
-        for hit in scanner.scan(vad.Start, maxlen=vad.Length):
+        for hit in utils.Deduplicate(
+                scanner.scan(vad.Start, maxlen=vad.Length)):
             heap = self.heap_profile.Pointer(
                 hit, target="_HEAP"
             ).deref()
-
-
-            if heap in seen:
-                continue
-
-            seen.add(heap)
 
             for entry in heap.Entries:
                 hash_table = self._verify_hash_table(entry.Allocation, heap)

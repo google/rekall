@@ -327,7 +327,11 @@ class SessionIndex(object):
 
 def GetCacheDir(session):
     """Returns the path of a usable cache directory."""
-    cache_dir = os.path.expandvars(session.GetParameter("cache_dir"))
+    cache_dir = session.GetParameter("cache_dir")
+    if cache_dir == None:
+        return cache_dir
+
+    cache_dir = os.path.expandvars(cache_dir)
 
     if not cache_dir:
         raise io_manager.IOManagerError(
@@ -350,6 +354,11 @@ def GetCacheDir(session):
 def Factory(session, cache_type):
     """Instantiate the most appropriate cache for this session."""
     if cache_type == "memory":
+        return Cache(session)
+    elif GetCacheDir(session) == None:
+        session.logging.info("Cache directory is not specified or invalid. "
+                             "Switching to memory cache.")
+
         return Cache(session)
 
     if cache_type == "timed":

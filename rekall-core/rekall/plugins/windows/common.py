@@ -538,78 +538,61 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
             run.length = min(run.length, self.plugin_args.limit)
             yield run
 
-        pools_seen = set()
-
         # If the user did not just ask to scan the entire kernel space, support
         # dividing the kernel space into subregions.
         if not self.plugin_args.scan_kernel:
-            pool_plugin = self.session.plugins.pools()
+            regions = list(self.session.plugins.virt_map())
 
             # Scan session pools in each process.
             if self.plugin_args.scan_kernel_session_pools:
-                for pool in pool_plugin.find_session_pool_descriptors():
-                    if pool.PoolStart in pools_seen:
-                        continue
-
-                    pools_seen.add(pool.PoolStart)
-
-                    comment = "%s" % pool.PoolType
-                    if pool.Comment:
-                        comment += " (%s)" % pool.Comment
-
+                pools_plugin = self.session.plugins.pools()
+                for desc in pools_plugin.find_session_pool_descriptors():
+                    comment = desc.Comment
                     self.session.logging.info(
                         "Scanning in: %s. [%#x-%#x]" % (
-                            comment, pool.PoolStart, pool.PoolEnd))
+                            comment, desc.PoolStart, desc.PoolEnd))
 
                     run = addrspace.Run(
-                        start=pool.PoolStart, end=pool.PoolEnd,
-                        address_space=pool.obj_vm,
-                        data=dict(type=comment, pool=pool))
+                        start=desc.PoolStart, end=desc.PoolEnd,
+                        address_space=desc.obj_vm,
+                        data=dict(type=comment))
 
                     run.length = min(run.length, self.plugin_args.limit)
                     yield run
 
             # Non paged pool selection.
             if self.plugin_args.scan_kernel_nonpaged_pool:
-                for pool in pool_plugin.find_non_paged_pool():
-                    if pool.PoolStart in pools_seen:
+                for region in regions:
+                    type = utils.SmartUnicode(region["type"])
+                    if "NonPagedPool" not in type:
                         continue
 
-                    pools_seen.add(pool.PoolStart)
-                    comment = "Pool %s" % pool.PoolType
-                    if pool.Comment:
-                        comment += " (%s)" % pool.Comment
-
+                    comment = "Pool %s" % type
                     self.session.logging.info(
                         "Scanning in: %s. [%#x-%#x]" % (
-                            comment, pool.PoolStart, pool.PoolEnd))
+                            comment, region["virt_start"], region["virt_end"]))
 
                     run = addrspace.Run(
-                        start=pool.PoolStart, end=pool.PoolEnd,
-                        address_space=pool.obj_vm,
-                        data=dict(type=comment, pool=pool))
+                        start=region["virt_start"], end=region["virt_end"],
+                        address_space=self.session.kernel_address_space,
+                        data=dict(type=comment))
 
                     run.length = min(run.length, self.plugin_args.limit)
                     yield run
 
             if self.plugin_args.scan_kernel_paged_pool:
-                for pool in pool_plugin.find_paged_pool():
-                    if pool.PoolStart in pools_seen:
+                for region in regions:
+                    if "PagedPool" != region["type"]:
                         continue
 
-                    pools_seen.add(pool.PoolStart)
-
-                    comment = "Pool %s" % pool.PoolType
-                    if pool.Comment:
-                        comment += " (%s)" % pool.Comment
-
+                    comment = "Pool %s" % region["type"]
                     self.session.logging.info("Scanning in: %s [%#x-%#x]" % (
-                        comment, pool.PoolStart, pool.PoolEnd))
+                        comment, region["virt_start"], region["virt_end"]))
 
                     run = addrspace.Run(
-                        start=pool.PoolStart, end=pool.PoolEnd,
-                        address_space=pool.obj_vm,
-                        data=dict(type=comment, pool=pool))
+                        start=region["virt_start"], end=region["virt_end"],
+                        address_space=self.session.kernel_address_space,
+                        data=dict(type=comment))
 
                     run.length = min(run.length, self.plugin_args.limit)
                     yield run

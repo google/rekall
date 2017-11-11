@@ -52,10 +52,12 @@ class CachingManager(io_manager.IOManager):
         super(CachingManager, self).__init__(session=session, **kwargs)
 
         cache_dir = cache.GetCacheDir(session)
-
-        # We use an IO manager to manage the cache directory directly.
-        self.cache_io_manager = io_manager.DirectoryIOManager(urn=cache_dir,
-                                                              session=session)
+        if cache_dir == None:
+            self.cache_io_manager = cache_dir
+        else:
+            # We use an IO manager to manage the cache directory directly.
+            self.cache_io_manager = io_manager.DirectoryIOManager(
+                urn=cache_dir, session=session)
         self.url_manager = self.DELEGATE(session=session, **kwargs)
 
         self.CheckUpstreamRepository()

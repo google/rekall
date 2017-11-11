@@ -47,10 +47,26 @@ class KPCR(common.WindowsCommandPlugin):
 
         # On windows XP the KPCR is hardcoded to 0xFFDFF000
         pcr = self.profile._KPCR(0xFFDFF000)
-        if pcr.SelfPcr.v() == pcr.obj_offset:
+        if pcr.m("SelfPcr").v() == pcr.obj_offset:
             return pcr
 
-        return obj.NoneObject("Unknown KPCR")
+        return self._get_kpcr_from_prcb() or obj.NoneObject("Unknown KPCR")
+
+    def _get_kpcr_from_prcb(self):
+        """On windows 10, the processor control block is stored in a symbol.
+
+        We find the KPCR by subtracting its member offset from the
+        Processor control block.
+        """
+        prcb = self.session.profile.get_constant_object(
+            "KiProcessorBlock", "Pointer", dict(target="_KPRCB")).deref()
+        if prcb != None:
+            pcr = self.session.profile._KPCR(
+                prcb.obj_offset - self.session.profile.get_obj_offset(
+                    "_KPCR", "Prcb"))
+
+            if pcr.Self.v() == pcr.obj_offset:
+                return pcr
 
     def render(self, renderer):
         kpcr = self.kpcr()

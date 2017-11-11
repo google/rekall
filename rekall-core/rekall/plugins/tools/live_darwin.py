@@ -39,7 +39,7 @@ from rekall import plugin
 from rekall import obj
 from rekall import resources
 from rekall import session
-from rekall import utils
+from rekall_lib import utils
 
 from rekall.plugins.addrspaces import pmem
 

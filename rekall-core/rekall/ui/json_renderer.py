@@ -595,9 +595,10 @@ class JsonRenderer(renderer_module.BaseRenderer):
     def write_data_stream(self):
         if self.data:
             # Just dump out the json object.
-            self.fd.write(json.dumps(self.data, cls=RobustEncoder,
-                                     separators=(',', ':'),
-                                     logging=self.session.logging))
+            self.fd.write(utils.SmartUnicode(
+                json.dumps(self.data, cls=RobustEncoder,
+                           separators=(',', ':'),
+                           logging=self.session.logging)))
             self.fd.flush()
 
     def flush(self):

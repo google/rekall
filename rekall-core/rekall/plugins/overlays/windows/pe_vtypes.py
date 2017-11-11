@@ -1027,7 +1027,7 @@ class PEFileAddressSpace(addrspace.RunBasedAddressSpace):
         super(PEFileAddressSpace, self).__init__(**kwargs)
 
         self.as_assert(self.base is not None, "Must layer on another AS.")
-        self.as_assert(self.base.read(0, 2) == "MZ",
+        self.as_assert(self.base.read(0, 2) == b"MZ",
                        "File does not have a valid signature for a PE file.")
 
         self.profile = self.session.LoadProfile("pe")
