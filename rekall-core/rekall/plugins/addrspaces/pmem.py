@@ -25,7 +25,7 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 from os import path
 
 from rekall import addrspace
-from rekall import yaml_utils
+from rekall_lib import yaml_utils
 from rekall.plugins.addrspaces import standard
 
 
