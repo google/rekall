@@ -180,52 +180,6 @@ class SessionMod(plugin.Command):
 
         renderer.format("Done!\n")
 
-# This sets python's built in help command so we can use the help command in the
-# shell.
-
-# pylint: disable=protected-access
-
-class RekallHelper(site._Helper):
-    """A More useful default help function."""
-    HELP_MESSAGE = """Welocome to Rekall Memory Forensics.
-
-To get started:
-
-- Initialize the Rekall session using the rekall plugin. e.g.:
-
-Win7SP1x64:pmem 13:36:23> rekall filename=r"\\\\.\\pmem", profile="Win7SP1x64", pager="notepad"
-
-- Select a plugin to run by tying it in. e.g.:
-
-Win7SP1x64:pmem 13:39:26> plugins.pslist
-
-- You can complete any command by tapping Tab twice. Useful completions include:
-  - File names on disk.
-  - Plugin names.
-  - Plugin parameters.
-
-- Adding a ? after any plugin will print help about this plugin.
-
-- You can get help on any module or object by typing:
-
-help object
-
-Some interesting topics to get you started, explaining some rekall specific
-concepts:
-
-help addrspace - The address space.
-help obj       - The rekall objects.
-help profile   - What are Profiles?
-"""
-
-    def __call__(self, item=None, **kwargs):
-        if item is None:
-            print(self.HELP_MESSAGE)
-        else:
-            print(core.Info(item=item))
-
-site._Helper = RekallHelper
-
 
 class PagingLimitHook(kb.ParameterHook):
     """If no paging_limit specified, calculate it from cursors."""
