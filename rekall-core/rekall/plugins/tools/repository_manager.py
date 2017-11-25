@@ -46,7 +46,10 @@ from rekall_lib import utils
 from future.utils import with_metaclass
 
 
-NUMBER_OF_CORES = multiprocessing.cpu_count()
+try:
+    NUMBER_OF_CORES = multiprocessing.cpu_count()
+except NotImplementedError:
+    NUMBER_OF_CORES = 1
 
 
 class BuilderError(Exception):
