@@ -1129,17 +1129,18 @@ def encode_string(string):
     """Encode a string so that non printables are escaped.
 
     Returns unicode string.
+    e.g. b"hello\x88xdr"  -> "hello\x88xdr"
     """
     byte_string = SmartStr(string)
     result = []
     for c in byte_string:
         c = my_ord(c)
         if c > 128 or c < 32:
-            result.extend(b"\\x%02x" % c)
+            result.extend("\\x%02x" % c)
         else:
-            result.append(c)
+            result.append(chr(c))
 
-    return SmartUnicode(bytes(result))
+    return "".join(result)
 
 
 class Deduplicate(object):
