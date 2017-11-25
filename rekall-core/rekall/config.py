@@ -39,10 +39,10 @@ import os
 import six
 import sys
 import tempfile
-import yaml
 
 from past.builtins import basestring
 from rekall import constants
+from rekall_lib import yaml_utils
 
 
 class CommandMetadata(object):
@@ -199,7 +199,7 @@ def GetConfigFile(session):
     for path in search_path:
         try:
             with open(path, "rb") as fd:
-                result = yaml.safe_load(fd) or {}
+                result = yaml_utils.decode(fd.read(1000*1000*10)) or {}
                 logging.debug("Loaded configuration from %s", path)
 
                 # Allow the config file to update the
@@ -223,7 +223,7 @@ def CreateDefaultConfigFile(session):
         try:
             filename = "%s/.rekallrc" % homedir
             with open(filename, "wt") as fd:
-                yaml.dump(DEFAULT_CONFIGURATION, fd)
+                fd.write(yaml_utils.safe_dump(DEFAULT_CONFIGURATION))
 
             logging.info("Created new configuration file %s", filename)
             cache_dir = os.path.join(
