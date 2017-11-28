@@ -196,7 +196,6 @@ class KCoreAddressSpace(Elf64CoreDump):
         super(KCoreAddressSpace, self).__init__(**kwargs)
 
         # This is a live address space.
-        self.as_assert(self.base == None, 'Must be first Address Space')
         self.volatile = True
         self.mapped_files = {}
 
@@ -240,25 +239,20 @@ class KCoreAddressSpace(Elf64CoreDump):
         self.runs.clear()
 
         # At this point, we think this is a valid, usable kcore file.
-        # RHEL, however, disabled read access to /proc/kcore past the ELF
+        # RHEL, however, disables read access to /proc/kcore past the ELF
         # headers and the file size reflects this. /proc/kcore usually has a
         # size of at least 64TB (46bits of physical address space in x64).
         # We use the file size to detect cases where kcore will be unusable.
-
         if getattr(self.base, "fhandle", None):
             try:
-                statinfo = os.fstat(self.base.fhandle.fileno())
-                if statinfo.st_size < 2**46:
-                    # We raise a TypeError and not an ASAssertionError because
-                    # we need it to be catchable when rekall is used as a
-                    # library (i.e GRR). ASAssertionErrors are swallowed by
-                    # the address space selection algorithm.
-                    raise RuntimeError(
-                        "This kcore file is too small (%d bytes) and likely "
-                        "invalid for memory analysis. You may want to use pmem "
-                        "instead." % statinfo.st_size)
-            except(IOError, AttributeError):
-                pass
+                size = os.fstat(self.base.fhandle.fileno()).st_size
+            except IOError:
+                size = 0
+
+            self.as_assert(size > 2**45,
+                           "This kcore file is too small (%d bytes) and likely "
+                           "invalid for memory analysis. You may want to use pmem "
+                           "instead." % size)
 
         for x in runs:
             self.add_run(*x)

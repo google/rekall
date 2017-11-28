@@ -840,6 +840,7 @@ class timespec(obj.Struct):
         return self + ts
 
     def normalized_timespec(self):
+
         """Normalizes a timespec's secs and nsecs.
 
         Based on set_normalized_timespec:
@@ -1032,6 +1033,30 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
 
         elif profile.metadata("arch") == "AMD64":
             basic.ProfileLP64.Initialize(profile)
+
+        task_struct_def = profile.vtypes.get("task_struct")
+        if task_struct_def is None:
+            raise RuntimeError("Profile does not have task_struct")
+
+        # Recent kernel versions randomize task_struct memory layout
+        # using the macros randomized_struct_fields_start and
+        # randomized_struct_fields_end. These macros create an
+        # anonymous struct within task_struct which contains most of
+        # the fields. Rekall does not currently automatically access
+        # embedded anonymous structs, instead requiring to access via
+        # the "u1" member. The following code merges the anonymous
+        # struct into task_struct so it can be access transparently.
+
+        # http://elixir.free-electrons.com/linux/v4.13/source/include/linux/sched.h#L534
+        if "pid" not in task_struct_def[1]:
+            # Merge the anonymous union into task_struct.
+            union_offset, union_name = task_struct_def[1]["u1"]
+            size, union = profile.vtypes.get(union_name[0])
+            for field, field_definition in union.items():
+                field_definition[0] += union_offset
+                task_struct_def[1][field] = field_definition
+
+            profile.vtypes["task_struct"] = task_struct_def
 
     def GetImageBase(self):
         if self.image_base is None:
@@ -1253,6 +1278,7 @@ class Linux32(Linux):
 
 
 class Linux64(Linux):
+
     @classmethod
     def Initialize(cls, profile):
         profile.set_metadata("arch", "AMD64")

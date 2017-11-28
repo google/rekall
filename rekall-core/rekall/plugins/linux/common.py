@@ -131,8 +131,10 @@ class KAllSyms(object):
 
     def _OpenLiveSymbolsFile(self, physical_address_space):
         """Opens the live symbols file to parse."""
-        return physical_address_space.get_file_address_space(
+        file_as = physical_address_space.get_file_address_space(
             self.KALLSYMS_FILE)
+
+        return file_as
 
 
 class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
@@ -211,8 +213,12 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
                 self.profile.get_constant("swapper_pg_dir", is_address=True))
 
         else:
-            yield self.profile.phys_addr(
-                self.profile.get_constant("init_level4_pgt", is_address=True))
+            pgt_virt_addres = (
+                self.profile.get_constant("init_level4_pgt", is_address=True) or
+                # This was renamed https://patchwork.kernel.org/patch/9667543/
+                self.profile.get_constant("init_top_pgt", is_address=True))
+
+            yield self.profile.phys_addr(pgt_virt_addres)
 
     def render(self, renderer):
         renderer.table_header([("DTB", "dtv", "[addrpad]"),
@@ -433,7 +439,6 @@ class LinuxInitTaskHook(AbstractLinuxParameterHook):
         seen = set()
         task_head = self.session.profile.get_constant_object(
             "init_task", "task_struct")
-
         for task in task_head.tasks:
             if task.obj_offset not in seen:
                 seen.add(task.obj_offset)

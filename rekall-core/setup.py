@@ -68,7 +68,7 @@ install_requires = [
     'python-dateutil==2.6.1',
     'pytsk3==20170802',
     'pytz==2017.3',
-    'rekall-capstone==3.0.5.post1',
+    'rekall-capstone==3.0.5.post2',
     "rekall-efilter >= 1.6, < 1.7",
 
     # Should match exactly the version of this package.
