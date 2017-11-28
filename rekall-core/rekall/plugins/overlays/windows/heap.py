@@ -146,6 +146,7 @@ class _HEAP_ENTRY(obj.Struct):
         encoding = self.obj_context.get("Encoding")
         if encoding:
             heap_as = self.obj_context["HeapAS"]
+
             self.obj_vm = addrspace.BufferAddressSpace(
                 session=self.obj_session,
                 base_offset=self.obj_offset,
@@ -257,3 +258,5 @@ def InitializeHeapProfile(profile):
         _HEAP_ENTRY=_HEAP_ENTRY,
         _HEAP_FREE_ENTRY=_HEAP_ENTRY,
     )
+
+    return profile

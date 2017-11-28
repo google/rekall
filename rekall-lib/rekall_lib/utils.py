@@ -967,8 +967,13 @@ def issubclass(obj, cls):    # pylint: disable=redefined-builtin
 
 def XOR(string1, string2):
     """Returns string1 xor string2."""
-    return "".join(chr(my_ord(x) ^ my_ord(y))
-                   for x, y in zip(string1, string2))
+    xored = [my_ord(x) ^ my_ord(y)
+             for x, y in zip(string1, string2)]
+
+    if six.PY3:
+        return bytes(xored)
+
+    return b"".join(chr(x) for x in xored)
 
 
 def xrange(start, end, step=1):
