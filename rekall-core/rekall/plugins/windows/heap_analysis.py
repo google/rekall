@@ -31,6 +31,7 @@ from rekall import scan
 
 from rekall.plugins import core
 from rekall.plugins.windows import common
+from rekall.plugins.overlays.windows import heap as heap_module
 from rekall_lib import utils
 
 
@@ -132,7 +133,7 @@ class InspectHeap(common.WinProcessFilter):
         if not ntdll_mod:
             return
 
-        ntdll_prof = ntdll_mod.profile
+        ntdll_prof = heap_module.InitializeHeapProfile(ntdll_mod.profile)
 
         # Set the ntdll profile on the _PEB member.
         peb = task.m("Peb").cast(
@@ -426,7 +427,7 @@ class FindReferenceAlloc(common.WindowsCommandPlugin):
     def render(self, renderer):
         show_allocation = None
 
-        for hit in self.get_referrers(self.address):
+        for hit in self.get_referrers(self.plugin_args.address):
             show_allocation = self.session.plugins.show_allocation(hit)
             show_allocation.render(renderer)
 
