@@ -17,7 +17,7 @@ images:
 - Microsoft Windows 7 Service Pack 0 and 1
 - Microsoft Windows 8 and 8.1
 - Microsoft Windows 10
-- Linux Kernels 2.6.24 to 4.4.
+- Linux Kernels 2.6.24 to most recent.
 - OSX 10.7-10.12.x.
 
 Rekall also provides a complete memory sample acquisition capability for all

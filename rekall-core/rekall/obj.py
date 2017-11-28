@@ -59,6 +59,7 @@ import six
 
 if six.PY3:
     unicode = str
+    long = int
 
 
 class ProfileLog(object):
@@ -663,8 +664,13 @@ class NativeType(NumericProxyMixIn, BaseObject):
         return self.obj_name
 
     def __repr__(self):
-        return " [{0}:{1}]: 0x{2:08x}".format(self.obj_type, self.obj_name,
-                                              int(self.v()))
+        value = self.v()
+        if isinstance(value, (int, long)):
+            return " [{0}:{1}]: 0x{2:08x}".format(
+                self.obj_type, self.obj_name, value)
+        else:
+            return " [{0}:{1}]: '{2}'".format(
+                self.obj_type, self.obj_name, utils.SmartUnicode(value))
 
 
 class Bool(NativeType):
