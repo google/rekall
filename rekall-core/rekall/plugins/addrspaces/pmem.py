@@ -30,12 +30,18 @@ from rekall.plugins.addrspaces import standard
 
 
 class _StreamWrapper(object):
-    def __init__(self, stream):
+    def __init__(self, session, stream):
         self.stream = stream
+        self.session = session
 
     def read(self, offset, length):
         self.stream.seek(offset)
-        return self.stream.read(length)
+        try:
+            return self.stream.read(length)
+        except IOError:
+            self.session.logging.warn(
+                "IOError reading at offset 0x%0x. Null Padding", offset)
+            return addrspace.ZEROER.GetZeros(length)
 
     def write(self, offset, length):
         self.stream.seek(offset)
@@ -83,7 +89,7 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
         # permissions may be set up such that opening for writing would be
         # disallowed.
         try:
-            self.fd = open(self.fname, "r")
+            self.fd = open(self.fname, "rb")
         except (OSError, IOError):
             raise addrspace.ASAssertionError(
                 "Filename does not exist or can not be opened.")
@@ -104,7 +110,7 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
             if record["type"] == "efi_range":
                 if efi_type_readable(record["efi_type"]):
                     yield (record["start"], record["start"], record["length"],
-                           _StreamWrapper(self.fd))
+                           _StreamWrapper(self.session, self.fd))
 
     def ConfigureSession(self, session_obj):
         session_obj.SetCache("dtb", self.pmem_metadata["meta"]["dtb_off"],

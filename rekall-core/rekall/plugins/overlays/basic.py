@@ -416,8 +416,8 @@ class Enumeration(obj.NativeType):
        return hash(self.v())
 
     def __repr__(self):
-        return u"%s (%s)" % (super(Enumeration, self).__repr__(),
-                             self.__str__())
+        return u" [{0}:{1}]: 0x{2:08x} ({3})".format(
+            self.obj_type, self.obj_name, self.v(), self.__str__())
 
     _reverse_choices = None
 

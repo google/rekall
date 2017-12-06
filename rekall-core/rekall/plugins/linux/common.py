@@ -456,4 +456,11 @@ class LinuxIOMap(AbstractLinuxParameterHook):
         if io_map_vm != None:
             io_map_data = utils.SmartUnicode(io_map_vm.read(
                 0, 100000).split(b"\x00")[0])
-            return elfcore.ParseIOMap(io_map_data)
+            result = {}
+            for name, runs in elfcore.ParseIOMap(io_map_data).items():
+                for run in runs:
+                    result.setdefault(name, []).append(
+                        dict(start=run.start, end=run.end,
+                             file_offset=run.file_offset))
+
+            return result

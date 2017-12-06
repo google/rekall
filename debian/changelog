@@ -1,6 +1,6 @@
-rekall-forensic (1.7.1) RELEASED; urgency=low
+rekall-forensic (1.7.2) RELEASED; urgency=low
 
   [ Rekall Team ]
-  * Release 1.7.1 Hurricane Ridge
+  * Release 1.7.2 Hurricane Ridge
 
- -- Rekall Team <rekall-dev@googlegroups.com>  Mon, 6 Nov 2017 5:20:55 +0000
+ -- Rekall Team <rekall-dev@googlegroups.com>  Wed, 6 Dec 2017 6:51:02 +0000

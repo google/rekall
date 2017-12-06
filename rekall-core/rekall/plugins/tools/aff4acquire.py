@@ -33,6 +33,7 @@ import platform
 import glob
 import os
 import re
+import sys
 import stat
 import tempfile
 
@@ -67,12 +68,22 @@ class AFF4ProgressReporter(aff4.ProgressContext):
         super(AFF4ProgressReporter, self).__init__(**kwargs)
         self.session = session
 
+        # Running average over 20 values to make the rate not
+        # fluctuate so much.
+        self.avg = 0.0
+        self.avg_count = 10.0
+        self.count = 0
+
     def Report(self, readptr):
         """This will be called periodically to report the progress.
 
         Note that readptr is specified relative to the start of the range
         operation (WriteStream and CopyToStream)
         """
+        self.count += 1
+        if self.count % 1000 != 0:
+            return
+
         readptr = readptr + self.start
 
         # Rate in MB/s.
@@ -82,11 +93,14 @@ class AFF4ProgressReporter(aff4.ProgressContext):
         except ZeroDivisionError:
             rate = "?"
 
+        self.avg -= self.avg / self.avg_count
+        self.avg += rate / self.avg_count
+
         self.session.report_progress(
             " Reading %sMiB / %sMiB  %s MiB/s     ",
             readptr//1024//1024,
             self.length//1024//1024,
-            rate)
+            int(self.avg))
 
         self.last_time = self.now()
         self.last_offset = readptr
@@ -269,6 +283,9 @@ class AFF4Acquire(AbstractAFF4Plugin):
             self.compression = lexicon.AFF4_IMAGE_COMPRESSION_STORED
         elif self.plugin_args.compression == "zlib":
             self.compression = lexicon.AFF4_IMAGE_COMPRESSION_ZLIB
+        else:
+            raise plugin.InvalidArgs(
+                "Unsupported compression %s " % self.plugin_args.compression)
 
         # Do not acquire memory if we are told to do something else as well,
         # unless specifically asked to.
@@ -438,10 +455,10 @@ class AFF4Acquire(AbstractAFF4Plugin):
                             resolver, image_urn, volume.urn) as out_fd:
                         out_fd.WriteStream(in_fd, progress=progress)
 
-        except IOError:
+        except (IOError, OSError):
             try:
                 # Currently we can only access NTFS filesystems.
-                if self.session.profile.metadata("os") == "windows":
+                if self._get_os() == "windows":
                     self.session.logging.debug(
                         "Unable to read %s. Attempting raw access.", filename)
 
@@ -456,6 +473,15 @@ class AFF4Acquire(AbstractAFF4Plugin):
         finally:
             if out_fd:
                 resolver.Close(out_fd)
+
+    def _get_os(self):
+        # Do not attempt to get the profile in live mode.
+        if self.session.GetParameter("live_mode"):
+            return sys.platform
+
+        # This will trigger profile autodetection which should only
+        # occur on an image.
+        return self.session.profile.metadata("os")
 
     def _copy_raw_file_to_image(self, resolver, volume, filename):
         image_urn = volume.urn.Append(utils.SmartStr(filename))
@@ -515,10 +541,7 @@ class AFF4Acquire(AbstractAFF4Plugin):
 
 
     def copy_mapped_files(self, resolver, volume):
-        # Forces profile autodetection if needed.
-        profile = self.session.profile
-
-        os_name = profile.metadata("os")
+        os_name = self._get_os()
         if os_name == "windows":
             for  x in self.windows_copy_mapped_files(resolver, volume):
                 yield x

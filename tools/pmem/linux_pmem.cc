@@ -76,6 +76,9 @@ AFF4Status LinuxPmemImager::CreateMap_(AFF4Map *map, aff4_off_t *length) {
                     pheader.memsz,
                     kcore_urn);
       *length += pheader.memsz;
+    } else {
+      LOG(INFO) << "Skipped range " << std::hex << pheader.vaddr << " " <<
+        std::hex << pheader.memsz << " At offset " << std::hex << pheader.off;
     }
   }
 

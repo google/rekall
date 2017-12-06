@@ -182,8 +182,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
                         return volume.urn, None
 
                 else:
-                    # volume_path is not valid.
-                    return None, None
+                    raise IOError("Not found: %s" % volume_urn)
 
             elif volume_urn_parts.scheme == "gs" and aff4_cloud:
                 with aff4_cloud.AFF4GStore.NewAFF4GStore(
