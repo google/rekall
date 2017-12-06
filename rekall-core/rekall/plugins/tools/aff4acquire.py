@@ -475,6 +475,7 @@ class AFF4Acquire(AbstractAFF4Plugin):
                 resolver.Close(out_fd)
 
     def _get_os(self):
+        # Do not attempt to get the profile in live mode.
         if self.session.GetParameter("live_mode"):
             return sys.platform
 
