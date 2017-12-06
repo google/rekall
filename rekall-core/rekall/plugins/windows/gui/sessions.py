@@ -59,15 +59,14 @@ class Sessions(common.WinProcessFilter):
           _MM_SESSION_SPACE instantiated from the session space's address space.
         """
         # Dedup based on sessions.
-        for proc in utils.Deduplicate(self.filter_processes()):
+        for proc in utils.Deduplicate(self.filter_processes(),
+                                      key=lambda x: x.Session):
             ps_ad = proc.get_process_address_space()
 
-            session = proc.Session
+            session = proc.Session.deref(vm=ps_ad)
             # Session pointer is invalid (e.g. for System process).
-            if not session:
-                continue
-
-            yield proc.Session.deref(vm=ps_ad)
+            if session:
+                yield session
 
     def find_session_space(self, session_id):
         """Get a _MM_SESSION_SPACE object by its ID.
@@ -88,7 +87,6 @@ class Sessions(common.WinProcessFilter):
         for session in self.session_spaces():
             processes = list(session.ProcessList.list_of_type(
                 "_EPROCESS", "SessionProcessLinks"))
-
             yield dict(divider=("_MM_SESSION_SPACE: {0:#x} ID: {1} "
                                 "Processes: {2}".format(
                                     session.obj_offset,
@@ -102,7 +100,6 @@ class Sessions(common.WinProcessFilter):
             # Follow the undocumented _IMAGE_ENTRY_IN_SESSION list to find the
             # kernel modules loaded in this session.
             for image in session.ImageIterator:
-
                 yield dict(
                     session_id=session.SessionId,
                     image=image)

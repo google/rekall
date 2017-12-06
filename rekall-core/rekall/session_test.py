@@ -30,8 +30,8 @@ class SessionTest(testlib.RekallBaseUnitTestCase):
         self.physical_AS.volatile = False
         self.session.physical_address_space = self.physical_AS
 
-        # None volatile physical address space should use the user specified
-        # cache type.
+        # Non-volatile physical address space should use the user
+        # specified cache type.
         self.assertEqual(self.session.cache.__class__.__name__, "Cache")
 
         # Assigning the physical address space causes the cache to be

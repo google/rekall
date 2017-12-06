@@ -18,9 +18,12 @@ specific language governing permissions and limitations under the License.
 
 #define PMEM_VERSION "2.1.post4";
 
+#include <vector>
 #include <aff4/libaff4.h>
 #include <aff4/aff4_imager_utils.h>
 
+using std::vector;
+using std::string;
 
 class PmemImager: public BasicImager {
  protected:
@@ -97,5 +100,8 @@ class PmemImager: public BasicImager {
     return BasicImager::RegisterArgs();
   }
 };
+
+
+
 
 #endif  // TOOLS_PMEM_PMEM_H_

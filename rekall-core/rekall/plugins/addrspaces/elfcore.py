@@ -52,7 +52,7 @@ def ParseIOMap(string):
                     start=int("0x"+m.group(1), 16),
                     end=int("0x"+m.group(2), 16)))
         else:
-            import pdb; pdb.set_trace()
+            raise IOError("Unable to parse iomap")
 
     return result
 

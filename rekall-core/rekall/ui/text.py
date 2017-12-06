@@ -1251,7 +1251,7 @@ class TextRenderer(renderer_module.BaseRenderer):
 
     table_class = TextTable
 
-    def __init__(self, tablesep=" ", output=None, mode="a+b", fd=None,
+    def __init__(self, tablesep=" ", output=None, mode="a+t", fd=None,
                  **kwargs):
         super(TextRenderer, self).__init__(**kwargs)
 

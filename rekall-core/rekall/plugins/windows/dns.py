@@ -379,7 +379,7 @@ class WinDNSCache(common.WindowsCommandPlugin):
                             "DNS_HASHTABLE_ENTRY", "List",
                             include_current=True):
 
-                        if entries.obj_offset in buckets:
+                        if entry.obj_offset in entries:
                             continue
 
                         entries.add(bucket.obj_offset)

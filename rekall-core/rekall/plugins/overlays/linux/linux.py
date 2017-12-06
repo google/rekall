@@ -1216,7 +1216,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
             # _text symbol and the iomap's report of the kernel code
             # page start.
             result = (self.get_constant("_text", is_address=True) -
-                      iomap["Kernel code"][0].start)
+                      iomap["Kernel code"][0]["start"])
 
         elif self.metadata("arch") == "I386":
             result = (self.get_constant("_text", True) -
