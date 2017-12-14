@@ -191,7 +191,7 @@ class APIVad(processes.APIProcessFilter):
 
             if mbi.AllocationProtect != 0:
                 # Try to resolve the filename if possible.
-                filename = ctypes.create_string_buffer("", MAX_PATH)
+                filename = ctypes.create_string_buffer(b"", MAX_PATH)
                 copied = GetMappedFileNameA(
                     process_handle.handle, page_address, filename, MAX_PATH)
                 if copied > 0:
