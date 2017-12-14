@@ -15,10 +15,15 @@ import shutil
 import sys
 import win32process
 
+import yara
+
 from rekall import plugins
+from rekall_agent import agent
 
 PROCESS_QUERY_INFORMATION = 0x400
 PROCESS_VM_READ = 0x10
+
+UCRT_DIR = r"C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\dlls"
 
 
 def EnumMissingModules():
@@ -43,8 +48,10 @@ def EnumMissingModules():
   # i386).
   if sys.maxsize > 2 ** 32:
     handle_type = ctypes.c_ulonglong
+    dlls_arch = "x64"
   else:
     handle_type = ctypes.c_ulong
+    dlls_arch = "x86"
 
   module_list = (handle_type * (count.value // ctypes.sizeof(handle_type)))()
 
@@ -62,10 +69,19 @@ def EnumMissingModules():
     else:
         print("Skipping %s" % module_filename)
 
-target_dir = "dist/rekal"
-if not os.path.isdir(target_dir):
-  raise RuntimeError("Target is not a directory.")
+  # See issue https://github.com/google/rekall/issues/335
+  # We need to copy all these DLLs into the target as well.
+  ucrt_dir = os.path.join(UCRT_DIR, dlls_arch)
+  for filename in os.listdir(ucrt_dir):
+    if filename.lower().endswith(".dll"):
+      yield os.path.join(ucrt_dir, filename)
 
-for x in EnumMissingModules():
-    print("Copying %s" % x)
-    shutil.copy(x, target_dir)
+
+if __name__ == "__main__":
+    target_dir = "dist/rekal"
+    if not os.path.isdir(target_dir):
+      raise RuntimeError("Target is not a directory.")
+
+    for x in EnumMissingModules():
+        print("Copying %s" % x)
+        shutil.copy(x, target_dir)

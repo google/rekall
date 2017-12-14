@@ -120,7 +120,8 @@ class DetectionMethod(with_metaclass(registry.MetaclassRegistry, object)):
 config.DeclareOption("autodetect", group="Autodetection Overrides",
                      type="ChoiceArray", required=True,
                      choices=utils.JITIterator(DetectionMethod),
-                     default=utils.JITIterator(DetectionMethod),
+                     default=['rsds', 'pe', 'windows_kernel_file',
+                              'linux_index', 'osx'],
                      help="Autodetection method.")
 
 config.DeclareOption("autodetect_threshold", default=1.0,
