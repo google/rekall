@@ -773,6 +773,10 @@ class Session(with_metaclass(registry.MetaclassRegistry, object)):
 
         return default
 
+    def GetCache(self, item):
+        """Get something from the cache."""
+        return self.cache.Get(item)
+
     def SetCache(self, item, value, volatile=True):
         """Store something in the cache."""
         self.cache.Set(item, value, volatile=volatile)
