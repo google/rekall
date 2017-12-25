@@ -101,7 +101,10 @@ class PmemImager: public BasicImager {
   }
 };
 
-
+#define RETURN_IF_ERROR(expr) do {                                      \
+        AFF4Status status = {expr};                                     \
+        if (status != STATUS_OK) return status;                         \
+    } while (0)
 
 
 #endif  // TOOLS_PMEM_PMEM_H_

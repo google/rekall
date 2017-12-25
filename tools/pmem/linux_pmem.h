@@ -32,7 +32,9 @@ class LinuxPmemImager: public PmemImager {
    * @return STATUS_OK if successful.
    */
   virtual AFF4Status ImagePhysicalMemory();
-  virtual AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length);
+ private:
+  AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length);
+  AFF4Status ParseIOMap_(std::vector<aff4_off_t> *ram);
 };
 
 #endif  // TOOLS_PMEM_LINUX_PMEM_H_
