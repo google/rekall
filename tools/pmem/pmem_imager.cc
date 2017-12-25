@@ -32,6 +32,7 @@ specific language governing permissions and limitations under the License.
 #include <glog/logging.h>
 #include <signal.h>
 
+
 AFF4Status PmemImager::Initialize() {
   AFF4Status res = BasicImager::Initialize();
   if (res != STATUS_OK)
