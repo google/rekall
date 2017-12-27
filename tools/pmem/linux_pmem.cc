@@ -17,6 +17,8 @@ specific language governing permissions and limitations under the License.
 #include "elf.h"
 #include <pcre++.h>
 
+namespace aff4 {
+
 // Return the physical offset of all the system ram mappings.
 AFF4Status LinuxPmemImager::ParseIOMap_(std::vector<aff4_off_t> *ram) {
     LOG(INFO) << "Will parse /proc/iomem";
@@ -172,7 +174,7 @@ AFF4Status LinuxPmemImager::ImagePhysicalMemory() {
   // This is a physical memory image.
   resolver.Set(map_urn, AFF4_CATEGORY, new URN(AFF4_MEMORY_PHYSICAL));
 
-  string format = GetArg<TCLAP::ValueArg<string>>("format")->getValue();
+  std::string format = GetArg<TCLAP::ValueArg<std::string>>("format")->getValue();
 
   if (format == "map") {
     res = WriteMapObject_(map_urn, output_volume_urn);
@@ -201,3 +203,5 @@ AFF4Status LinuxPmemImager::ImagePhysicalMemory() {
   res = process_input();
   return res;
 }
+
+} // namespace aff4

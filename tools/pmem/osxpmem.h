@@ -23,6 +23,7 @@ specific language governing permissions and limitations under the License.
 
 #define MINIMUM_PMEM_API_VERSION 2
 
+namespace aff4 {
 
 class PmemMetadata {
 protected:
@@ -38,15 +39,15 @@ public:
 
   bool efi_readable(EFI_MEMORY_TYPE type) {
     return (type == EfiLoaderCode ||
-	    type == EfiLoaderData ||
-	    type == EfiBootServicesCode ||
-	    type == EfiBootServicesData ||
-	    type == EfiRuntimeServicesCode ||
-	    type == EfiRuntimeServicesData ||
-	    type == EfiConventionalMemory ||
-	    type == EfiACPIReclaimMemory ||
-	    type == EfiACPIMemoryNVS ||
-	    type == EfiPalCode);
+            type == EfiLoaderData ||
+            type == EfiBootServicesCode ||
+            type == EfiBootServicesData ||
+            type == EfiRuntimeServicesCode ||
+            type == EfiRuntimeServicesData ||
+            type == EfiConventionalMemory ||
+            type == EfiACPIReclaimMemory ||
+            type == EfiACPIMemoryNVS ||
+            type == EfiPalCode);
   }
 };
 
@@ -59,7 +60,7 @@ class OSXPmemImager: public PmemImager {
   URN driver_urn;
   bool driver_installed_ = false;
   PmemMetadata metadata;
-  
+
  protected:
   virtual string GetName() {
     return "The OSXPmem memory imager.  Copyright 2015 Google Inc.";
@@ -91,7 +92,7 @@ class OSXPmemImager: public PmemImager {
 
   // Get the path to the embedded driver.
   string get_driver_path();
-  
+
   virtual AFF4Status RegisterArgs() {
     AddArg(new TCLAP::SwitchArg(
         "l", "load-driver", "Load the driver and exit", false));
@@ -112,15 +113,17 @@ class OSXPmemImager: public PmemImager {
     return PmemImager::RegisterArgs();
   }
 
-  virtual AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length);  
+  virtual AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length);
   virtual AFF4Status ParseArgs();
   virtual AFF4Status ProcessArgs();
 
   // Write the memory information.yaml file.
   virtual string DumpMemoryInfoToYaml();
-  
+
  public:
   virtual ~OSXPmemImager();
 };
+
+} // namespace aff4
 
 #endif  // TOOLS_PMEM_OSXPMEM_H_

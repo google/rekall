@@ -25,8 +25,11 @@ specific language governing permissions and limitations under the License.
 
 #define BUFF_SIZE 1024*1024
 
-/* Some utility functions. */
+namespace aff4 {
 
+
+
+/* Some utility functions. */
 static AFF4Status CreateChildProcess(
     const string &command, HANDLE stdout_wr) {
 
@@ -696,3 +699,5 @@ AFF4Status WinPmemImager::handle_pagefiles() {
 
   return CONTINUE;
 }
+
+} // namespace aff4

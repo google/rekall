@@ -35,6 +35,8 @@ specific language governing permissions and limitations under the License.
 #include "pmem.h"
 #include <stdint.h>
 
+namespace aff4 {
+
 
 struct PHYSICAL_MEMORY_RANGE {
   uint64_t start;
@@ -176,5 +178,7 @@ class WinPmemImager: public PmemImager {
  public:
   virtual ~WinPmemImager();
 };
+
+} // namespace aff4
 
 #endif  // TOOLS_PMEM_WIN_PMEM_H_

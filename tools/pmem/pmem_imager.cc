@@ -32,6 +32,7 @@ specific language governing permissions and limitations under the License.
 #include <glog/logging.h>
 #include <signal.h>
 
+namespace aff4 {
 
 AFF4Status PmemImager::Initialize() {
   AFF4Status res = BasicImager::Initialize();
@@ -41,7 +42,7 @@ AFF4Status PmemImager::Initialize() {
   // Add the memory namespace to the resolver.
   LOG(INFO) << "Adding the memory namespaces.";
   resolver.namespaces.push_back(
-      std::pair<string, string>("memory", AFF4_MEMORY_NAMESPACE));
+      std::pair<std::string, std::string>("memory", AFF4_MEMORY_NAMESPACE));
 
   return STATUS_OK;
 }
@@ -52,7 +53,7 @@ AFF4Status PmemImager::ParseArgs() {
   AFF4Status result = BasicImager::ParseArgs();
 
   // Check the requested format.
-  string format = GetArg<TCLAP::ValueArg<string>>("format")->getValue();
+  std::string format = GetArg<TCLAP::ValueArg<std::string>>("format")->getValue();
   if (result == CONTINUE && format != "map" && format != "elf" &&
       format != "raw") {
     LOG(ERROR) << "Format " << format << " not supported.";
@@ -66,7 +67,7 @@ AFF4Status PmemImager::ParseArgs() {
 AFF4Status PmemImager::ProcessArgs() {
   // Add the memory namespace to the resolver.
   resolver.namespaces.push_back(
-      std::pair<string, string>("memory", AFF4_MEMORY_NAMESPACE));
+      std::pair<std::string, std::string>("memory", AFF4_MEMORY_NAMESPACE));
 
   AFF4Status result = BasicImager::ProcessArgs();
   if (result != CONTINUE) {
@@ -89,18 +90,18 @@ AFF4Status PmemImager::ProcessArgs() {
 }
 
 AFF4Status PmemImager::handle_pagefiles() {
-  pagefiles = GetArg<TCLAP::MultiArgToNextFlag<string>>(
-      "pagefile")->getValue();
+    pagefiles = GetArg<TCLAP::MultiArgToNextFlag<std::string>>(
+        "pagefile")->getValue();
 
   return CONTINUE;
 }
 
 AFF4Status PmemImager::handle_compression() {
-  string format = GetArg<TCLAP::ValueArg<string>>(
-      "format")->getValue();
+    std::string format = GetArg<TCLAP::ValueArg<std::string>>(
+        "format")->getValue();
 
-  string compression_setting = GetArg<TCLAP::ValueArg<string>>(
-      "compression")->getValue();
+    std::string compression_setting = GetArg<TCLAP::ValueArg<std::string>>(
+        "compression")->getValue();
 
   if (format == "elf" || format == "raw") {
     std::cout << "Output format is " << format << " - compression disabled.\n";
@@ -281,13 +282,13 @@ AFF4ScopedPtr<AFF4Stream> PmemImager::GetWritableStream_(
     return AFF4ScopedPtr<AFF4Stream>();
 
   // If the user asked for raw or no compression just write a normal stream.
-  string format = GetArg<TCLAP::ValueArg<string>>("format")->getValue();
+  std::string format = GetArg<TCLAP::ValueArg<std::string>>("format")->getValue();
   if (format == "raw" || format == "elf") {
-    // These formats are not compressed.
-    return volume->CreateMember(output_urn);
+      // These formats are not compressed.
+      return volume->CreateMember(output_urn);
   } else {
-    return AFF4Image::NewAFF4Image(
-        &resolver, output_urn, volume_urn).cast<AFF4Stream>();
+      return AFF4Image::NewAFF4Image(
+          &resolver, output_urn, volume_urn).cast<AFF4Stream>();
   }
 
   return AFF4ScopedPtr<AFF4Stream>();
@@ -298,9 +299,9 @@ AFF4ScopedPtr<AFF4Stream> PmemImager::GetWritableStream_(
 PmemImager::~PmemImager() {
   // Remove all files that need to be removed.
   for (URN it : to_be_removed) {
-    string filename = it.ToFilename();
-    if (!DeleteFile(filename.c_str())) {
-      LOG(INFO) << "Unable to delete " << filename << ": " <<
+      std::string filename = it.ToFilename();
+      if (!DeleteFile(filename.c_str())) {
+          LOG(INFO) << "Unable to delete " << filename << ": " <<
           GetLastErrorMessage();
 
     } else {
@@ -313,20 +314,24 @@ PmemImager::~PmemImager() {
 }
 #endif
 
-IMAGER_CLASS imager;
+} // namespace aff4
+
+
+aff4::IMAGER_CLASS imager;
+
 
 int main(int argc, char* argv[]) {
-  // Initialize Google's logging library.
-  google::InitGoogleLogging(argv[0]);
+    // Initialize Google's logging library.
+    google::InitGoogleLogging(argv[0]);
 
-  google::LogToStderr();
-  google::SetStderrLogging(google::GLOG_ERROR);
+    google::LogToStderr();
+    google::SetStderrLogging(google::GLOG_ERROR);
 
-  AFF4Status res = imager.Run(argc, argv);
-  if (res == STATUS_OK || res == CONTINUE)
-    return 0;
+    aff4::AFF4Status res = imager.Run(argc, argv);
+    if (res == aff4::STATUS_OK || res == aff4::CONTINUE)
+          return 0;
 
-  LOG(ERROR) << "Imaging failed with error: " << res;
+    LOG(ERROR) << "Imaging failed with error: " << res;
 
-  return res;
+    return res;
 }

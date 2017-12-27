@@ -19,10 +19,12 @@ specific language governing permissions and limitations under the License.
 #include "pmem.h"
 #include <stdint.h>
 
+namespace aff4 {
+
 class LinuxPmemImager: public PmemImager {
  protected:
-  virtual string GetName() {
-    return "The LinuxPmem memory imager.  Copyright 2014 Google Inc.";
+    virtual std::string GetName() {
+        return "The LinuxPmem memory imager.  Copyright 2014 Google Inc.";
   }
 
   /**
@@ -36,5 +38,7 @@ class LinuxPmemImager: public PmemImager {
   AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length);
   AFF4Status ParseIOMap_(std::vector<aff4_off_t> *ram);
 };
+
+} // namespace aff4
 
 #endif  // TOOLS_PMEM_LINUX_PMEM_H_
