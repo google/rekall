@@ -1,0 +1,69 @@
+Building statically for linux.
+==============================
+
+The following explains how to build statically on Ubuntu 17.10.
+
+apt-get install libtool-bin libboost-dev
+
+
+# It is best to maintain a special prefix with static libraries so
+# they do not pollute the system.
+export PREFIX=/home/scudette/build/static/
+export CXXFLAGS="-I$PREFIX/include"
+
+apt-get source libraptor2-dev
+cd raptor2-2.0.13/
+./configure --prefix=$PREFIX --enable-static --without-www LDFLAGS="-L/home/scudette/build/static/lib -static -static-libstdc++" --enable-serializers="turtle ntriples" --enable-parsers="turtle ntriples"
+make -j4 install
+cd ..
+
+apt-get source libpcre3
+cd pcre3-8.39/
+./configure --prefix=$PREFIX  --enable-static LDFLAGS="-L$PREFIX/lib -static -static-libstdc++"
+make -j4 install
+cd ..
+
+apt-get source libpcre++-dev
+cd libpcre++-0.9.5/
+./autogen.sh
+cp /usr/bin/libtool ./libtool
+./configure --prefix=$PREFIX  --enable-static LDFLAGS="-L$PREFIX/lib -static -static-libstdc++"
+make -j4 install
+cd ..
+
+apt-get source libyaml-cpp-dev
+cd yaml-cpp-0.5.2/
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX . && make all install
+cd ..
+
+apt-get source libsnappy-dev
+cd snappy-1.1.6/
+./autogen.sh
+./configure --prefix=$PREFIX  --enable-static --without-gflags LDFLAGS="-L$PREFIX/lib -static -static-libstdc++"
+make -j4 install
+cd ..
+
+apt-get source liburiparser-dev
+cd uriparser-0.8.4/
+./configure --prefix=$PREFIX  --enable-static --without-gflags LDFLAGS="-L$PREFIX/lib -static -static-libstdc++" --disable-test --disable-doc
+make -j4 install
+cd ..
+
+apt-get source libspdlog-dev
+cd spdlog-0.11.0/
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX . && make all install
+cd ..
+
+git clone https://github.com/google/aff4.git
+cd aff4
+./autogen.sh
+./configure --prefix=$PREFIX  --enable-static LDFLAGS="-L$PREFIX/lib -L$PREFIX/libexec" --enable-static-binaries
+make -j4 install
+cd ..
+
+git clone https://github.com/google/rekall.git
+cd rekall/tools/pmem
+./bootstrap
+./configure --prefix=$PREFIX  --enable-static LDFLAGS="-L$PREFIX/lib -L$PREFIX/libexec" --enable-static-binaries
+make -j4 install
+cd ..

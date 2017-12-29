@@ -80,8 +80,8 @@ class WinPmemImager: public PmemImager {
   URN imager_urn;
   URN device_urn;                       /**< The URN of the pmem device. */
 
-  string service_name = PMEM_SERVICE_NAME;
-  string device_name = PMEM_DEVICE_NAME;
+  std::string service_name = PMEM_SERVICE_NAME;
+  std::string device_name = PMEM_DEVICE_NAME;
   uint32_t acquisition_mode = PMEM_MODE_AUTO;
 
   /**
@@ -94,8 +94,8 @@ class WinPmemImager: public PmemImager {
 
   virtual AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length);
 
-  virtual string GetName() {
-    return "The WinPmem memory imager.  Copyright 2014 Google Inc.";
+  virtual std::string GetName() {
+    return "The WinPmem memory imager.";
   }
 
   /**
@@ -140,8 +140,6 @@ class WinPmemImager: public PmemImager {
    */
   AFF4Status UninstallDriver();
 
-  virtual AFF4Status Initialize();
-
   virtual AFF4Status RegisterArgs() {
     AddArg(new TCLAP::SwitchArg(
         "l", "load-driver", "Load the driver and exit", false));
@@ -154,11 +152,11 @@ class WinPmemImager: public PmemImager {
         "driver compiled with write support and be on a system with "
         "test signing enabled.", false));
 
-    AddArg(new TCLAP::ValueArg<string>(
+    AddArg(new TCLAP::ValueArg<std::string>(
         "", "mode", "Select the acquisition mode. Default is PTERemapping.",
         false, "", "MmMapIoSpace, PhysicalMemory, PTERemapping"));
 
-    AddArg(new TCLAP::ValueArg<string>(
+    AddArg(new TCLAP::ValueArg<std::string>(
         "", "driver", "Use this driver instead of the included one. "
         "This option is rarely used.",
         false, "", "Path to driver."));
@@ -166,6 +164,7 @@ class WinPmemImager: public PmemImager {
     return PmemImager::RegisterArgs();
   }
 
+  virtual AFF4Status handle_driver();
   virtual AFF4Status handle_pagefiles();
   virtual AFF4Status handle_acquisition_mode();
   virtual AFF4Status ParseArgs();

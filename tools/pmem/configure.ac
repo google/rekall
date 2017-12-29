@@ -39,12 +39,6 @@ AM_CONDITIONAL([OSX_NATIVE_HOST], [test x$gcc_cv_osx_host = xyes])
 #])
 AC_CHECK_LIB([pcre++], [main], [], [AC_MSG_ERROR([pcre++ library (libpcre++-dev) not found])])
 
-AC_CHECK_LIB([glog], [main], [], [
-  echo Google logging library not found. On debian systems this is provided by
-  echo apt-get install libgoogle-glog-dev
-  exit -1
-])
-
 # We store machine stats in Yaml so this is a hard requirement.
 AS_IF([test "x$enable_yaml" = "xyes"],
   AC_CHECK_LIB([yaml-cpp], [main], [], [

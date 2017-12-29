@@ -19,8 +19,8 @@ specific language governing permissions and limitations under the License.
 #define PMEM_VERSION "2.1.post4";
 
 #include <vector>
-#include <aff4/libaff4.h>
-#include <aff4/aff4_imager_utils.h>
+#include "aff4/libaff4.h"
+#include "aff4/aff4_imager_utils.h"
 
 namespace aff4 {
 

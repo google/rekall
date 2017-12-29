@@ -21,14 +21,14 @@ namespace aff4 {
 
 // Return the physical offset of all the system ram mappings.
 AFF4Status LinuxPmemImager::ParseIOMap_(std::vector<aff4_off_t> *ram) {
-    LOG(INFO) << "Will parse /proc/iomem";
+    resolver.logger->info("Will parse /proc/iomem");
     ram->clear();
 
     URN iomap_urn = URN::NewURNFromFilename("/proc/iomem");
     AFF4ScopedPtr<AFF4Stream> stream = resolver.AFF4FactoryOpen<AFF4Stream>(
         iomap_urn);
     if (!stream) {
-        LOG(ERROR) << "Unable to open /proc/iomap";
+        resolver.logger->error("Unable to open /proc/iomap");
         return IO_ERROR;
     }
 
@@ -38,15 +38,14 @@ AFF4Status LinuxPmemImager::ParseIOMap_(std::vector<aff4_off_t> *ram) {
     while (RAM_regex.search(data, offset)) {
         uint64_t start = strtoll(RAM_regex.get_match(1).c_str(), nullptr, 16);
         uint64_t end = strtoll(RAM_regex.get_match(2).c_str(), nullptr, 16);
-        LOG(INFO) << "System RAM " << std::hex << start <<
-            " - " << end;
+        resolver.logger->info("System RAM {:x} - {:x}", start, end);
 
         ram->push_back(start);
         offset = RAM_regex.get_match_end(0);
     }
 
     if (ram->size() == 0) {
-        LOG(ERROR) << "/proc/iomap has no System RAM.";
+        resolver.logger->critical("/proc/iomap has no System RAM.");
         return IO_ERROR;
     }
 
@@ -68,16 +67,16 @@ AFF4Status LinuxPmemImager::CreateMap_(AFF4Map *map, aff4_off_t *length) {
       kcore_urn);
 
   if (!stream) {
-    LOG(ERROR) << "Unable to open /proc/kcore - Are you root?";
-    return IO_ERROR;
+      resolver.logger->critical("Unable to open /proc/kcore - Are you root?");
+      return IO_ERROR;
   }
 
   Elf64_Ehdr header;
   if (stream->ReadIntoBuffer(
           reinterpret_cast<char *>(&header),
           sizeof(header)) != sizeof(header)) {
-    LOG(ERROR) << "Unable to read /proc/kcore - Are you root?";
-    return IO_ERROR;
+      resolver.logger->critical("Unable to read /proc/kcore - Are you root?");
+      return IO_ERROR;
   }
 
   // Check the header for sanity.
@@ -92,8 +91,8 @@ AFF4Status LinuxPmemImager::CreateMap_(AFF4Map *map, aff4_off_t *length) {
       header.machine  != EM_X86_64 ||
       header.version  != EV_CURRENT ||
       header.phentsize != sizeof(Elf64_Phdr)) {
-    LOG(ERROR) << "Unable to parse /proc/kcore - Are you root?";
-    return INVALID_INPUT;
+      resolver.logger->error("Unable to parse /proc/kcore - Are you root?");
+      return INVALID_INPUT;
   }
 
   // Read the physical headers.
@@ -133,15 +132,14 @@ AFF4Status LinuxPmemImager::CreateMap_(AFF4Map *map, aff4_off_t *length) {
     // /proc/kcore file address to enable reading the image.
     if (pheader.paddr != static_cast<Elf64_Addr>(
             physical_range_start[physical_range_start_index])) {
-        LOG(INFO) << "Skipped range " << std::hex << pheader.vaddr << " " <<
-            std::hex << pheader.memsz << " At offset " << std::hex << pheader.off;
-
+        resolver.logger->info("Skipped range {:x} - {:x} @ {:x}",
+                              pheader.vaddr, pheader.memsz, pheader.off);
         continue;
     }
     physical_range_start_index++;
-    std::cout << "Found range " << std::hex << pheader.paddr << " @ " <<
-        pheader.vaddr << " length " << pheader.memsz << " At offset " <<
-        std::hex << pheader.off << "\n";
+    resolver.logger->info("Found range {:x}/{:x} @ {:x}/{:x}",
+                          pheader.paddr, pheader.memsz, pheader.vaddr,
+                          pheader.off);
     map->AddRange(pheader.paddr,
                   pheader.off,
                   pheader.memsz,
@@ -149,8 +147,8 @@ AFF4Status LinuxPmemImager::CreateMap_(AFF4Map *map, aff4_off_t *length) {
   }
 
   if (map->Size() == 0) {
-    LOG(INFO) << "No ranges found in /proc/kcore";
-    return NOT_FOUND;
+      resolver.logger->info("No ranges found in /proc/kcore");
+      return NOT_FOUND;
   }
 
   return STATUS_OK;
@@ -192,12 +190,12 @@ AFF4Status LinuxPmemImager::ImagePhysicalMemory() {
 
   // Also capture these files by default.
   if (inputs.size() == 0) {
-    LOG(INFO) << "Adding default file collections.";
-    inputs.push_back("/boot/*");
+      resolver.logger->info("Adding default file collections.");
+      inputs.push_back("/boot/*");
 
-    // These files are essential for proper analysis when KASLR is enabled.
-    inputs.push_back("/proc/iomem");
-    inputs.push_back("/proc/kallsyms");
+      // These files are essential for proper analysis when KASLR is enabled.
+      inputs.push_back("/proc/iomem");
+      inputs.push_back("/proc/kallsyms");
   }
 
   res = process_input();

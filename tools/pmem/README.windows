@@ -1,0 +1,124 @@
+Building for windows.
+=====================
+
+The following instructions are for building windows binaries, on a
+Linux system. On Ubuntu systems one must install the mingw platform
+first (using apt-get install g++-mingw-w64 mingw-w64).
+
+This installs several flavors of compilers. We need the posix version
+so you will need to switch via ubuntu's alternatives version:
+
+sudo update-alternatives --config i686-w64-mingw32-g++
+sudo update-alternatives --config i686-w64-mingw32-gcc
+
+and select /usr/bin/i686-w64-mingw32-g++-posix and /usr/bin/i686-w64-mingw32-gcc-posix
+
+
+# It is best to maintain a special prefix with static libraries so
+# they do not pollute the system.
+export PREFIX=/home/scudette/build/mingw/
+export CXXFLAGS="-I$PREFIX/include"
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig/"
+
+apt-get source zlib1g
+cd zlib-1.2.11.dfsg/
+make -f win32/Makefile.gcc PREFIX=i686-w64-mingw32-
+make -f win32/Makefile.gcc install INCLUDE_PATH=$PREFIX/include LIBRARY_PATH=$PREFIX/lib BINARY_PATH==$PREFIX/bin
+cd ..
+
+apt-get source libraptor2-dev
+cd raptor2-2.0.14/
+./configure --prefix=$PREFIX --enable-static --without-www LDFLAGS="-L$PREFIX/lib -static -static-libstdc++" \
+    --host=i686-w64-mingw32 --enable-parsers="turtle ntriples" --enable-serializers="turtle ntriples"
+make -j4 install
+cd ..
+
+apt-get source libtclap-dev
+cd tclap-1.2.1/
+./configure --prefix=$PREFIX --enable-static LDFLAGS="-L$PREFIX/lib -static -static-libstdc++" --host=i686-w64-mingw32 \
+    CXXFLAGS="-static -mnop-fun-dllimport -DPCRE_STATIC"
+make -j4 install
+cd ..
+
+apt-get source pcre3
+cd pcre3-8.39/
+./configure --prefix=$PREFIX --enable-static LDFLAGS="-L$PREFIX/lib -static -static-libstdc++" --host=i686-w64-mingw32 \
+   CFLAGS="-static -mnop-fun-dllimport" --disable-cpp
+cp /usr/bin/libtool ./libtool
+make -j4 install
+cd ..
+
+apt-get source libpcre++-dev
+cd libpcre++-0.9.5/
+./autogen.sh
+
+# The libtool that comes with it is broken and will cause a crash -
+# copy the one from the system.
+cp /usr/bin/libtool ./libtool
+./configure --prefix=$PREFIX --enable-static LDFLAGS="-L$PREFIX/lib -static -static-libstdc++" --host=i686-w64-mingw32 \
+     CXXFLAGS="-static -mnop-fun-dllimport -DPCRE_STATIC" --with-pcre-include="$PREFIX/include/"
+make -j4 install
+cd ..
+
+apt-get source libsnappy-dev
+cd snappy-1.1.6/
+./configure --prefix=$PREFIX --enable-static LDFLAGS="-L$PREFIX/lib -static -static-libstdc++" --host=i686-w64-mingw32 \
+            CXXFLAGS="-static -mnop-fun-dllimport -I$PREFIX/include/"
+# Unit test will fail to build.
+make -j4 install
+cd ..
+
+apt-get source liburiparser-dev
+cd uriparser-0.8.4/
+./configure --prefix=$PREFIX --enable-static LDFLAGS="-L$PREFIX/lib -static -static-libstdc++" --host=i686-w64-mingw32 \
+       CXXFLAGS="-static -mnop-fun-dllimport -I$PREFIX/include/" --disable-test --disable-doc
+
+# This insists on installing a binary which is not compatible with
+#  windows. Remove all code from tool/uriparse.c except for main().
+make -j4 install
+cd ..
+
+apt-get source libyaml-cpp-dev
+cd yaml-cpp-0.5.2/
+echo "
+# the name of the target operating system
+SET(CMAKE_SYSTEM_NAME Windows)
+
+# which compilers to use for C and C++
+SET(CMAKE_C_COMPILER i686-w64-mingw32-gcc)
+SET(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
+SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
+
+# here is the target environment located
+SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 $PREFIX )
+
+# adjust the default behaviour of the FIND_XXX() commands:
+# search headers and libraries in the target environment, search
+# programs in the host environment
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+" > Toolchain-mingw32.cmake
+
+cmake -DCMAKE_TOOLCHAIN_FILE=Toolchain-mingw32.cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX .
+make install -j4
+cd ..
+
+git clone https://github.com/gabime/spdlog.git
+cd spdlog/
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX . && make install -j4
+cd ..
+
+cd aff4
+./configure --prefix=$PREFIX --enable-static LDFLAGS="-L$PREFIX/lib -static -static-libstdc++" --host=i686-w64-mingw32 \
+            CXXFLAGS="-static -mnop-fun-dllimport -I$PREFIX/include/" --enable-static-binaries
+make -j4 install
+cd ..
+
+On very old versions of windows the binary might fail with a message
+“unable to find strerror_s in msvcrt.dll”. This is because such old
+versions do not contain the function strerror_s, but they do contain
+strerror. The easiest way to fix this is to hexedit the import table
+of the binary - simply find the string strerror_s and replace the _s
+with null bytes. This makes the same binary work fine on older windows
+versions.

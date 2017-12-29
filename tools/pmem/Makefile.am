@@ -29,7 +29,7 @@ bin_PROGRAMS = winpmem
 winpmem_LDFLAGS = $(STATIC_LINKERLDFLAGS)
 winpmem_CXXFLAGS = -std=c++11 -g -Wall -O0
 winpmem_SOURCES = pmem_imager.cc win_pmem.cc
-winpmem_LDADD = -lrpcrt4 -lshlwapi -laff4 -lglog -lyaml-cpp
+winpmem_LDADD = -lrpcrt4 -lshlwapi -laff4 -lyaml-cpp
 
 
 all-local: winpmem$(EXEEXT)
@@ -44,7 +44,7 @@ bin_PROGRAMS = linpmem
 linpmem_LDFLAGS = $(STATIC_LINKERLDFLAGS)
 linpmem_CXXFLAGS = -std=c++11 -g -Wall -O0
 linpmem_SOURCES = pmem_imager.cc linux_pmem.cc
-linpmem_LDADD = -laff4 -lglog
+linpmem_LDADD = -laff4
 endif
 
 if OSX_NATIVE_HOST
@@ -53,7 +53,7 @@ bin_PROGRAMS = osxpmem
 osxpmem_LDFLAGS = $(STATIC_LINKERLDFLAGS)
 osxpmem_CXXFLAGS = -std=c++11 -g -Wall -O0
 osxpmem_SOURCES = pmem_imager.cc osxpmem.cc
-osxpmem_LDADD = -laff4 -lglog -lyaml-cpp
+osxpmem_LDADD = -laff4 -lyaml-cpp
 
 all-local: osxpmem
 	@echo Creating deployable bundle.
@@ -66,4 +66,3 @@ all-local: osxpmem
 	chmod -R o-wx osxpmem.app/
 	zip -r osxpmem.zip osxpmem.app/
 endif
-

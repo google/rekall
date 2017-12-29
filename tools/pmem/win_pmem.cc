@@ -20,6 +20,8 @@ specific language governing permissions and limitations under the License.
 #include <functional>
 #include <string>
 
+#include "aff4/aff4_io.h"
+
 #include <yaml-cpp/yaml.h>
 
 
@@ -27,11 +29,10 @@ specific language governing permissions and limitations under the License.
 
 namespace aff4 {
 
-
-
 /* Some utility functions. */
 static AFF4Status CreateChildProcess(
-    const string &command, HANDLE stdout_wr) {
+    DataStore &resolver,
+    const std::string &command, HANDLE stdout_wr) {
 
   PROCESS_INFORMATION piProcInfo;
   STARTUPINFO siStartInfo;
@@ -49,7 +50,7 @@ static AFF4Status CreateChildProcess(
   siStartInfo.hStdError = stdout_wr;
   siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-  LOG(INFO) << "Launching " << command;
+  resolver.logger->info("Launching {}", command);
 
   // Create the child process.
   bSuccess = CreateProcess(
@@ -66,7 +67,8 @@ static AFF4Status CreateChildProcess(
 
   // If an error occurs, exit the application.
   if (!bSuccess) {
-    LOG(ERROR) << "Unable to launch process: " << GetLastErrorMessage();
+      resolver.logger->error(
+          "Unable to launch process: {}", GetLastErrorMessage());
     return IO_ERROR;
   }
 
@@ -80,17 +82,17 @@ static AFF4Status CreateChildProcess(
   return STATUS_OK;
 }
 
-static string _GetTempPath() {
+static std::string _GetTempPath(DataStore &resolver) {
   CHAR path[MAX_PATH + 1];
   CHAR filename[MAX_PATH];
 
   // Extract the driver somewhere temporary.
   if (!GetTempPath(MAX_PATH, path)) {
-    LOG(ERROR) << "Unable to determine temporary path.";
-    return "";
+      resolver.logger->error("Unable to determine temporary path.");
+      return "";
   }
 
-  LOG(INFO) << "Temp path " << path;
+  resolver.logger->info("Temp path {}", path);
 
   // filename is now the random path.
   GetTempFileNameA(path, "pmem", 0, filename);
@@ -107,7 +109,7 @@ static DWORD _GetSystemArch() {
   return sys_info.wProcessorArchitecture;
 }
 
-static string GetDriverName() {
+static std::string GetDriverName(DataStore &resolver) {
   switch (_GetSystemArch()) {
     case PROCESSOR_ARCHITECTURE_AMD64:
       return "winpmem_x64.sys";
@@ -118,7 +120,8 @@ static string GetDriverName() {
       break;
 
     default:
-      LOG(FATAL) << "I dont know what arch I am running on?";
+        resolver.logger->critical("I dont know what arch I am running on?");
+        abort();
   }
 }
 
@@ -132,8 +135,8 @@ AFF4Status WinPmemImager::GetMemoryInfo(PmemMemoryInfo *info) {
       <FileBackedObject>(device_urn);
 
   if (!device_stream) {
-    LOG(ERROR) << "Can not open device " << device_urn.SerializeToString();
-    return IO_ERROR;
+      resolver.logger->error("Can not open device {}", device_urn);
+      return IO_ERROR;
   }
 
   // Set the acquisition mode.
@@ -149,17 +152,19 @@ AFF4Status WinPmemImager::GetMemoryInfo(PmemMemoryInfo *info) {
   // Set the acquisition mode.
   if (!DeviceIoControl(device_stream->fd, PMEM_CTRL_IOCTRL, &acquisition_mode,
                        sizeof(acquisition_mode), NULL, 0, &size, NULL)) {
-    LOG(ERROR) << "Failed to set acquisition mode: " << GetLastErrorMessage();
-    return IO_ERROR;
+      resolver.logger->error(
+          "Failed to set acquisition mode: {}", GetLastErrorMessage());
+      return IO_ERROR;
   } else {
-    LOG(INFO) << "Setting acquisition mode " << acquisition_mode;
+      resolver.logger->info("Setting acquisition mode {}", acquisition_mode);
   }
 
   // Get the memory ranges.
   if (!DeviceIoControl(device_stream->fd, PMEM_INFO_IOCTRL, NULL, 0,
                        reinterpret_cast<char *>(info),
                        sizeof(*info), &size, NULL)) {
-    LOG(ERROR) << "Failed to get memory geometry: " << GetLastErrorMessage();
+      resolver.logger->error("Failed to get memory geometry: {}",
+                             GetLastErrorMessage());
     return IO_ERROR;
   }
 
@@ -181,7 +186,7 @@ static void print_memory_info_(const PmemMemoryInfo &info) {
 }
 
 
-static string DumpMemoryInfoToYaml(const PmemMemoryInfo &info) {
+static std::string DumpMemoryInfoToYaml(const PmemMemoryInfo &info) {
   YAML::Emitter out;
   YAML::Node node;
 
@@ -219,16 +224,16 @@ class _PipedReaderStream: public AFF4Stream {
       stdout_rd(stdout_rd)
   {}
 
-  string Read(size_t length) {
-    string buffer(length, 0);
-    DWORD bytes_read = buffer.size();
+  std::string Read(size_t length) {
+      std::string buffer(length, 0);
+      DWORD bytes_read = buffer.size();
 
-    if (!ReadFile(stdout_rd, &buffer[0], bytes_read, &bytes_read, NULL)) {
-      return "";
-    }
+      if (!ReadFile(stdout_rd, &buffer[0], bytes_read, &bytes_read, NULL)) {
+          return "";
+      }
 
-    readptr += bytes_read;
-    return buffer;
+      readptr += bytes_read;
+      return buffer;
   }
 
   virtual ~_PipedReaderStream() {
@@ -244,12 +249,12 @@ AFF4Status WinPmemImager::ImagePageFile() {
   if (pagefiles.size() == 0)
     return CONTINUE;
 
-  string fcat_path = _GetTempPath();
+  std::string fcat_path = _GetTempPath(resolver);
   if (fcat_path.size() == 0)
     return IO_ERROR;
 
   URN fcat_urn = URN::NewURNFromFilename(fcat_path);
-  LOG(INFO) << "fcat_urn " << fcat_urn.SerializeToString();
+  resolver.logger->info("fcat_urn {}", fcat_urn);
   AFF4Status res = ExtractFile_(imager_urn.Append("fcat.exe"),
                                 fcat_urn);
 
@@ -259,7 +264,7 @@ AFF4Status WinPmemImager::ImagePageFile() {
   // Remember to clean up when done.
   to_be_removed.push_back(fcat_urn);
 
-  for (string pagefile_path : pagefiles) {
+  for (const std::string& pagefile_path : pagefiles) {
     // Now shell out to fcat and copy to the output.
     SECURITY_ATTRIBUTES saAttr;
     HANDLE stdout_rd = NULL;
@@ -271,20 +276,20 @@ AFF4Status WinPmemImager::ImagePageFile() {
 
     // Create a pipe for the child process's STDOUT.
     if (!CreatePipe(&stdout_rd, &stdout_wr, &saAttr, 0)) {
-      LOG(ERROR) << "StdoutRd CreatePipe";
-      return IO_ERROR;
+        resolver.logger->error("StdoutRd CreatePipe");
+        return IO_ERROR;
     }
 
     // Ensure the read handle to the pipe for STDOUT is not inherited.
     SetHandleInformation(stdout_rd, HANDLE_FLAG_INHERIT, 0);
-    string command_line = aff4_sprintf(
+    std::string command_line = aff4_sprintf(
         "%s %s \\\\.\\%s", fcat_path.c_str(),
         // path component.
         pagefile_path.substr(3, pagefile_path.size()).c_str(),
         // Drive letter.
         pagefile_path.substr(0, 2).c_str());
 
-    res = CreateChildProcess(command_line, stdout_wr);
+    res = CreateChildProcess(resolver, command_line, stdout_wr);
     if (res != STATUS_OK) {
       to_be_removed.clear();
 
@@ -292,7 +297,7 @@ AFF4Status WinPmemImager::ImagePageFile() {
     }
 
     std::cout << "Preparing to run " << command_line.c_str() << "\n";
-    string buffer(BUFF_SIZE, 0);
+    std::string buffer(BUFF_SIZE, 0);
     URN volume_urn;
     AFF4Status res = GetOutputVolumeURN(volume_urn);
     if (res != STATUS_OK)
@@ -315,7 +320,7 @@ AFF4Status WinPmemImager::ImagePageFile() {
                  new XSDInteger(pagefile_number));
 
 
-    DefaultProgress progress;
+    DefaultProgress progress(&resolver);
     _PipedReaderStream reader_stream(&resolver, stdout_rd);
     res = output_stream->WriteStream(&reader_stream, &progress);
     if (res != STATUS_OK)
@@ -376,8 +381,8 @@ AFF4Status WinPmemImager::ImagePhysicalMemory() {
       map_urn.Append("information.yaml"));
 
   if (!information_stream) {
-    LOG(ERROR) << "Unable to create memory information yaml.";
-    return IO_ERROR;
+      resolver.logger->error("Unable to create memory information yaml.");
+      return IO_ERROR;
   }
 
   PmemMemoryInfo info;
@@ -388,7 +393,7 @@ AFF4Status WinPmemImager::ImagePhysicalMemory() {
   if (information_stream->Write(DumpMemoryInfoToYaml(info)) < 0)
     return IO_ERROR;
 
-  string format = GetArg<TCLAP::ValueArg<string>>("format")->getValue();
+  std::string format = GetArg<TCLAP::ValueArg<std::string>>("format")->getValue();
 
   if (format == "map") {
     res = WriteMapObject_(map_urn, output_volume_urn);
@@ -411,11 +416,11 @@ AFF4Status WinPmemImager::ImagePhysicalMemory() {
 
   // Also capture these by default.
   if (inputs.size() == 0) {
-    LOG(INFO) << "Adding default file collections.";
-    inputs.push_back("C:\\Windows\\SysNative\\drivers\\*.sys");
+      resolver.logger->info("Adding default file collections.");
+      inputs.push_back("C:\\Windows\\SysNative\\drivers\\*.sys");
 
-    // Used to bootstrap kernel GUID detection.
-    inputs.push_back("C:\\Windows\\SysNative\\ntoskrnl.exe");
+      // Used to bootstrap kernel GUID detection.
+      inputs.push_back("C:\\Windows\\SysNative\\ntoskrnl.exe");
   }
 
   res = process_input();
@@ -429,8 +434,9 @@ AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
       <AFF4Stream>(input_file);
 
   if (!input_file_stream) {
-    LOG(FATAL) << "Unable to extract the correct driver - "
-        "maybe the binary is damaged?";
+      resolver.logger->critical("Unable to extract the correct driver - "
+                                "maybe the binary is damaged?");
+      abort();
   }
 
   private_resolver.Set(output_file, AFF4_STREAM_WRITE_MODE,
@@ -440,13 +446,14 @@ AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
       <AFF4Stream>(output_file);
 
   if (!outfile) {
-    LOG(FATAL) << "Unable to create driver file.";
+      resolver.logger->critical("Unable to create driver file.");
+      abort();
   }
 
-  LOG(INFO) << "Extracted " << input_file.SerializeToString() << " to " <<
-      output_file.SerializeToString();
+  resolver.logger->info("Extracted {} to {}", input_file, output_file);
 
   // These files should be small so dont worry about progress.
+  ProgressContext empty_progress(&resolver);
   AFF4Status res = input_file_stream->CopyToStream(
       *outfile, input_file_stream->Size(), &empty_progress);
 
@@ -456,7 +463,7 @@ AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
     res = private_resolver.Close<AFF4Stream>(outfile);
 
   if (res != STATUS_OK) {
-    LOG(ERROR) << "Unable to extract " << input_file.SerializeToString();
+      resolver.logger->error("Unable to extract {}", input_file);
   }
 
   return res;
@@ -464,17 +471,17 @@ AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
 
 
 AFF4Status WinPmemImager::InstallDriver() {
-  string driver_path;
+    std::string driver_path;
 
   // We need to extract the driver somewhere temporary.
   if (!Get("driver")->isSet()) {
-    driver_path = _GetTempPath();
+    driver_path = _GetTempPath(resolver);
     if (driver_path.size() == 0)
       return IO_ERROR;
 
     URN filename_urn = URN::NewURNFromFilename(driver_path);
     AFF4Status res = ExtractFile_(
-        imager_urn.Append(GetDriverName()),   // Driver URN relative to imager.
+        imager_urn.Append(GetDriverName(resolver)),   // Driver URN relative to imager.
         filename_urn);   // Where to store the driver.
 
     if (res != STATUS_OK)
@@ -484,7 +491,7 @@ AFF4Status WinPmemImager::InstallDriver() {
     to_be_removed.push_back(filename_urn);
   } else {
     // Use the driver the user told us to.
-    driver_path = GetArg<TCLAP::ValueArg<string>>("driver")->getValue();
+      driver_path = GetArg<TCLAP::ValueArg<std::string>>("driver")->getValue();
   }
 
   // Now install the driver.
@@ -492,8 +499,8 @@ AFF4Status WinPmemImager::InstallDriver() {
 
   SC_HANDLE scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
   if (!scm) {
-    LOG(ERROR) << "Can not open SCM. Are you administrator?";
-    return IO_ERROR;
+      resolver.logger->error("Can not open SCM. Are you administrator?");
+      return IO_ERROR;
   }
 
   // First try to create the service.
@@ -515,7 +522,7 @@ AFF4Status WinPmemImager::InstallDriver() {
   // Maybe the service is already there - try to open it instead.
   if (GetLastError() == ERROR_SERVICE_EXISTS) {
     service = OpenService(scm, service_name.c_str(),
-                                 SERVICE_ALL_ACCESS);
+                                 SERVICE_ALL_ACCESS,);
   }
 
   if (!service) {
@@ -525,8 +532,9 @@ AFF4Status WinPmemImager::InstallDriver() {
 
   if (!StartService(service, 0, NULL)) {
     if (GetLastError() != ERROR_SERVICE_ALREADY_RUNNING) {
-      LOG(ERROR) << "Error: StartService(), Cannot start the driver:" <<
-          GetLastErrorMessage();
+        resolver.logger->error(
+            "Error: StartService(), Cannot start the driver: {}",
+            GetLastErrorMessage());
       CloseServiceHandle(service);
       CloseServiceHandle(scm);
 
@@ -537,7 +545,7 @@ AFF4Status WinPmemImager::InstallDriver() {
   // Remember this so we can safely unload it.
   driver_installed_ = true;
 
-  LOG(INFO) << "Loaded Driver " << driver_path;
+  resolver.logger->info("Loaded Driver {}", driver_path);
   device_urn = URN::NewURNFromFilename("\\\\.\\" + device_name);
 
   // We need write mode for issuing IO controls. Note the driver will refuse
@@ -548,7 +556,7 @@ AFF4Status WinPmemImager::InstallDriver() {
       <FileBackedObject>(device_urn);
 
   if (!device_stream) {
-    LOG(ERROR) << "Unable to open device: " << GetLastErrorMessage();
+      resolver.logger->error("Unable to open device: {}", GetLastErrorMessage());
     CloseServiceHandle(service);
     CloseServiceHandle(scm);
     return IO_ERROR;
@@ -594,7 +602,8 @@ AFF4Status WinPmemImager::UninstallDriver() {
 }
 
 
-AFF4Status WinPmemImager::Initialize() {
+AFF4Status WinPmemImager::handle_driver() {
+    resolver.logger->info("Extracting WinPmem drivers from binary.");
   // We need to load the AFF4 volume attached to our own executable.
   HMODULE hModule = GetModuleHandleW(NULL);
   CHAR path[MAX_PATH];
@@ -604,25 +613,36 @@ AFF4Status WinPmemImager::Initialize() {
       &private_resolver, URN::NewURNFromFilename(path));
 
   if (!volume) {
-    LOG(FATAL) << "Unable to extract drivers. Maybe the executable is damaged?";
+      resolver.logger->critical(
+          "Unable to extract drivers. Maybe the executable is damaged?");
+      abort();
   }
 
-  LOG(INFO) << "Openning driver AFF4 volume: " <<
-      volume->urn.SerializeToString();
+  resolver.logger->info("Openning driver AFF4 volume: {}", volume->urn);
 
   imager_urn = volume->urn;
 
-  return STATUS_OK;
+  return CONTINUE;
 }
 
 
 AFF4Status WinPmemImager::ParseArgs() {
   AFF4Status result = PmemImager::ParseArgs();
 
+  resolver.logger->info("This is {} version {}", GetName(), GetVersion());
+
+  // Configure our private resolver like the global one.
+  private_resolver.logger->set_level(resolver.logger->level());
+  private_resolver.logger->set_pattern("%Y-%m-%d %T %L %v");
+
+  if (result == CONTINUE) {
+      result = handle_driver();
+  }
+
   // Sanity checks.
   if (result == CONTINUE && Get("load-driver")->isSet() &&
       Get("unload-driver")->isSet()) {
-    LOG(ERROR) << "You can not specify both the -l and -u options together.\n";
+      resolver.logger->error("You can not specify both the -l and -u options together.");
     return INVALID_INPUT;
   }
 
@@ -666,7 +686,7 @@ WinPmemImager::~WinPmemImager() {
 }
 
 AFF4Status WinPmemImager::handle_acquisition_mode() {
-  string mode = GetArg<TCLAP::ValueArg<string>>("mode")->getValue();
+    std::string mode = GetArg<TCLAP::ValueArg<std::string>>("mode")->getValue();
 
   if (mode == "MmMapIoSpace") {
     acquisition_mode = PMEM_MODE_IOSPACE;
@@ -675,7 +695,7 @@ AFF4Status WinPmemImager::handle_acquisition_mode() {
   } else if (mode == "PTERemapping") {
     acquisition_mode = PMEM_MODE_PTE;
   } else {
-    LOG(ERROR) << "Invalid acquisition mode specified: " << mode;
+      resolver.logger->error("Invalid acquisition mode specified: {}", mode);
     return IO_ERROR;
   }
 
@@ -683,14 +703,14 @@ AFF4Status WinPmemImager::handle_acquisition_mode() {
 }
 
 AFF4Status WinPmemImager::handle_pagefiles() {
-  vector<string> pagefile_args = GetArg<TCLAP::MultiArgToNextFlag<string>>(
+    std::vector<std::string> pagefile_args = GetArg<TCLAP::MultiArgToNextFlag<std::string>>(
       "pagefile")->getValue();
 
   for (auto it : pagefile_args) {
     char path[MAX_PATH];
 
     if (GetFullPathName(it.c_str(), MAX_PATH, path, NULL) == 0) {
-      LOG(ERROR) << "GetFullPathName failed: " << GetLastErrorMessage();
+        resolver.logger->error("GetFullPathName failed: {}", GetLastErrorMessage());
       return IO_ERROR;
     }
 
