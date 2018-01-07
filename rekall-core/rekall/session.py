@@ -1195,9 +1195,6 @@ class DynamicNameSpace(dict):
         # Create a runner for this plugin.
         return PluginRunner(self["session"], name)
 
-    def __bool__(self):
-        return bool(self.state)
-
 
 class InteractiveSession(Session):
     """The session allows for storing of arbitrary values and configuration.

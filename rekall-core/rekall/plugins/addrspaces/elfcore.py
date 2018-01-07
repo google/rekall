@@ -83,7 +83,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         self.name = "%s|%s" % (self.__class__.__name__, self.base.name)
 
         # Iterate over all the program headers and map the runs.
-        for segment in self.elf64_hdr.e_phoff:
+        for segment in self.elf64_hdr.segments:
             if segment.p_type == "PT_LOAD":
                 # Some load segments are empty.
                 if (segment.p_filesz == 0 or

@@ -522,7 +522,7 @@ AFF4Status WinPmemImager::InstallDriver() {
   // Maybe the service is already there - try to open it instead.
   if (GetLastError() == ERROR_SERVICE_EXISTS) {
     service = OpenService(scm, service_name.c_str(),
-                                 SERVICE_ALL_ACCESS,);
+                          SERVICE_ALL_ACCESS);
   }
 
   if (!service) {

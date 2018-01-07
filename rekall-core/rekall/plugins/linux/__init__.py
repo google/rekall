@@ -14,6 +14,7 @@ from rekall.plugins.linux import check_tty
 from rekall.plugins.linux import common
 from rekall.plugins.linux import cpuinfo
 from rekall.plugins.linux import dmesg
+from rekall.plugins.linux import elf
 from rekall.plugins.linux import fs
 from rekall.plugins.linux import ifconfig
 from rekall.plugins.linux import iomem

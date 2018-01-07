@@ -739,7 +739,7 @@ def PPrint(data, depth=0):
 
 
 
-DEFINE_REGEX = re.compile(r"#define\s+([A-Z0-9_]+)\s+((0x)?[0-9A-Z]+)")
+DEFINE_REGEX = re.compile(r"#define\s+([A-Za-z0-9_]+)\s+((0x)?[0-9A-Fa-f]+)")
 
 def MaskMapFromDefines(text):
     """Generates a maskmap dict from a list of #defines.

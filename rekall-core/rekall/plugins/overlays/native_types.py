@@ -10,6 +10,22 @@ http://docs.python.org/2/library/struct.html#format-characters
 
 from rekall import obj
 
+# Unambigious types
+BASE = {
+    "uint8_t": obj.Curry(
+        obj.NativeType, type_name='uint8_t', format_string='<B'),
+
+    "uint16_t": obj.Curry(
+        obj.NativeType, type_name='uint16_t', format_string='<H'),
+
+    "uint32_t": obj.Curry(
+        obj.NativeType, type_name='uint32_t', format_string='<I'),
+
+    "uint64_t": obj.Curry(
+        obj.NativeType, type_name='uint64_t', format_string='<Q'),
+}
+
+
 # Model on 64 bit unix like operating systems.
 LP64 = {
     'bool' : obj.Curry(obj.Bool, type_name='bool', format_string='<c'),
@@ -188,6 +204,7 @@ BE32 = {
 
 # These are aliases for the same things
 for model in [LP64, ILP32, LLP64, BE32]:
+    model.update(BASE)
     for old, new in [
         ['char', 'signed char'],
         ['unsigned char', 'byte'],

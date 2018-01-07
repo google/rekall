@@ -74,8 +74,7 @@ class LimeAddressSpace(addrspace.RunBasedAddressSpace):
     def __init__(self, **kwargs):
         super(LimeAddressSpace, self).__init__(**kwargs)
         self.as_assert(self.base, "Must be layered on another address space.")
-
-        self.as_assert(self.base.read(0, 4) == "EMiL",
+        self.as_assert(self.base.read(0, 4) == b"EMiL",
                        "Invalid Lime header signature")
 
         header = LimeProfile(session=self.session).lime_header(vm=self.base)

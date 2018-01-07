@@ -475,16 +475,19 @@ class BaseObject(with_metaclass(registry.UniqueObjectIdMetaclass, object)):
         return self.obj_profile.Pointer(value=self.obj_offset, vm=self.obj_vm,
                                         target=self.obj_type)
 
-    def cast(self, type_name=None, vm=None, **kwargs):
+    def cast(self, type_name=None, vm=None, context=None, **kwargs):
         # Allow the caller to also change the offset, overriding the current
         # object.
         offset = kwargs.pop("offset", self.obj_offset)
         profile_obj = kwargs.pop("profile", self.obj_profile)
 
         return profile_obj.Object(
-            type_name=type_name or self.obj_type, offset=offset,
-            vm=vm or self.obj_vm, parent=self.obj_parent,
-            context=self.obj_context, **kwargs)
+            offset=offset,
+            type_name=type_name or self.obj_type,
+            vm=vm or self.obj_vm,
+            parent=self.obj_parent,
+            context=context or self.obj_context,
+            **kwargs)
 
     def v(self, vm=None):
         """ Do the actual reading and decoding of this member
@@ -1151,10 +1154,11 @@ class PointerArray(Array):
         return self.obj_profile.Pointer(value=self._data[pos], vm=self.obj_vm)
 
 
-class ListArray(Array):
-    """An array of structs which do not all have the same size."""
+class LinkedListArray(Array):
+    """A ListArray which results by following a linked list."""
 
-    def __init__(self, maximum_size=None, maximum_offset=None, **kwargs):
+    def __init__(self, maximum_size=None, maximum_offset=None,
+                 next_member=None, **kwargs):
         """Constructor.
 
         This array may be initialized using one of the following parameters:
@@ -1167,7 +1171,7 @@ class ListArray(Array):
           count is calculated. max_count should be set to an upper bound on the
           size of the array.
         """
-        super(ListArray, self).__init__(**kwargs)
+        super(LinkedListArray, self).__init__(**kwargs)
         if callable(maximum_size):
             maximum_size = int(maximum_size(self.obj_parent))
 
@@ -1183,6 +1187,10 @@ class ListArray(Array):
             maximum_offset = self.obj_offset + maximum_size
 
         self.maximum_offset = maximum_offset
+        if not callable(next_member):
+            raise TypeError("Next member must be a callable.")
+
+        self.next_member = next_member
 
     def __len__(self):
         """It is generally too expensive to rely on the count of this array."""
@@ -1195,7 +1203,16 @@ class ListArray(Array):
 
     def __iter__(self):
         offset = self.obj_offset
+
+        # The first item is at the start of the array.
         count = 0
+        item = self.cast(self.target,
+                         name="{0}[{1}] ".format(self.obj_name, count),
+                         **self.target_args)
+        yield item
+
+        count += 1
+
         while 1:
             # Exit conditions.
             if self.maximum_offset and offset > self.maximum_offset:
@@ -1210,17 +1227,19 @@ class ListArray(Array):
                     self.obj_name)
                 break
 
-            item = self.obj_profile.Object(
-                self.target, offset=offset, vm=self.obj_vm, parent=self,
-                profile=self.obj_profile, context=self.obj_context,
-                name="{0}[{1}] ".format(self.obj_name, count),
-                **self.target_args)
+            next_offset = self.next_member(self, item)
 
-            item_size = item.obj_size
-            if item_size <= 0:
-                break
+            item = self.cast(self.target,
+                             offset=next_offset,
+                             name="{0}[{1}] ".format(self.obj_name, count),
+                             **self.target_args)
 
-            offset += item_size
+            # If no more progress is made we are done.
+            if next_offset == offset:
+                return
+
+            offset = next_offset
+
             count += 1
 
             yield item
@@ -1231,6 +1250,15 @@ class ListArray(Array):
                 return item
 
         return NoneObject("Pos seems to be outside the array maximum_size.")
+
+
+class ListArray(LinkedListArray):
+    """An array of structs which do not all have the same size."""
+
+    def __init__(self, *args, **kwargs):
+        # Next member is immediately after this one.
+        kwargs["next_member"] = lambda x, item: item.obj_offset + item.obj_size
+        super(ListArray, self).__init__(*args, **kwargs)
 
 
 class BaseAddressComparisonMixIn(object):
@@ -1732,6 +1760,7 @@ class Profile(with_metaclass(registry.MetaclassRegistry, object)):
                       'void': Void,
                       'Array': Array,
                       'PointerArray': PointerArray,
+                      'LinkedListArray': LinkedListArray,
                       'ListArray': ListArray,
                       'NativeType': NativeType,
                       'Struct': Struct}
