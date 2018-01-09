@@ -577,6 +577,8 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         while 1:
             # By default read 2 pages.
             data = self.obj_vm.read(buffer_offset, 0x2000)
+            if data == None:
+                return
 
             for instruction in self.dis.disassemble(data, buffer_offset):
                 offset = instruction.address

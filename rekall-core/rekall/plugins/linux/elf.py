@@ -117,7 +117,7 @@ class ELFVerSymbols(ELFPlugins):
                 needed = aux = None
                 filename = symbol_name = ""
 
-            yield dict(symbol=symbol_record,
+            yield dict(elf64_sym=symbol_record,
                        file=filename,
                        Version=symbol_name,
                        other_id=other_ref,
