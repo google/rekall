@@ -67,7 +67,7 @@ class VMemAddressSpace(addrspace.RunBasedAddressSpace):
         lengths = self.header.GetTags("memory", "regionSize")
 
         for v, p, l in zip(virtual_offsets, file_offsets, lengths):
-            self.add_run(v * 0x1000, p * 0x1000, l * 0x1000)
+            self.add_run(v.Data * 0x1000, p.Data * 0x1000, l.Data * 0x1000)
 
 
 class VMSSAddressSpace(addrspace.RunBasedAddressSpace):

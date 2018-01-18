@@ -1424,7 +1424,8 @@ class zone(obj.Struct):
         limit = page_start + 0x1000 - self.elem_size
         # Page metadata is always inlined at the end of the page. So that's
         # space that contain valid elements.
-        limit -= self.obj_profile.get_obj_size("zone_page_metadata")
+        if self.obj_profile.get_obj_size("zone_page_metadata"):
+            limit -= self.obj_profile.get_obj_size("zone_page_metadata")
 
         return range(page_start, limit, self.elem_size)
 
