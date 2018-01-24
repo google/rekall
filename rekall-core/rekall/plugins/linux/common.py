@@ -409,6 +409,7 @@ class LinuxKASLR(AbstractLinuxParameterHook):
     only come into play when the user provided the profile specifically.
     """
     name = "kernel_slide"
+    volatile = False
 
     def calculate(self):
         if self.session.GetCache("execution_phase") == "ProfileAutodetect":
@@ -449,6 +450,7 @@ class LinuxInitTaskHook(AbstractLinuxParameterHook):
 class LinuxIOMap(AbstractLinuxParameterHook):
     """Parse and calculated all the ranges exported by the IOMap."""
     name = "iomap"
+    volatile = False
 
     def calculate(self):
         io_map_vm = self.session.physical_address_space.get_file_address_space(
