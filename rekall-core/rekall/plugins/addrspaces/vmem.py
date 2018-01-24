@@ -37,6 +37,8 @@ from rekall_lib import utils
 class VMemAddressSpace(addrspace.RunBasedAddressSpace):
     __image = True
 
+    order = 40
+
     def __init__(self, base=None, **kwargs):
         """Currently this AS only supports files with the .vmem extension."""
         self.as_assert(base != None, "No base address space provided")

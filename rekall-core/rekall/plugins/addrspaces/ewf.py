@@ -54,6 +54,7 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
             session=self.session, address_space=self.base)
 
         self.name = "%s (EWF)" % self.base.name
+        self.fname = getattr(self.base, "fname", "")
 
     def cached_read_partial(self, offset, length):
         """Implement our own read method for caching."""

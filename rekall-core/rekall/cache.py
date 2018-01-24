@@ -20,6 +20,10 @@ config.DeclareOption(
     choices=["file", "memory", "timed"],
     help="Type of cache to use. ")
 
+config.DeclareOption(
+    "--cache_expiry_time", default=600, type="Float",
+    help="Expiry times for timed caches. ")
+
 
 class RestrictedUnpickler(pickle.Unpickler):
 
@@ -121,10 +125,7 @@ class TimedCache(Cache):
     This is useful for live analysis to ensure that information is not stale.
     """
 
-    @utils.safe_property
-    def expire_time(self):
-        # Change this via the session.SetParameter("cache_expiry_time", XXX)
-        return self.data.get("cache_expiry_time", 600)
+    expire_time = 600
 
     def Get(self, item, default=None):
         now = time.time()
@@ -161,7 +162,6 @@ class TimedCache(Cache):
         now = time.time()
         for k, (v, timestamp) in six.iteritems(self.data):
             if timestamp + self.expire_time < now:
-                self.data.pop(k)
                 continue
 
             if isinstance(v, obj.BaseObject):
@@ -170,8 +170,11 @@ class TimedCache(Cache):
             value = u"\n  ".join(str(v).splitlines())
             if len(value) > 1000:
                 value = u"%s ..." % value[:1000]
+            prefix = ""
+            if timestamp == 2**63:
+                prefix = "(NV)"
 
-            result.append(u"  %s = %s" % (k, value))
+            result.append(u"  %s %s = %s" % (prefix, k, value))
 
         return u"{\n" + u"\n".join(sorted(result)) + u"\n}"
 
