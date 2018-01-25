@@ -735,8 +735,7 @@ def PPrint(data, depth=0):
     elif data is None:
         return u"null"
 
-    return "\"%s\"" % SmartUnicode(data)
-
+    return json.dumps(SmartUnicode(data))
 
 
 DEFINE_REGEX = re.compile(r"#define\s+([A-Za-z0-9_]+)\s+((0x)?[0-9A-Fa-f]+)")
