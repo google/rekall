@@ -125,7 +125,9 @@ class TimedCache(Cache):
     This is useful for live analysis to ensure that information is not stale.
     """
 
-    expire_time = 600
+    def __init__(self, session):
+        super(TimedCache, self).__init__(session)
+        self.expire_time = self.session.GetParameter("cache_expiry_time", 600)
 
     def Get(self, item, default=None):
         now = time.time()

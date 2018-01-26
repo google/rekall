@@ -390,9 +390,6 @@ class Configuration(utils.AttributeDict):
 
         return session_id
 
-    def _set_cache_expiry_time(self, time, _):
-        self.session.cache.expire_time = float(time)
-
     def Set(self, attr, value):
         hook = getattr(self, "_set_%s" % attr, None)
         if hook:
