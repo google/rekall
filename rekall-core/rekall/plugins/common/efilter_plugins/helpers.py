@@ -60,6 +60,37 @@ def substitute(pattern, repl, target):
         return re.sub(pattern, repl, six.text_type(target), re.I)
 
 
+def re_filter(pattern, target):
+    if isinstance(target, (list, tuple)):
+        result = []
+        for item in target:
+            if re_filter(pattern, item):
+                result.append(tmp)
+
+        return result
+
+    elif isinstance(target, dict):
+        result = {}
+        for item, value in target.items():
+            if re_filter(pattern, item):
+                result[item] = value
+        return result
+
+    else:
+        try:
+            if re.search(pattern, target, re.I):
+                return target
+        except TypeError:
+            pass
+
+def join(seperator, target):
+    if isinstance(target, (list, tuple)):
+        return seperator.join(target)
+
+    return target
+
+
+
 EFILTER_SCOPES = dict(
     hex=api.user_func(
         hex_function, arg_types=[int], return_type=[str]),
@@ -76,6 +107,8 @@ EFILTER_SCOPES = dict(
 
     concat=api.user_func(lambda *args: "".join(args)),
     sub=api.user_func(substitute),
+    re_filter=api.user_func(re_filter),
+    join=api.user_func(join),
 )
 
 

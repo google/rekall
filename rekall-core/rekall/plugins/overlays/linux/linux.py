@@ -793,6 +793,10 @@ class task_struct(obj.Struct):
 
         return process_as
 
+    def __repr__(self):
+        return "%s (pid=%s)" % (super(task_struct, self).__repr__(), self.pid)
+
+
 
 class timespec(obj.Struct):
     # The following calculates the number of ns each tick is.

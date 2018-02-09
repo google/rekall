@@ -175,7 +175,9 @@ setup(
     extras_require={
         # The following requirements are needed in Windows.
         ':sys_platform=="win32"': [
-            "pypiwin32==220",
+            # Just grab the latest since it is not the same version on
+            # both python2 and python3.
+            "pypiwin32",
         ],
     }
 )

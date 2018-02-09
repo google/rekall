@@ -182,7 +182,7 @@ class WinVirtualMap(common.WindowsCommandPlugin):
             "MiSystemRangeStart", "unsigned int")
 
         # The size varies on PAE profiles.
-        va_table_size = 0x1000 * 0x1000 / self.profile.get_obj_size("_MMPTE")
+        va_table_size = 0x1000 * 0x1000 // self.profile.get_obj_size("_MMPTE")
 
         # Coalesce the ranges.
         range_type = range_start = range_length = 0
