@@ -997,7 +997,7 @@ class SetProcessContextMixin(object):
         if process == None:
             # Nothing to do.
             if current_address_space == self.session.kernel_address_space:
-                return
+                return ""
 
             message = "Switching to Kernel context"
             self.session.SetCache("default_address_space",
@@ -1009,7 +1009,7 @@ class SetProcessContextMixin(object):
 
             # Nothing to do.
             if current_address_space == process_address_space:
-                return
+                return ""
 
             message = ("Switching to process context: {0} "
                        "(Pid {1}@{2:#x})").format(
@@ -1017,7 +1017,7 @@ class SetProcessContextMixin(object):
 
             self.session.SetCache(
                 "default_address_space",
-                current_address_space or None, volatile=False)
+                process_address_space or None, volatile=False)
 
         # Reset the address resolver for the new context.
         self.session.SetCache("process_context", process, volatile=False)
