@@ -86,13 +86,16 @@ class ImageCopy(plugin.PhysicalASMixin, plugin.Command):
         blocksize = 1024 * 1024 * 5
         with renderer.open(filename=self.output_image, mode="wb") as fd:
             for run in self.address_space.get_mappings():
-                renderer.format("Range {0:#x} - {1:#x}\n", run.start,
-                                run.length)
+                self.session.report_progress(
+                    "Range %x - %x", run.start, run.length)
 
                 for offset in utils.xrange(
                         run.start, run.end, blocksize):
                     to_read = min(blocksize, run.end - offset)
                     data = self.address_space.read(offset, to_read)
+
+                    if offset > 500e9:
+                        break
 
                     fd.seek(offset)
                     fd.write(data)

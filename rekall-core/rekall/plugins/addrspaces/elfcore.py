@@ -28,6 +28,7 @@
 # format. Except that WinPmem stores image metadata in a YAML file stored in the
 # image. This address space supports both formats.
 import re
+import struct
 import os
 import yaml
 
@@ -98,6 +99,8 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
 
             elif segment.p_type == PT_PMEM_METADATA:
                 self.LoadMetadata(segment.p_offset)
+
+        self.as_assert(len(self.runs) > 0, "No program headers found")
 
     def check_file(self):
         """Checks the base file handle for sanity."""
@@ -264,6 +267,91 @@ class KCoreAddressSpace(Elf64CoreDump):
                                              session=self.session)
         except IOError:
             return
+
+
+class XenElf64CoreDump(addrspace.PagedReader):
+    """An Address space to support XEN memory dumps.
+
+    https://xenbits.xen.org/docs/4.8-testing/misc/dump-core-format.txt
+    """
+    order = 30
+    __name = "xenelf64"
+    __image = True
+
+    def __init__(self, **kwargs):
+        super(XenElf64CoreDump, self).__init__(**kwargs)
+        self.check_file()
+
+        self.offset = 0
+        self.fname = ''
+        self._metadata = {}
+
+        # Now parse the ELF file.
+        self.elf_profile = elf.ELFProfile(session=self.session)
+        self.elf64_hdr = self.elf_profile.elf64_hdr(vm=self.base, offset=0)
+        self.as_assert(self.elf64_hdr.e_type == "ET_CORE",
+                       "Elf file is not a core file.")
+        xen_note = self.elf64_hdr.section_by_name(".note.Xen")
+        self.as_assert(xen_note, "Image does not contain Xen note.")
+
+        self.name = "%s|%s" % (self.__class__.__name__, self.base.name)
+        self.runs = self.build_runs()
+
+    def build_runs(self):
+        pages = self.elf64_hdr.section_by_name(".xen_pages")
+        self.pages_offset = pages.sh_offset.v()
+
+        self.as_assert(pages, "Image does not contain Xen pages.")
+
+        pfn_map = self.elf64_hdr.section_by_name(".xen_pfn")
+        self.max_pfn = 0
+
+        # Build a map for all the pages.
+        runs = {}
+        if pfn_map:
+            pfn_map_data = self.base.read(pfn_map.sh_offset,
+                                          pfn_map.sh_size)
+
+            # Use struct directly to make this very fast since there are so many
+            # entries.
+            for i, pfn in enumerate(
+                struct.unpack("Q" * (len(pfn_map_data) // 8 ),
+                              pfn_map_data)):
+                self.session.report_progress(
+                    "Adding run %s to PFN %08x", i, pfn)
+                runs[pfn] = i
+                self.max_pfn = max(self.max_pfn, pfn)
+
+        return runs
+
+    def vtop(self, vaddr):
+        try:
+            return (self.runs[vaddr // self.PAGE_SIZE] * self.PAGE_SIZE +
+                    self.pages_offset + vaddr % self.PAGE_SIZE)
+        except KeyError:
+            return None
+
+    def check_file(self):
+        """Checks the base file handle for sanity."""
+
+        self.as_assert(self.base,
+                       "Must stack on another address space")
+
+        ## Must start with the magic for elf
+        self.as_assert((self.base.read(0, 4) == b"\177ELF"),
+                       "Header signature invalid")
+
+    def get_mappings(self, start=0, end=2**64):
+        for run_pfn in sorted(self.runs):
+            start = run_pfn * self.PAGE_SIZE
+            run = addrspace.Run(start=start,
+                                end=start + self.PAGE_SIZE,
+                                file_offset=self.vtop(start),
+                                address_space=self.base)
+            yield run
+
+    def end(self):
+        return self.max_pfn
 
 
 def WriteElfFile(address_space, outfd, session=None):

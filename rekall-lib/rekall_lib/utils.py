@@ -874,6 +874,9 @@ class RangedCollection(object):
             start, end = key
             yield start, end, self.collection[key]
 
+    def __len__(self):
+        return len(self.collection)
+
     def __str__(self):
         result = []
         for start, end, data in self:
