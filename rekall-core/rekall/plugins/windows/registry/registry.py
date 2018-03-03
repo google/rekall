@@ -453,13 +453,38 @@ class _CM_KEY_VALUE(obj.Struct):
             return self._decode_data(self.obj_vm.read(
                 self.m("Data").obj_offset, self.DataLength & 0x7FFFFFFF))
 
-        elif self.DataLength > 0x4000:
-            return obj.NoneObject("Big data not supported.")
+        # _CM_BIG_DATA is valid only for HIVE Minor > 3
+        elif ( self.obj_vm.hive.Hive.BaseBlock.Minor.v() > 3 ) and ( self.DataLength > 0x4000 ):
 
-            big_data = self.obj_profile._CM_BIG_DATA(
-                self.Data, vm=self.obj_vm)
+            big_data = self.obj_profile._CM_BIG_DATA( self.Data, vm=self.obj_vm )
 
-            return self._decode_data(big_data.Data)
+            if big_data.Count.v() and ( big_data.Count.v() < 0x80000000 ):
+
+                full_data_len = self.DataLength.v()
+                full_data     = ''
+
+                # Get data from all segments cells...
+                for data_fragment_count in range( big_data.Count.v() ):
+
+                    fragment_cell = self.obj_profile.Object( "unsigned int",
+                                                             offset = big_data.List.v() + ( data_fragment_count * 4 ),
+                                                             vm = self.obj_vm ).v()
+                    if not fragment_cell:
+                        break
+
+                    len_to_read = min( Registry.BIG_DATA_MAGIC, full_data_len )
+
+                    full_data += self.obj_vm.read( fragment_cell, len_to_read )
+
+                    full_data_len -= len_to_read
+
+                    if full_data_len < 1:
+                        break
+
+                if full_data:
+                    return self._decode_data( full_data )
+
+            return obj.NoneObject( "Corrupted memory in registry Big Data." )
 
         else:
             return self._decode_data(self.obj_vm.read(
