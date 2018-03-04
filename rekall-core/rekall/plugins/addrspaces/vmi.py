@@ -1,4 +1,8 @@
-from libvmi import Libvmi
+libvmi = None
+try:
+    from libvmi import Libvmi
+except ImportError:
+    pass
 from rekall import addrspace
 
 URL_PREFIX = 'vmi://'
@@ -12,6 +16,7 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
     __image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
+        self.as_assert(libvmi, "The LibVMI python bindings must be installed")
         self.as_assert(base is None, "must be first Address Space")
         self.session = session
 
