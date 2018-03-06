@@ -1142,7 +1142,7 @@ def encode_string(string):
     result = []
     for c in byte_string:
         c = my_ord(c)
-        if c > 128 or c < 32:
+        if c > 127 or c < 32:
             result.extend("\\x%02x" % c)
         else:
             result.append(chr(c))
