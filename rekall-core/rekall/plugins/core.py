@@ -945,11 +945,20 @@ class Grep(plugin.TypedProfileCommand, plugin.ProfileCommand):
         dict(name="address_space", type="AddressSpace",
              help="Name of the address_space to search."),
 
-        dict(name="context", default=20, type="IntParser",
-             help="Context to print around the hit."),
+        dict(name="before", default=16, type="IntParser",
+             help="Number of bytes before the hit to print."),
 
-        dict(name="limit", default=2**64,
+        dict(name="after", default=16, type="IntParser",
+             help="Number of bytes after the hit to print."),
+
+        dict(name="limit", default=2**64, type="IntParser",
              help="The length of data to search."),
+
+        dict(name="count", default=False, type="Boolean",
+             help="Report the number of hits found."),
+
+        dict(name="max", default=0, type="IntParser",
+             help="Stop once this many hits are found.")
     ]
 
     def render(self, renderer):
@@ -958,13 +967,21 @@ class Grep(plugin.TypedProfileCommand, plugin.ProfileCommand):
             address_space=self.plugin_args.address_space,
             session=self.session)
 
+        count = 0
         for hit, _ in scanner.scan(offset=self.plugin_args.offset,
                                    maxlen=self.plugin_args.limit):
             hexdumper = self.session.plugins.dump(
-                offset=hit - 16, length=self.plugin_args.context + 16,
+                offset=hit - self.plugin_args.before, length=16 + self.plugin_args.after,
                 address_space=self.plugin_args.address_space)
 
             hexdumper.render(renderer)
+            count += 1
+
+            if count == self.plugin_args.max:
+                break
+
+        if self.plugin_args.count:
+            renderer.write("--\nFound {:,} hits.\n".format(count))
 
 
 class SetProcessContextMixin(object):
