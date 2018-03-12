@@ -961,7 +961,26 @@ class Grep(plugin.TypedProfileCommand, plugin.ProfileCommand):
              help="Stop once this many hits are found.")
     ]
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="count", width=5, align="r", hidden=True)
+    ] + Dump.table_header
+
+    def column_types(self):
+        temp = Dump.column_types()
+        temp["count"] = int
+        return temp
+
+    def __init__(self, *args, **kwargs):
+        address_map = kwargs.pop("address_map", None)
+        super(Grep, self).__init__(*args, **kwargs)
+
+        # default width can be set in the session.
+        self.width = self.session.GetParameter("hexdump_width", 16)
+        self.rows = self.session.GetParameter("paging_limit", 30)
+
+        self.address_map = address_map or AddressMap()
+
+    def collect(self):
         scanner = scan.MultiStringScanner(
             needles=[utils.SmartStr(x) for x in self.plugin_args.keyword],
             address_space=self.plugin_args.address_space,
@@ -970,18 +989,26 @@ class Grep(plugin.TypedProfileCommand, plugin.ProfileCommand):
         count = 0
         for hit, _ in scanner.scan(offset=self.plugin_args.offset,
                                    maxlen=self.plugin_args.limit):
-            hexdumper = self.session.plugins.dump(
-                offset=hit - self.plugin_args.before, length=16 + self.plugin_args.after,
-                address_space=self.plugin_args.address_space)
 
-            hexdumper.render(renderer)
+            after = self.plugin_args.after + 16
+
             count += 1
+            hex_data = utils.HexDumpedString(
+                self.plugin_args.address_space.read(hit, after),
+                highlights=self.address_map.HighlightRange(
+                    hit, hit + 2, relative=False),
+                hex_width=self.width)
+
+            comment = self.address_map.GetComment(hit, hit + self.width)
+
+            yield dict(offset=hit,
+                       hexdump=hex_data,
+                       comment=comment,
+                       count=count,
+                       nowrap=True, hex_width=self.width)
 
             if count == self.plugin_args.max:
                 break
-
-        if self.plugin_args.count:
-            renderer.write("--\nFound {:,} hits.\n".format(count))
 
 
 class SetProcessContextMixin(object):
