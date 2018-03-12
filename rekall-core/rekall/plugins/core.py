@@ -976,8 +976,6 @@ class Grep(plugin.TypedProfileCommand, plugin.ProfileCommand):
 
         # default width can be set in the session.
         self.width = self.session.GetParameter("hexdump_width", 16)
-        self.rows = self.session.GetParameter("paging_limit", 30)
-
         self.address_map = address_map or AddressMap()
 
     def collect(self):
@@ -995,8 +993,6 @@ class Grep(plugin.TypedProfileCommand, plugin.ProfileCommand):
             count += 1
             hex_data = utils.HexDumpedString(
                 self.plugin_args.address_space.read(hit, after),
-                highlights=self.address_map.HighlightRange(
-                    hit, hit + 2, relative=False),
                 hex_width=self.width)
 
             comment = self.address_map.GetComment(hit, hit + self.width)
