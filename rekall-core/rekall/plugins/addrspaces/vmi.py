@@ -1,5 +1,6 @@
 libvmi = None
 try:
+    import libvmi
     from libvmi import Libvmi
 except ImportError:
     pass
