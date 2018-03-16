@@ -31,6 +31,8 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
 
         super(VMIAddressSpace, self).__init__(base=base, session=session, **kwargs)
         self.vmi = Libvmi(domain, partial=True)
+        self.min_addr = 0
+        self.max_addr = self.vmi.get_memsize() - 1
 
     def close(self):
         self.vmi.destroy()
@@ -50,10 +52,10 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
     def is_valid_address(self, addr):
         if addr is None:
             return False
-        return 4096 < addr < self.vmi.get_memsize() - 1
+        return self.min_addr < addr < self.max_addr
 
     def get_available_addresses(self):
-        yield (4096, self.vmi.get_memsize() - 4096)
+        yield (self.min_addr, self.max_addr)
 
     def get_mappings(self, start=0, end=2 ** 64):
-        yield addrspace.Run(start=0, end=self.vmi.get_memsize(), file_offset=0, address_space=self)
+        yield addrspace.Run(start=self.min_addr, end=self.max_addr, file_offset=0, address_space=self)
