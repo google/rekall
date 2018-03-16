@@ -1,7 +1,7 @@
 libvmi = None
 try:
     import libvmi
-    from libvmi import Libvmi, VMIMode
+    from libvmi import Libvmi, VMIMode, LibvmiError
 except ImportError:
     pass
 import re
@@ -56,9 +56,10 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
         self.vmi.destroy()
 
     def read(self, addr, size):
-        buffer, bytes_read = self.vmi.read_pa(addr, size)
-        if bytes_read != size:
-            raise RuntimeError('Error while reading physical memory at {}'.format(hex(addr)))
+        try:
+            buffer, bytes_read = self.vmi.read_pa(addr, size)
+        except LibvmiError:
+            buffer = bytes(size)
         return buffer
 
     def write(self, addr, data):
