@@ -1,13 +1,24 @@
 libvmi = None
 try:
     import libvmi
-    from libvmi import Libvmi
+    from libvmi import Libvmi, VMIMode
 except ImportError:
     pass
+import re
 from rekall import addrspace
 
 URL_PREFIX = 'vmi://'
 
+# URL must be like the following:
+#   vmi://<domain>
+# examples:
+#   vmi://windows_7_x64
+#   vmi://debian_stretch
+# if you wish to specify the hypervisor:
+#   vmi://(xen|kvm)/<domain>
+# exmaples:
+#   vmi://xen/windows_10
+#   vmi://kvm/winxp
 class VMIAddressSpace(addrspace.BaseAddressSpace):
     """An address space which operates on top of Libvmi's interface."""
 
@@ -25,13 +36,19 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
         url = filename or (session and session.GetParameter("filename"))
         self.as_assert(url, "Filename must be specified in session (e.g. "
                        "session.SetParameter('filename', 'vmi://domain').")
-        self.as_assert(url.startswith(URL_PREFIX),
-                       "The domain must be passed with the URL prefix {}".format(URL_PREFIX))
-        domain = url[len(URL_PREFIX):]
-        self.as_assert(domain, "domain name missing after {}".format(URL_PREFIX))
+        pattern = '{}((?P<hypervisor>xen|kvm)/)?(?P<domain>.*)'.format(URL_PREFIX)
+        m = re.match(pattern, url)
+        self.as_assert(m,
+                "VMI URL format: {}(xen|kvm)?<domain>".format(URL_PREFIX))
+        domain = m.group('domain')
+        hypervisor = m.group('hypervisor')
+        self.as_assert(domain, "no domain name specified")
+        self.mode = None
+        if hypervisor:
+            self.mode = VMIMode[hypervisor.upper()]
 
         super(VMIAddressSpace, self).__init__(base=base, session=session, **kwargs)
-        self.vmi = Libvmi(domain, partial=True)
+        self.vmi = Libvmi(domain, mode=self.mode, partial=True)
         self.min_addr = 0
         self.max_addr = self.vmi.get_memsize() - 1
 
