@@ -14,6 +14,7 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
     __abstract = False
     __name = "vmi"
     order = 90
+    volatile = True
     __image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
