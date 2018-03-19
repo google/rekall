@@ -4,11 +4,11 @@ try:
     from libvmi import Libvmi, VMIMode, LibvmiError
 except ImportError:
     pass
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
+from distutils.util import strtobool
 from rekall import addrspace
 
 SCHEME = 'vmi'
-URL_PREFIX = SCHEME + '://'
 
 class VMIAddressSpace(addrspace.BaseAddressSpace):
     """An address space which operates on top of Libvmi's interface."""
@@ -36,13 +36,26 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
         hypervisor = vmi_url.netloc
         if hypervisor:
             self.mode = VMIMode[hypervisor.upper()]
+        # query parameters ?
+        self.volatile = True
+        if vmi_url.query:
+            params = parse_qs(vmi_url.query, strict_parsing=True)
+            try:
+                self.volatile = strtobool((params['volatile'][0]))
+            except KeyError:
+                raise RuntimeError('Invalid query parameters in vmi:// URI')
         # build Libvmi instance
         super(VMIAddressSpace, self).__init__(base=base, session=session, **kwargs)
         self.vmi = Libvmi(domain, mode=self.mode, partial=True)
         self.min_addr = 0
         self.max_addr = self.vmi.get_memsize() - 1
+        # pause in case volatile has been disabled
+        if not self.volatile:
+            self.vmi.pause_vm()
 
     def close(self):
+        if not self.volatile:
+            self.vmi.resume_vm()
         self.vmi.destroy()
 
     def read(self, addr, size):
