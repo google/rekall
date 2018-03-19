@@ -5,7 +5,7 @@ from rekall import addrspace
 libvmi = None
 try:
     import libvmi
-    from libvmi import Libvmi, VMIMode, LibvmiError
+    from libvmi import Libvmi, VMIMode
 except ImportError:
     pass
 
@@ -62,10 +62,7 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
         self.vmi.destroy()
 
     def read(self, addr, size):
-        try:
-            buffer, bytes_read = self.vmi.read_pa(addr, size)
-        except LibvmiError:
-            buffer = bytes(size)
+        buffer, _ = self.vmi.read_pa(addr, size, padding=True)
         return buffer
 
     def write(self, addr, data):
