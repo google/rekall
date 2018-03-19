@@ -1,14 +1,16 @@
+from urllib.parse import urlparse, parse_qs
+from distutils.util import strtobool
+from rekall import addrspace
+
 libvmi = None
 try:
     import libvmi
     from libvmi import Libvmi, VMIMode, LibvmiError
 except ImportError:
     pass
-from urllib.parse import urlparse, parse_qs
-from distutils.util import strtobool
-from rekall import addrspace
 
 SCHEME = 'vmi'
+
 
 class VMIAddressSpace(addrspace.BaseAddressSpace):
     """An address space which operates on top of Libvmi's interface."""
@@ -45,7 +47,8 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
             except KeyError:
                 raise RuntimeError('Invalid query parameters in vmi:// URI')
         # build Libvmi instance
-        super(VMIAddressSpace, self).__init__(base=base, session=session, **kwargs)
+        super(VMIAddressSpace, self).__init__(base=base, session=session,
+                                              **kwargs)
         self.vmi = Libvmi(domain, mode=self.mode, partial=True)
         self.min_addr = 0
         self.max_addr = self.vmi.get_memsize() - 1
@@ -80,4 +83,5 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
         yield (self.min_addr, self.max_addr)
 
     def get_mappings(self, start=0, end=2 ** 64):
-        yield addrspace.Run(start=self.min_addr, end=self.max_addr, file_offset=0, address_space=self)
+        yield addrspace.Run(start=self.min_addr, end=self.max_addr,
+                            file_offset=0, address_space=self)
