@@ -67,7 +67,9 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
 
     def __init__(self, **kwargs):
         super(Elf64CoreDump, self).__init__(**kwargs)
-
+        self.as_assert("kcore" in self.session.GetParameter(
+            "filename", ""), "Not kcore")
+        
         # Check the file for sanity.
         self.check_file()
 
