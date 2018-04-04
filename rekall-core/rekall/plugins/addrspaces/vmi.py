@@ -76,7 +76,7 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
     def is_valid_address(self, addr):
         if addr is None:
             return False
-        return self.min_addr < addr < self.max_addr
+        return self.min_addr <= addr <= self.max_addr
 
     def get_available_addresses(self):
         yield (self.min_addr, self.max_addr)
