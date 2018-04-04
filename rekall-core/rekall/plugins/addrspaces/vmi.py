@@ -55,6 +55,8 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
         # pause in case volatile has been disabled
         if not self.volatile:
             self.vmi.pause_vm()
+        # register flush hook to destroy vmi instance when session.Flush() is called
+        session.register_flush_hook(self, self.close)
 
     def close(self):
         if not self.volatile:
