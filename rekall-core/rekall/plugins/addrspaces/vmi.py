@@ -1,12 +1,16 @@
+from urllib.parse import urlparse, parse_qs
+from distutils.util import strtobool
+from rekall import addrspace
+
 libvmi = None
 try:
     import libvmi
-    from libvmi import Libvmi
+    from libvmi import Libvmi, VMIMode
 except ImportError:
     pass
-from rekall import addrspace
 
-URL_PREFIX = 'vmi://'
+SCHEME = 'vmi'
+
 
 class VMIAddressSpace(addrspace.BaseAddressSpace):
     """An address space which operates on top of Libvmi's interface."""
@@ -14,6 +18,7 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
     __abstract = False
     __name = "vmi"
     order = 90
+    volatile = True
     __image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
@@ -23,22 +28,43 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
 
         url = filename or (session and session.GetParameter("filename"))
         self.as_assert(url, "Filename must be specified in session (e.g. "
-                       "session.SetParameter('filename', 'vmi://domain').")
-        self.as_assert(url.startswith(URL_PREFIX),
-                       "The domain must be passed with the URL prefix {}".format(URL_PREFIX))
-        domain = url[len(URL_PREFIX):]
-        self.as_assert(domain, "domain name missing after {}".format(URL_PREFIX))
-
-        super(VMIAddressSpace, self).__init__(base=base, session=session, **kwargs)
-        self.vmi = Libvmi(domain, partial=True)
+                       "session.SetParameter('filename', 'vmi:///domain').")
+        vmi_url = urlparse(url)
+        self.as_assert(vmi_url.scheme == SCHEME, "URL scheme must be vmi://")
+        self.as_assert(vmi_url.path, "No domain name specified")
+        domain = vmi_url.path[1:]
+        # hypervisor specified ?
+        self.mode = None
+        hypervisor = vmi_url.netloc
+        if hypervisor:
+            self.mode = VMIMode[hypervisor.upper()]
+        # query parameters ?
+        self.volatile = True
+        if vmi_url.query:
+            params = parse_qs(vmi_url.query, strict_parsing=True)
+            try:
+                self.volatile = strtobool((params['volatile'][0]))
+            except KeyError:
+                raise RuntimeError('Invalid query parameters in vmi:// URI')
+        # build Libvmi instance
+        super(VMIAddressSpace, self).__init__(base=base, session=session,
+                                              **kwargs)
+        self.vmi = Libvmi(domain, mode=self.mode, partial=True)
+        self.min_addr = 0
+        self.max_addr = self.vmi.get_memsize() - 1
+        # pause in case volatile has been disabled
+        if not self.volatile:
+            self.vmi.pause_vm()
+        # register flush hook to destroy vmi instance when session.Flush() is called
+        session.register_flush_hook(self, self.close)
 
     def close(self):
+        if not self.volatile:
+            self.vmi.resume_vm()
         self.vmi.destroy()
 
     def read(self, addr, size):
-        buffer, bytes_read = self.vmi.read_pa(addr, size)
-        if bytes_read != size:
-            raise RuntimeError('Error while reading physical memory at {}'.format(hex(addr)))
+        buffer, _ = self.vmi.read_pa(addr, size, padding=True)
         return buffer
 
     def write(self, addr, data):
@@ -50,10 +76,11 @@ class VMIAddressSpace(addrspace.BaseAddressSpace):
     def is_valid_address(self, addr):
         if addr is None:
             return False
-        return 4096 < addr < self.vmi.get_memsize() - 1
+        return self.min_addr <= addr <= self.max_addr
 
     def get_available_addresses(self):
-        yield (4096, self.vmi.get_memsize() - 4096)
+        yield (self.min_addr, self.max_addr)
 
     def get_mappings(self, start=0, end=2 ** 64):
-        yield addrspace.Run(start=0, end=self.vmi.get_memsize(), file_offset=0, address_space=self)
+        yield addrspace.Run(start=self.min_addr, end=self.max_addr,
+                            file_offset=0, address_space=self)
