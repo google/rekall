@@ -1,6 +1,6 @@
 #  Gathers information about password entries for keepassx
 #
-#    Copyright (c) 2017, Frank Block, ERNW GmbH <fblock@ernw.de>
+#    Copyright (c) 2018, Frank Block, ERNW GmbH <fblock@ernw.de>
 #
 #       All rights reserved.
 #
@@ -31,6 +31,8 @@
    and Comment.
 """
 
+__author__ = "Frank Block <fblock@ernw.de>"
+
 import struct
 from rekall.plugins.linux import heap_analysis
 
@@ -40,7 +42,7 @@ class Keepassx(heap_analysis.HeapAnalysis):
     The retrieved content of those entries comprises the username, title, URL
     and Comment."""
 
-    __name = "keepassx"
+    name = "keepassx"
 
     table_header = [
         dict(name="divider", type="Divider"),
@@ -64,7 +66,10 @@ class Keepassx(heap_analysis.HeapAnalysis):
 
                 data_offset = self.profile.get_obj_offset("malloc_chunk", "fd")
 
-                for chunk in self.get_all_allocated_chunks():
+                for i, chunk in enumerate(self.get_all_allocated_chunks()):
+                    self.session.report_progress(
+                        "Iterating over all chunks %(curr)s %(spinner)s",
+                        curr=i)
                     chunks_dict[chunk.v() + data_offset] = chunk
 
                 if self.session.profile.metadata("arch") == 'AMD64':
@@ -78,6 +83,14 @@ class Keepassx(heap_analysis.HeapAnalysis):
                     pointer_offsets = [12, 16, 20, 36]
 
                 entry_number = 1
+
+                # TODO we currently don't know, which size is used in the
+                # malloc request for the struct of interest, so we simply
+                # subtract the size of the "size" field, which results in a
+                # chunk size we observed so far
+                relevant_chunk_size = self.get_aligned_size(
+                    relevant_chunk_size - 
+                    self.profile.malloc_chunk().size.obj_size)
 
                 for chunk in list(chunks_dict.values()):
 
@@ -118,7 +131,6 @@ class Keepassx(heap_analysis.HeapAnalysis):
                             curr_string = curr_string.decode('utf-16-le')
 
                             field_strings.append(repr(curr_string))
-
 
                         yield dict(task=task, entry=entry_number,
                                    title=field_strings[0],
