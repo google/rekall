@@ -1,6 +1,6 @@
 #  Extracts Zsh command history
 #
-#    Copyright (c) 2017, Frank Block, ERNW GmbH <fblock@ernw.de>
+#    Copyright (c) 2018, Frank Block, ERNW GmbH <fblock@ernw.de>
 #
 #       All rights reserved.
 #
@@ -28,15 +28,18 @@
 
 """Gathers all issued commands for zsh."""
 
+__author__ = "Frank Block <fblock@ernw.de>"
+
 from rekall.plugins.overlays import basic
 from rekall.plugins.linux import heap_analysis
+import re
 
 
 class Zsh(heap_analysis.HeapAnalysis):
     """Extracts the zsh command history, similar to the existing bash plugin.
     """
 
-    __name = "zsh"
+    name = "zsh"
 
     table_header = [
         dict(name="divider", type="Divider"),
@@ -53,109 +56,130 @@ class Zsh(heap_analysis.HeapAnalysis):
 
 
     def collect(self):
-        if self.session.profile.metadata("arch") == 'AMD64':
-            self._zsh_profile = ZshProfile64(session=self.session)
-
-        else:
-            # default/fallback profile
-            self._zsh_profile = ZshProfile32(session=self.session)
-
-        chunk_size = self.get_aligned_size(
-            self._zsh_profile.get_obj_size('histent'))
-
         for task in self.filter_processes():
-            if self.init_for_task(task):
+            if not self.init_for_task(task):
+                continue
 
-                yield dict(divider="Task: %s (%s)" % (task.name,
-                                                      task.pid))
+            # as there might be different zsh versions running, we verify this
+            # for each process
+            zsh_version_regex = "/zsh/(\d+)\.(\d+)[0-9\.]*/"
 
-                chunks_dict = dict()
+            # fallback version
+            zsh_version = '52'
 
-                data_offset = self.profile.get_obj_offset("malloc_chunk", "fd")
+            vma_name = heap_analysis.get_vma_name_for_regex(self.vmas,
+                                                            zsh_version_regex)
 
-                chunk_data_pointers = list()
-                for chunk in self.get_all_allocated_chunks():
-                    chunks_dict[chunk.v() + data_offset] = chunk
-                    chunk_data_pointers.append(chunk.v() + data_offset)
+            major_version = minor_version = None
 
-                commands_dict = dict()
+            if vma_name:
+                match = re.search(zsh_version_regex, vma_name, re.IGNORECASE)
+                if match and len(match.groups()) == 2:
+                    major_version = int(match.group(1))
+                    minor_version = int(match.group(2))
+                    zsh_version = str(major_version) + str(minor_version)
 
-                valid_histentry = None
+            if self.session.profile.metadata("arch") == 'AMD64':
+                self._zsh_profile = ZshProfile64(version=zsh_version,
+                                                 session=self.session)
 
-                # we first try to find a chunk that most probably contains a
-                # histent struct
-                for chunk in self.get_all_allocated_chunks():
+            else:
+                # default/fallback profile
+                self._zsh_profile = ZshProfile32(version=zsh_version,
+                                                 session=self.session)
 
-                    if not chunk.chunksize() == chunk_size:
-                        continue
+            chunk_size = self._zsh_profile.get_obj_size('histent')
+            chunk_size = self.get_aligned_size(chunk_size)
 
-                    histent = self._zsh_profile.histent(
-                        offset=chunk.v()+data_offset, vm=self.process_as)
+            yield dict(divider="Task: %s (%s)" % (task.name,
+                                                  task.pid))
 
-                    # we test if the current histent struct seems to be valid
-                    # first test: do we know the chunks where relevant
-                    # pointers point to
-                    pointers = [histent.node.nam, histent.down, histent.up]
-                    if not len(set(pointers) & set(chunk_data_pointers)) \
-                            == len(pointers):
-                        continue
+            chunks_dict = dict()
 
-                    # second test: points the previous/next histent entry to
-                    # this histent entry?
-                    if not histent.up.down == histent or not histent.down.up \
-                            == histent:
-                        continue
+            data_offset = self.profile.get_obj_offset("malloc_chunk", "fd")
 
-                    # we hopefully found one
-                    valid_histentry = histent
-                    break
+            chunk_data_pointers = list()
+            for chunk in self.get_all_allocated_chunks():
+                chunks_dict[chunk.v() + data_offset] = chunk
+                chunk_data_pointers.append(chunk.v() + data_offset)
 
-                if valid_histentry:
-                    self.session.logging.info(
-                        "We probably found a valid histent chunk and now "
-                        "start walking.")
+            commands_dict = dict()
 
-                    # entries are linked circular so walking in one direction
-                    # should be sufficient
-                    for histent in valid_histentry.walk_list('down'):
+            valid_histentry = None
 
-                        command = ''
+            # we first try to find a chunk that most probably contains a
+            # histent struct
+            for chunk in self.get_all_allocated_chunks():
 
-                        try:
-                            command = chunks_dict[histent.node.nam.v()]
-                            command = command.to_string()
-                            command = command[:command.index("\x00")]
+                if not chunk.chunksize() == chunk_size:
+                    continue
 
-                        except KeyError:
-                            self.session.logging.warn(
-                                "Unexpected error: chunk for given "
-                                "command-reference does not seem to exist.")
+                histent = self._zsh_profile.histent(
+                    offset=chunk.v()+data_offset, vm=self.process_as)
 
-                        except ValueError:
-                            pass
+                # we test if the current histent struct seems to be valid
+                # first test: do we know the chunks where relevant
+                # pointers point to
+                pointers = [histent.node.nam, histent.down, histent.up]
+                if not len(set(pointers) & set(chunk_data_pointers)) \
+                        == len(pointers):
+                    continue
 
-                        if histent.stim == histent.ftim == 0 and command == '':
-                            histent_vma = heap_analysis.get_vma_for_offset(
-                                self.vmas, histent.v())
+                # second test: points the previous/next histent entry to
+                # this histent entry?
+                if not histent.up.down == histent or not histent.down.up \
+                        == histent:
+                    continue
 
-                            if histent_vma not in self.heap_vmas:
-                                # we most probably found the "curline" histent
-                                # struct located in zsh's .bss section. as it
-                                # doesn't contain an actual executed command,
-                                # we are skipping it
-                                continue
+                # we hopefully found one
+                valid_histentry = histent
+                break
 
-                        command_number = histent.histnum
-                        start = self.profile.UnixTimeStamp(value=histent.stim)
-                        end = self.profile.UnixTimeStamp(value=histent.ftim)
-                        commands_dict[command_number] = [start,
-                                                         end,
-                                                         repr(command)]
+            if valid_histentry:
+                self.session.logging.info(
+                    "We probably found a valid histent chunk and now "
+                    "start walking.")
+
+                # entries are linked circular so walking in one direction
+                # should be sufficient
+                for histent in valid_histentry.walk_list('down'):
+                    command = ''
+
+                    try:
+                        command = chunks_dict[histent.node.nam.v()]
+                        command = command.to_string()
+                        command = command[:command.index("\x00")]
+
+                    except KeyError:
+                        self.session.logging.warn(
+                            "Unexpected error: chunk for given "
+                            "command-reference does not seem to exist.")
+
+                    except ValueError:
+                        pass
+
+                    if histent.stim == histent.ftim == 0 and command == '':
+                        histent_vma = heap_analysis.get_vma_for_offset(
+                            self.vmas, histent.v())
+
+                        if histent_vma not in self.heap_vmas:
+                            # we most probably found the "curline" histent
+                            # struct located in zsh's .bss section. as it
+                            # doesn't contain an actual executed command,
+                            # we are skipping it
+                            continue
+
+                    command_number = histent.histnum
+                    start = self.profile.UnixTimeStamp(value=histent.stim)
+                    end = self.profile.UnixTimeStamp(value=histent.ftim)
+                    commands_dict[command_number] = [start,
+                                                     end,
+                                                     repr(command)]
 
 
-                for key, value in sorted(commands_dict.items()):
-                    yield dict(task=task, counter=key, started=value[0],
-                               ended=value[1], command=value[2])
+            for key, value in sorted(commands_dict.items()):
+                yield dict(task=task, counter=key, started=value[0],
+                           ended=value[1], command=value[2])
 
 
 
@@ -165,7 +189,7 @@ class ZshProfile32(basic.Profile32Bits, basic.BasicClasses):
     __abstract = True
 
     # types come from zsh's zsh.h
-    zsh_vtype_32 = {
+    histent_52_vtype_32 = {
         "histent": [48, {
             "down": [16, ["Pointer", {
                 "target": "histent"
@@ -184,7 +208,10 @@ class ZshProfile32(basic.Profile32Bits, basic.BasicClasses):
             "zle_text": [20, ["Pointer", {
                 "target": "char"
             }]]
-        }],
+        }]
+    }
+
+    hashnode_52_vtype_32 = {
         "hashnode": [12, {
             "flags": [8, ["int"]],
             "nam": [4, ["Pointer", {
@@ -196,10 +223,39 @@ class ZshProfile32(basic.Profile32Bits, basic.BasicClasses):
         }]
     }
 
-    def __init__(self, **kwargs):
-        super(ZshProfile32, self).__init__(**kwargs)
-        self.add_types(self.zsh_vtype_32)
+    version_dict = {
+        '52': [histent_52_vtype_32, hashnode_52_vtype_32]
+    }
 
+    def __init__(self, version=None, **kwargs):
+        super(ZshProfile32, self).__init__(**kwargs)
+        profile = dict()
+
+        # the only relevant/implemented version currently is 5.2 (structs for
+        # versions > 5.2 didn't change yet, at least not until 5.4.2)
+        if version:
+            try:
+                self.session.logging.info(
+                    "We are using I386 Zsh profile version {:s}"
+                    .format(version))
+
+                for vtypes in self.version_dict[version]:
+                    profile.update(vtypes)
+
+            except KeyError:
+                self.session.logging.info(
+                    "The given version string: {:s} is not in our dict. "
+                    .format(version))
+
+        if not profile:
+            # the default profile to use
+            self.session.logging.info(
+                "We are using the I386 default Zsh profile version 5.2")
+
+            for vtypes in self.version_dict['52']:
+                profile.update(vtypes)
+
+        self.add_types(profile)
 
 
 class ZshProfile64(basic.ProfileLP64, basic.BasicClasses):
@@ -208,7 +264,7 @@ class ZshProfile64(basic.ProfileLP64, basic.BasicClasses):
     __abstract = True
 
     # types come from zsh's zsh.h
-    zsh_vtype_64 = {
+    histent_52_vtype_64 = {
         "histent": [88, {
             "down": [32, ["Pointer", {
                 "target": "histent"
@@ -227,7 +283,10 @@ class ZshProfile64(basic.ProfileLP64, basic.BasicClasses):
             "zle_text": [40, ["Pointer", {
                 "target": "char"
             }]]
-        }],
+        }]
+    }
+
+    hashnode_52_vtype_64 = {
         "hashnode": [24, {
             "flags": [16, ["int"]],
             "nam": [8, ["Pointer", {
@@ -239,6 +298,36 @@ class ZshProfile64(basic.ProfileLP64, basic.BasicClasses):
         }]
     }
 
-    def __init__(self, **kwargs):
+    version_dict = {
+        '52': [histent_52_vtype_64, hashnode_52_vtype_64]
+    }
+
+    def __init__(self, version=None, **kwargs):
         super(ZshProfile64, self).__init__(**kwargs)
-        self.add_types(self.zsh_vtype_64)
+        profile = dict()
+
+        # the only relevant/implemented version currently is 5.2 (structs for
+        # versions > 5.2 didn't change yet, at least not until 5.4.2)
+        if version:
+            try:
+                self.session.logging.info(
+                    "We are using AMD64 Zsh profile version {:s}"
+                    .format(version))
+
+                for vtypes in self.version_dict[version]:
+                    profile.update(vtypes)
+
+            except KeyError:
+                self.session.logging.info(
+                    "The given version string: {:s} is not in our dict. "
+                    .format(version))
+
+        if not profile:
+            # the default profile to use
+            self.session.logging.info(
+                "We are using the AMD64 default Zsh profile version 5.2")
+
+            for vtypes in self.version_dict['52']:
+                profile.update(vtypes)
+
+        self.add_types(profile)
