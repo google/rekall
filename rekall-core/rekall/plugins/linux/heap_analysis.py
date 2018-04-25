@@ -1,6 +1,6 @@
 #  glibc heap analysis classes
 #
-#    Copyright (c) 2017, Frank Block, ERNW GmbH <fblock@ernw.de>
+#    Copyright (c) 2018, Frank Block, ERNW GmbH <fblock@ernw.de>
 #
 #       All rights reserved.
 #
@@ -30,21 +30,25 @@
 This module implements several classes, allowing the glibc heap analysis for a
 given process.
 """
-from __future__ import print_function
 
-from builtins import str
-from builtins import hex
-from builtins import range
+from __future__ import print_function
+__author__ = "Frank Block <fblock@ernw.de>"
+
 import re
 import pdb
 import struct
 import traceback
-import os
 from numbers import Number
+from builtins import str
+from builtins import hex
+from builtins import range
 from rekall.plugins.overlays import basic
 from rekall.plugins.linux import common
 from rekall.plugins.linux import cpuinfo
+from rekall.plugins.addrspaces.intel import InvalidAddress
+from rekall.plugins import yarascanner
 from rekall.plugins import core
+from rekall import addrspace
 from rekall import scan
 from rekall import obj
 
@@ -75,14 +79,22 @@ def get_vma_for_offset(vmas, offset):
     return None
 
 
+def get_vma_name_for_regex(vmas, regex):
+    """Searches all vma names for the given regex and returns the first hit."""
+
+    if not vmas or not regex:
+        return None
+
+    for vma in vmas:
+        if re.search(regex, vma['name'], re.IGNORECASE):
+            return vma['name']
+
+
 def get_libc_filename(vmas):
     """Returns the libc file name from the vma, where the _LIBC_REGEX matches.
     """
 
-    if vmas:
-        for vma in vmas:
-            if re.search(_LIBC_REGEX, vma['name'], re.IGNORECASE):
-                return vma['name']
+    return get_vma_name_for_regex(vmas, _LIBC_REGEX)
 
 
 def get_libc_range(vmas):
@@ -133,7 +145,6 @@ class HeapAnalysis(common.LinProcessFilter):
     _heap_vma_identifier = "[heap-vma]"
     _pot_mmapped_vma_identifier = "[pot-mmapped-vma]"
 
-
     # is normally only automatically set when using a dummy arena or the chunk
     # dumper, as in those cases all chunks are walked at least two times
     def activate_chunk_preservation(self):
@@ -168,7 +179,7 @@ class HeapAnalysis(common.LinProcessFilter):
         thread_group_offset = self.profile.get_obj_offset("task_struct",
                                                           "thread_group")
 
-        for thread_group in task.thread_group.walk_list("next"):
+        for thread_group in task.thread_group.walk_list("prev"):
             thread_task = self.profile.task_struct(
                 offset=thread_group.obj_offset - thread_group_offset,
                 vm=self.process_as)
@@ -205,7 +216,7 @@ class HeapAnalysis(common.LinProcessFilter):
         for vma in task.mm.mmap.walk_list("vm_next"):
             temp_vma = dict()
 
-            if vma.vm_file:
+            if vma.vm_file.dereference():
                 fname = task.get_path(vma.vm_file)
                 if heap_area:
                     heap_area = False
@@ -217,7 +228,6 @@ class HeapAnalysis(common.LinProcessFilter):
 
                 else:
                     fname = self._pot_mmapped_vma_identifier
-
 
                 # main heap can have 3 or more vm_area_struct structs
                 if vma.vm_start <= task.mm.start_brk <= vma.vm_end or \
@@ -232,7 +242,6 @@ class HeapAnalysis(common.LinProcessFilter):
                         if (('start_stack' in list(offsets.keys()) and
                              vma.vm_start <= offsets['start_stack']
                              <= vma.vm_end) or
-                                vma.vm_start <= offsets['ebp'] <= vma.vm_end or
                                 vma.vm_start <= offsets['esp'] <= vma.vm_end):
 
                             fname = "[stack"
@@ -255,45 +264,54 @@ class HeapAnalysis(common.LinProcessFilter):
     def _load_libc_profile(self):
         """Loads the Libc profile for the current libc version."""
 
-        # we try to gather version information from the mapped libc lib
         libc_version_string = None
-        major_version = None
-        minor_version = None
-        match = None
-        libc_filename = get_libc_filename(self.vmas)
         libc_profile = None
 
-        if libc_filename:
-            match = re.search(r'(\d+)\.(\d+)', libc_filename)
+        if self.plugin_args.glibc_version:
+            libc_version_string = str(self.plugin_args.glibc_version)
 
-        if match and len(match.groups()) == 2:
-            major_version = int(match.group(1))
-            minor_version = int(match.group(2))
-            libc_version_string = str(major_version) + str(minor_version)
+        else:
+            # we try to gather version information from the mapped libc lib
+            major_version = None
+            minor_version = None
+            match = None
+            libc_filename = get_libc_filename(self.vmas)
 
-            self.session.logging.info("Trying to load profile for version {:s}"
-                                      " from the repository."
-                                      .format(libc_version_string))
+            if libc_filename:
+                match = re.search(r'(\d+)\.(\d+)', libc_filename)
 
-            # TODO: dynamic selection of distribution specific profiles
-            dist = 'base'
-            libc_profile = self.session.LoadProfile(
-                "glibc/{:s}/{:s}/{:s}".format(dist,
-                                              self.profile.metadata("arch"),
-                                              libc_version_string))
+            # Fallback
+            libc_version_string = '224'
 
+            if match and len(match.groups()) == 2:
+                major_version = int(match.group(1))
+                minor_version = int(match.group(2))
+                libc_version_string = str(major_version) + str(minor_version)
 
-            if not libc_profile:
-                # fallback: there seems to be no profile from the repository,
-                # so we try to load a profile internally
-                self.session.logging.info(
-                    "Repository failed: Now using internal profiles.")
+        self.session.logging.info("Trying to load profile for version {:s}"
+                                  " from the repository."
+                                  .format(libc_version_string))
 
-                # Fallback
-                libc_version_string = '224'
+        # TODO: dynamic selection of distribution specific profiles
+        dist = 'base'
+        libc_profile = self.session.LoadProfile(
+            "glibc/{:s}/{:s}/{:s}".format(dist,
+                                          self.profile.metadata("arch"),
+                                          libc_version_string))
 
+        if not libc_profile:
+            # fallback: there seems to be no profile from the repository,
+            # so we try to load a profile internally
+            self.session.logging.info(
+                "Repository failed: Now using internal profiles.")
+
+            if not self.plugin_args.glibc_version and major_version and \
+                    minor_version:
                 if major_version == 2:
-                    if minor_version >= 24:
+                    if minor_version >= 26:
+                        libc_version_string = '226'
+
+                    elif minor_version == 24 or minor_version == 25:
                         libc_version_string = '224'
 
                     elif minor_version == 23:
@@ -302,22 +320,27 @@ class HeapAnalysis(common.LinProcessFilter):
                     else:
                         libc_version_string = '220'
 
-                self.session.logging.info(
-                    "Loading internal profile for version {:s}."
-                    .format(libc_version_string))
+                else:
+                    self.session.logging.warn(
+                        "Unsupported glibc major version number.")
 
-                if self.session.profile.metadata("arch") == 'I386':
-                    libc_profile = GlibcProfile32(version=libc_version_string,
-                                                  session=self.session)
+            self.session.logging.info(
+                "Loading internal profile for version {:s}."
+                .format(libc_version_string))
 
-                elif self.session.profile.metadata("arch") == 'AMD64':
-                    libc_profile = GlibcProfile64(version=libc_version_string,
-                                                  session=self.session)
+            if self.session.profile.metadata("arch") == 'I386':
+                libc_profile = GlibcProfile32(version=libc_version_string,
+                                              session=self.session)
+
+            elif self.session.profile.metadata("arch") == 'AMD64':
+                libc_profile = GlibcProfile64(version=libc_version_string,
+                                              session=self.session)
 
         if not libc_profile:
             self.session.logging.error('Unable to load a libc profile.')
 
         else:
+            self._libc_version = libc_version_string
             self.profile.add_types(libc_profile.vtypes)
             self.profile.add_constants(libc_profile.constants)
 
@@ -334,7 +357,8 @@ class HeapAnalysis(common.LinProcessFilter):
                 self.session.logging.error('Error while loading libc profile.')
 
 
-    def _check_and_report_chunksize(self, chunk, current_border):
+    def _check_and_report_chunksize(
+            self, chunk, current_border, mmapped=False):
         """Checks whether or not the current chunk
                 - is bigger than the given border
                 - smaller than the minimum size a chunk is allowed to be
@@ -349,7 +373,7 @@ class HeapAnalysis(common.LinProcessFilter):
 
             return False
 
-        elif chunk.chunksize() < self._minsize:
+        if chunk.chunksize() < self._minsize:
             if not self._check_and_report_chunk_for_being_swapped(chunk):
                 self.session.logging.warn(
                     "Chunk at offset 0x{:x} has a size smaller than MINSIZE, "
@@ -358,7 +382,15 @@ class HeapAnalysis(common.LinProcessFilter):
 
             return False
 
-        elif not self._aligned_ok(chunk.chunksize()):
+        # If the MALLOC_ALIGNMENT has been changed via compile time options,
+        # mmapped chunks are shifted a few bytes forward to be aligned, while
+        # the size of the gap is saved in the prev_size field (see also
+        # explanation for self._front_misalign_correction).
+        # This gap must be included in the calculation for aligned_ok
+        chunksize = chunk.chunksize() + chunk.get_prev_size() if mmapped else \
+            chunk.chunksize()
+
+        if not self._aligned_ok(chunksize):
             self.session.logging.warn(
                 "The size of chunk at offset 0x{:x} is not a multiple of "
                 "MALLOC_ALIGNMENT, which shouldn't be the case and indicates "
@@ -369,24 +401,47 @@ class HeapAnalysis(common.LinProcessFilter):
         return True
 
 
-    # TODO reliable verification via page table information
     def _check_and_report_chunk_for_being_swapped(self, chunk):
-        """Tests the size field of a given chunk for being 0. If this field
-        is null, it is a good indication that the corresponding memory region
-        has been swapped. The reason might however also be a calculation error
-        for the chunk's offset."""
+        """Tests the size field of a given chunk for being swapped."""
 
-        if chunk:
-            if chunk.get_size() == 0:
+        if not chunk:
+            # as we don't have any object to analyze further, we just return
+            # true in this case
+            return True
+
+        elif chunk.get_size() == 0:
+            # since the name for the size field for malloc_chunk changed in the
+            # past, we don't gather the offset for the size field via
+            # get_obj_offset, but use obj_size
+            size_offset = chunk.prev_size.obj_size
+            if self._check_address_for_being_swapped(chunk.v() + size_offset):
                 self.session.logging.warn(
-                    "It seems like the memory page(s) belonging to the "
-                    "chunk at offset 0x{:x} have been swapped. This will lead "
-                    "to incorrect/incomplete results and more warnings/errors."
-                    .format(chunk.v()))
+                    "The memory page(s) belonging to the "
+                    "chunk at offset 0x{:x} have been swapped. This will "
+                    "lead to incorrect/incomplete results and more "
+                    "warnings/errors.".format(chunk.v()))
                 return True
+
+            else:
+                self.session.logging.warn(
+                    "The memory page(s) belonging to the chunk at offset "
+                    "0x{:x} don't seem to have been swapped, but the chunk "
+                    "has a size of 0, which shouldn't be the case and "
+                    "will lead to incorrect/incomplete results and more "
+                    "warnings/errors.".format(chunk.v()))
 
         return False
 
+
+    def _check_address_for_being_swapped(self, address):
+        """Retrieves the PTE entry information for the given address and tests
+        whether the page is swapped."""
+
+        for translation_descriptor in self.process_as.describe_vtop(address):
+            if isinstance(translation_descriptor, InvalidAddress):
+                return True
+
+        return False
 
 
     def _check_and_report_allocated_chunk(
@@ -409,7 +464,7 @@ class HeapAnalysis(common.LinProcessFilter):
         if not self._check_and_report_chunksize(chunk, current_border):
             return False
 
-        if not self._aligned_ok(chunk.v()):
+        if not self._aligned_ok(self._chunk2mem(chunk)):
             self.session.logging.warn(
                 "Chunk at offset 0x{:x} is not aligned. As chunks are normally"
                 " always aligned, this indicates a mistakenly chosen chunk and"
@@ -430,7 +485,8 @@ class HeapAnalysis(common.LinProcessFilter):
                     error_base_string.format("allocated", chunk.v(), "")
                 )
 
-            elif chunk not in arena.freed_fast_chunks:
+            elif chunk not in \
+                    (arena.freed_fast_chunks + arena.freed_tcache_chunks):
                 return True
 
         else:
@@ -439,11 +495,12 @@ class HeapAnalysis(common.LinProcessFilter):
             if chunk.chunksize() != next_chunk.get_prev_size():
                 self.session.logging.warn(
                     "Chunk at offset 0x{:x} seems to be freed but its size "
-                    "doesn't match the next chunks prev_size value."
+                    "doesn't match the next chunk's prev_size value."
                     .format(chunk.v()))
 
-            elif chunk in arena.freed_fast_chunks:
-                # fastbins normally have the prev_inuse bit set
+            elif chunk in \
+                    (arena.freed_fast_chunks + arena.freed_tcache_chunks):
+                # fastbins/tcache chunks normally have the prev_inuse bit set
                 self.session.logging.warn(
                     "Unexpected: Found fastbin-chunk at offset 0x{0:x} which "
                     "prev_inuse bit is unset. This shouldn't normally be the "
@@ -455,7 +512,6 @@ class HeapAnalysis(common.LinProcessFilter):
                 self.session.logging.warn(
                     error_base_string.format("freed", chunk.v(), "not ")
                 )
-
 
         return False
 
@@ -476,19 +532,19 @@ class HeapAnalysis(common.LinProcessFilter):
         # we can't check here for hitting the bottom, as mmapped regions can
         # contain slack space but this test is in essence done in
         # check_and_report_mmap_chunk
-        for curr_chunk in self.iterate_through_chunks(mmap_first_chunk,
-                                                      current_border):
+        for curr_chunk in self.iterate_through_chunks(
+                mmap_first_chunk, current_border):
 
             if self._check_and_report_mmapped_chunk(curr_chunk, mmap_vma) \
                     and self._check_and_report_chunksize(curr_chunk,
-                                                         current_border):
+                                                         current_border,
+                                                         mmapped=True):
                 yield curr_chunk
 
             else:
                 # As the checks for the last MMAPPED chunk reported an error,
                 # we are stopping walking the MMAPPED chunks for that vm_area.
                 break
-
 
 
     def get_all_mmapped_chunks(self):
@@ -511,17 +567,22 @@ class HeapAnalysis(common.LinProcessFilter):
                     yield chunk
 
 
+    def get_aligned_address(self, address, different_align_mask=None):
+        """Returns an aligned address."""
+
+        align_mask = different_align_mask or self._malloc_align_mask
+        aligned_address = self._address2mem(address)
+        aligned_address = (aligned_address + align_mask) & ~ align_mask
+        return self._mem2address(aligned_address)
+
 
     ######### code taken from malloc/malloc.c (glibc-2.23)
-    # origins from the MINSIZE definition
-    def get_aligned_address(self, address, different_align_mask=None):
-        """Returns an aligned address or MINSIZE, if given MIN_CHUNK_SIZE as
-        argument."""
+    def _chunk2mem(self, chunk):
+        """Returns the offset of the fd member (start of the data for a non
+        freed chunk). This is mainly used in conjunction with _aligned_ok, as
+        Glibc checks the alignment of chunks based on the data/fd offset."""
 
-        if different_align_mask:
-            return (address + different_align_mask) & ~ different_align_mask
-
-        return (address + self._malloc_align_mask) & ~ self._malloc_align_mask
+        return (chunk.v() + self._chunk_fd_member_offset)
 
     def _aligned_ok(self, value):
         """Returns True if the given address/size is aligned."""
@@ -530,8 +591,14 @@ class HeapAnalysis(common.LinProcessFilter):
 
     # essentially the request2size macro code
     def get_aligned_size(self, size):
-        """Returns an aligned size. Originally used to align a user request
-        size."""
+        """Returns an aligned size, which is essentially the chunk's final
+        size, resulting from asking Glibc for a chunk of a specific size.
+        E.g. calling malloc(16) will on all platforms result in a chunk with
+        a size > 16.
+        This function can be used to find chunks with a size that probably
+        contains the data of interest. For example: if we search for chunks
+        containing a struct of size 48, the resulting chunk's size can be
+        calculated by calling get_aligned_size(48)."""
 
         if size + self._size_sz + self._malloc_align_mask < self._minsize:
             return self._minsize & ~ self._malloc_align_mask
@@ -539,7 +606,32 @@ class HeapAnalysis(common.LinProcessFilter):
         return ((size + self._size_sz + self._malloc_align_mask)
                 & ~ self._malloc_align_mask)
 
+    # essentially an implementation of the call
+    # fastbin_index (request2size (MAX_FAST_SIZE)) + 1)
+    def _get_nfastbins(self):
+        """Returns the number of fastbins. This count depends on the one hand
+        on the architecture and on the other hand on the MALLOC_ALIGNMENT
+        value."""
+
+        max_fast_size = (80 * self._size_sz) / 4
+        shift_bits = 4 if self._size_sz == 8 else 3
+
+        return ((self.get_aligned_size(max_fast_size) >> shift_bits) - 2) + 1
+
     ###########
+
+    def _address2mem(self, address):
+        """Essentially the same as _chunk2mem but works on an address instead
+        of a chunk."""
+
+        return address + self._chunk_fd_member_offset
+
+
+    def _mem2address(self, address):
+        """Reverse function of _address2mem."""
+
+        return address - self._chunk_fd_member_offset
+
 
     def _check_mmap_alignment(self, address):
         """Returns True if the given address is aligned according to the
@@ -570,6 +662,82 @@ class HeapAnalysis(common.LinProcessFilter):
         return False
 
 
+    def _is_bottom_chunk(
+            self, chunk, next_chunk, current_border, is_last_heap):
+        """Returns true if the given chunk is the first of the bottom
+        chunks, located at the end of a thread arena's heap segment, described
+        by a heap_info struct."""
+
+        # on multiple heaps, for all but the last heap, the old
+        # top chunk is divided in at least two chunks at the
+        # bottom, where the second last has a size of
+        # minimum 2 * SIZE_SZ and maximum MINSIZE the last chunk
+        # has a size of 2* SIZE_SZ while the size field is set
+        # to 0x1 (the PREV_INUSE bit is set) and the prev_size
+        # contains the second last chunks size
+        # (min: 2 * SIZE_SZ , max: MINSIZE)
+        #
+        # see the part for creating a new heap within the
+        # sysmalloc function in malloc/malloc.c
+        # For glibc-2.23 beginning with line 2417
+        #
+        # as this behavior is included since version 2.0.1 from
+        # 1997, it should be safe to rely on it for most glibc
+        # versions
+
+        # the first bottom chunk is not bigger than MINSIZE
+        if not chunk.chunksize() <= self._minsize:
+            return False
+
+        # with a different MALLOC_ALIGNMENT, there might be a gap after the
+        # last bottom chunk and the end of the memory region
+        possible_borders = [current_border]
+        if self._front_misalign_correction:
+            possible_borders.append(current_border - (self._size_sz * 2))
+
+        if not (chunk.v() + chunk.chunksize() + (self._size_sz * 2)) in \
+                possible_borders:
+            # the chunk is not on the edge to the current heap region
+
+            if chunk.chunksize() < self._minsize:
+                self.session.logging.warn(
+                    "Unexpected: We hit a chunk at offset 0x{0:x} "
+                    "with a size smaller than the default minimum "
+                    "size for a chunk but which appears to be "
+                    "not part of the typical end of a heap. This "
+                    "might either indicate a fatal error, or "
+                    "maybe a custom libc implementation/custom "
+                    "compile time flags.".format(chunk.v()))
+
+            return False
+
+        # from here on, everything looks like we are at the bottom chunks
+
+        # The last condition also tests if there are further heaps following.
+        # - if not, the current chunk which is only
+        #   size_sz * 2 bytes away from the current heap's end
+        #   shouldn't be that small and indicates an error
+        #
+        # - heap border shouldn't normally exist
+        if next_chunk.chunksize() == 0 and next_chunk.prev_inuse() and \
+                (next_chunk.get_prev_size() == chunk.chunksize()) and \
+                not is_last_heap:
+
+            if len(possible_borders) > 1 and chunk.v() + chunk.chunksize() \
+                    + (self._size_sz * 2) == possible_borders[1]:
+                self._bottom_chunk_gaps[chunk.v()] = \
+                        self._size_sz * 2
+
+            return True
+
+        else:
+            self.session.logging.warn(
+                "Unexpected: We hit a chunk at offset 0x{0:x} "
+                "which presumably should have been the second "
+                "last chunk of that heap, but some conditions "
+                "don't meet.".format(chunk.v()))
+
+
     def _allocated_chunks_for_thread_arena(self, arena):
         """Returns all allocated chunks contained in all heaps for the given
         arena, assuming the arena is not the main_arena."""
@@ -591,7 +759,7 @@ class HeapAnalysis(common.LinProcessFilter):
 
         heap_count = len(arena.heaps)
 
-        for i in range(heap_count):
+        for i in list(range(heap_count)):
             heap = arena.heaps[i]
             current_border = heap.v() + heap.size
             hit_heap_bottom = False
@@ -609,96 +777,47 @@ class HeapAnalysis(common.LinProcessFilter):
                     # we hit the top chunk
                     break
 
-                else:
-                    is_in_use = next_chunk.prev_inuse()
+                elif (curr_chunk.v() + curr_chunk.chunksize()) <= \
+                        curr_chunk.v():
+                    self.session.logging.warn(
+                        "The chunk at offset 0x{:x} has a size <= 0, which "
+                        "is unexpected and indicates a problem. Since we can't"
+                        " iterate the chunks anymore, we abort for this chunk."
+                        .format(curr_chunk.v()))
+                    break
 
-                    # on multiple heaps, for all but the last heap, the old
-                    # top chunk is divided in at least two chunks at the
-                    # bottom, where the second last has a size of
-                    # minimum 2 * SIZE_SZ and maximum MINSIZE the last chunk
-                    # has a size of 2* SIZE_SZ while the size field is set
-                    # to 0x1 (the PREV_INUSE bit is set) and the prev_size
-                    # contains the second last chunks size
-                    # (min: 2 * SIZE_SZ , max: MINSIZE)
-                    #
-                    # see the part for creating a new heap within the
-                    # sysmalloc function in malloc/malloc.c
-                    # For glibc-2.23 beginning with line 2417
-                    #
-                    # as this behavior is included since version 2.0.1 from
-                    # 1997, it should be safe to rely on it for most glibc
-                    # versions
-                    if curr_chunk.chunksize() <= self._minsize \
-                            and (curr_chunk.v() + curr_chunk.chunksize()
-                                 + (self._size_sz * 2)) == current_border:
+                elif self._is_bottom_chunk(curr_chunk,
+                                           next_chunk,
+                                           current_border,
+                                           i == (heap_count - 1)):
+                    # we probably hit the bottom of the current heap
+                    # which should'nt be the last one
+                    self.session.logging.info(
+                        "We hit the expected two chunks at the bottom "
+                        "of a heap. This is a good sign.")
+                    hit_heap_bottom = True
 
-                        # The last condition also tests if there are further
-                        # heaps following.
-                        # - if not, the current chunk which is only
-                        #   size_sz * 2 bytes away from
-                        #
-                        # - heap border shouldn't normally exist
-                        if next_chunk.chunksize() == 0 and is_in_use and \
-                                (next_chunk.get_prev_size()
-                                 == curr_chunk.chunksize()) and \
-                                i < (heap_count - 1):
-                            # we probably hit the bottom of the current heap
-                            # which should'nt be the last one
-                            self.session.logging.info(
-                                "We hit the expected two chunks at the bottom "
-                                "of a heap. This is a good sign.")
-                            hit_heap_bottom = True
+                    curr_chunk.is_bottom_chunk = True
 
-                            curr_chunk.is_bottom_chunk = True
+                    if self._preserve_chunks:
+                        arena.allocated_chunks.append(curr_chunk)
 
-                            if self._preserve_chunks:
-                                arena.allocated_chunks.append(curr_chunk)
-
-                            yield curr_chunk
+                    yield curr_chunk
 
 
-                            break
+                    break
 
-                        elif curr_chunk.chunksize() < self._minsize:
-                            self.session.logging.warn(
-                                "Unexpected: We hit a chunk at offset 0x{0:x} "
-                                "with a size smaller than the default minimum "
-                                "size for a chunk but which appears to be "
-                                "not part of the typical end of a heap. This "
-                                "might either indicate a fatal error, or "
-                                "maybe a custom libc implementation/custom "
-                                "compile time flags.".format(curr_chunk.v()))
+                # normal chunk, not located at the bottom of the heap
+                elif self._check_and_report_allocated_chunk(
+                            arena, curr_chunk, next_chunk, current_border):
 
-                        else:
-                            self.session.logging.warn(
-                                "Unexpected: We hit a chunk at offset 0x{0:x} "
-                                "which presumably should have been the second "
-                                "last chunk of that heap, but some conditions "
-                                "don't meet.".format(curr_chunk.v()))
+                    self._check_and_report_non_main_arena(
+                        curr_chunk, next_chunk.prev_inuse())
 
-                        if curr_chunk not in arena.freed_fast_chunks:
-                            self._check_and_report_non_main_arena(curr_chunk,
-                                                                  is_in_use)
+                    if self._preserve_chunks:
+                        arena.allocated_chunks.append(curr_chunk)
 
-                            if self._preserve_chunks:
-                                arena.allocated_chunks.append(curr_chunk)
-
-                            yield curr_chunk
-
-                    # normal chunk, not located at the bottom of the heap
-                    else:
-                        if self._check_and_report_allocated_chunk(
-                                arena, curr_chunk, next_chunk, current_border):
-
-                            self._check_and_report_non_main_arena(curr_chunk,
-                                                                  is_in_use)
-
-                            if self._preserve_chunks:
-                                arena.allocated_chunks.append(curr_chunk)
-
-                            yield curr_chunk
-
-
+                    yield curr_chunk
 
                 curr_chunk = next_chunk
 
@@ -729,7 +848,11 @@ class HeapAnalysis(common.LinProcessFilter):
                 # as the main heap can spread among multiple vm_areas, we take
                 # the system_mem value as the upper boundary
                 if arena.system_mem > 0:
-                    current_border = arena.first_chunk.v() + arena.system_mem
+                    # system_mem includes the potential gap, resulting from
+                    # a different MALLOC_ALIGNMENT, so we subtract
+                    # self._front_misalign_correction
+                    current_border = arena.first_chunk.v() + arena.system_mem \
+                            - self._front_misalign_correction
 
                 # there have been rare scenarios, in which the system_mem
                 # value was 0
@@ -764,7 +887,6 @@ class HeapAnalysis(common.LinProcessFilter):
 
                             yield curr_chunk
 
-
                     curr_chunk = next_chunk
 
                 if (last_chunk.v() + last_chunk.chunksize()) < current_border:
@@ -786,8 +908,6 @@ class HeapAnalysis(common.LinProcessFilter):
                         "Unexpected error: The first main arena chunk "
                         "seems to have a zero size. The reason might be "
                         "swapped memory pages. Walking the chunks is aborted.")
-
-
 
 
     def get_all_allocated_chunks_for_arena(self, arena):
@@ -834,7 +954,6 @@ class HeapAnalysis(common.LinProcessFilter):
             yield freed_chunk
 
 
-
     def get_all_allocated_main_chunks(self):
         """Returns all allocated chunks belonging to the main arena (excludes
         thread and MMAPPED chunks)."""
@@ -868,6 +987,15 @@ class HeapAnalysis(common.LinProcessFilter):
             yield chunk
 
 
+    def get_all_freed_tcache_chunks(self):
+        """Returns all freed tcache chunks, no matter to what arena they
+        belong."""
+
+        if self.get_main_arena():
+            for arena in self.arenas:
+                for free_chunk in arena.freed_tcache_chunks:
+                    yield free_chunk
+
 
     def get_all_freed_fastbin_chunks(self):
         """Returns all freed fastbin chunks, no matter to what arena they
@@ -889,11 +1017,14 @@ class HeapAnalysis(common.LinProcessFilter):
 
 
     def get_all_freed_chunks(self):
-        """Returns all top chunks, freed chunks and freed fastbin chunks,
-        no matter to what arena they belong."""
+        """Returns all top chunks, freed chunks and freed fastbin chunks and
+        tcache chunks, no matter to what arena they belong."""
 
         if self.get_main_arena():
             for freed_chunk in self.get_all_freed_fastbin_chunks():
+                yield freed_chunk
+
+            for freed_chunk in self.get_all_freed_tcache_chunks():
                 yield freed_chunk
 
             for freed_chunk in self.get_all_freed_bin_chunks():
@@ -917,8 +1048,6 @@ class HeapAnalysis(common.LinProcessFilter):
                             heap_hit = heap
 
         return heap_hit
-
-
 
 
     def heap_for_ptr(self, ptr):
@@ -960,7 +1089,9 @@ class HeapAnalysis(common.LinProcessFilter):
                 ptr_offset = ptr.v()
 
             if not vma:
-                vma = get_vma_for_offset(self.vmas, ptr_offset)['vma']
+                temp = get_vma_for_offset(self.vmas, ptr_offset)
+                if temp:
+                    vma = temp['vma']
 
             if vma:
                 heap_info = self.profile._heap_info(offset=vma.vm_start,
@@ -1031,12 +1162,13 @@ class HeapAnalysis(common.LinProcessFilter):
         # or on startup via env vars (see also link)
         # if not, this member is 0
         arena_max = self.mp_.arena_max
-        if arena_max > 0x100:
+        if arena_max > 0x1000:
             self.session.logging.warn(
                 "The maximum number of arenas, gathered from the malloc_par "
                 "struct is unexpected high ({:d}). The reason might be a "
                 "wrong mp_ offset and will in this case, most probably, lead "
-                "to follow up errors.".format(arena_max))
+                "to follow up errors. (PID: {:d})"
+                .format(arena_max, self.task.pid))
 
         if arena_max == 0:
             # The maximum number of arenas is calculated with the macro
@@ -1077,7 +1209,6 @@ class HeapAnalysis(common.LinProcessFilter):
         return False
 
 
-
     def __init__(self, **kwargs):
         super(HeapAnalysis, self).__init__(**kwargs)
 
@@ -1100,8 +1231,27 @@ class HeapAnalysis(common.LinProcessFilter):
         self.mp_ = None
         self.mp_offset = self.plugin_args.malloc_par
         self._mmapped_warnings = set()
-        self._is_statically_linked = False
-        self._first_chunk_distance = 0
+
+        # for statically linked binaries: holds the distance from the begining
+        # of the main arena until the first chunk; it is taken from
+        # self.mp_.sbrk_base
+        # this marks also the beginning of the arena's memory and hence
+        # influences the system_mem value
+        self._static_bin_first_chunk_dist = 0
+        self._is_probably_static_bin = False
+
+        # This value comes into play, when the MALLOC_ALIGNMENT value has been
+        # modified via compile time options, leading to a gap at the beginning
+        # of memory regions that contain chunks (so they are still aligned).
+        # In those cases, the first chunk does not anymore start right at the
+        # beginning of the heap region, but a few bytes after.
+        # see also malloc/malloc.c lines 2669 ff. (for main heap) resp.
+        # lines 2363 ff. for mmapped chunks
+        self._front_misalign_correction = 0
+
+        # with a different MALLOC_ALIGNMENT, there might be a gap after the
+        # last bottom chunk and the end of the memory region
+        self._bottom_chunk_gaps = dict()
 
         self.task = None
         self.statistics = None
@@ -1120,18 +1270,23 @@ class HeapAnalysis(common.LinProcessFilter):
         elif self.session.profile.metadata("arch") == 'AMD64':
             self._size_sz = 8
 
-        self._initialize_malloc_alignment()
-
+        self._chunk_fd_member_offset = 0
+        self._pointer_size = 0
         self._has_dummy_arena = False
+        self._libc_version = ''
+        self._carve_method = ''
 
 
     def _initialize_malloc_alignment(self, malloc_alignment=None):
-        """This function initializes variables that are in relation to
-        MALLOC_ALIGNMENT."""
+        """This function initializes MALLOC_ALIGNMENT and variables that are in
+        relation to MALLOC_ALIGNMENT."""
 
-        # if not given as argument, we first try to load it from the profile
+        # if not given as argument, we check if malloc_alignment has been
+        # already set (could be done by _check_and_correct_first_chunk_offset).
+        # If this is not the case, we try to load it from the profile
         if not malloc_alignment:
-            malloc_alignment = self.profile.get_constant('MALLOC_ALIGNMENT')
+            malloc_alignment = self._malloc_alignment or \
+                self.profile.get_constant('MALLOC_ALIGNMENT')
 
         ##### taken from malloc/malloc.c (glibc-2.23)
         # depending on glibc comment, malloc_alignment differs only on
@@ -1153,7 +1308,83 @@ class HeapAnalysis(common.LinProcessFilter):
         global _MIN_LARGE_SIZE
         _MIN_LARGE_SIZE = ((nsmallbins - smallbin_correction) * smallbin_width)
 
+        min_chunk_size = self.profile.get_obj_offset(
+            "malloc_chunk", "fd_nextsize")
+        self._minsize = (min_chunk_size + self._malloc_align_mask) \
+            & ~ self._malloc_align_mask
         #############################################
+
+
+    def _check_and_correct_fastbins_count(self):
+        """Checks if the curren MALLOC_ALIGNMENT value changes the count of
+        fastbins and if so, we update the malloc_state struct.
+        Returns true, if it did change the malloc_state struct."""
+
+        if self._get_nfastbins() != len(self.profile.malloc_state().fastbinsY):
+            self.session.logging.info(
+                "The current count of fastbinsY does not meet the calculated "
+                "one, which most probably is a result from a different value "
+                "for MALLOC_ALIGNMENT. We try to fix this and if no "
+                "warnings/errors occur, we probably succeded.")
+
+            malloc_state_dict = self.profile.vtypes['malloc_state']
+            malloc_state_dict[1]['fastbinsY'][1][1]['count'] = \
+                self._get_nfastbins()
+
+            correction_size = \
+                (self._get_nfastbins() -
+                 len(self.profile.malloc_state().fastbinsY)) \
+                * self._pointer_size
+
+            malloc_state_dict = self._correct_vtype_offsets(malloc_state_dict,
+                                                            correction_size,
+                                                            'fastbinsY')
+            self.profile.add_types({'malloc_state': malloc_state_dict})
+            return True
+
+        return False
+
+
+    def _check_and_correct_heapinfo_pad(self):
+        """Checks if the curren MALLOC_ALIGNMENT value changes the count of
+        pad chars and if so, we update the heap_info struct."""
+
+        ##### taken from malloc/arena.c line 1046 (glibc-2.23)
+        expected_pad_size = (-6 * self._size_sz) & self._malloc_align_mask
+
+        if expected_pad_size != len(self.profile._heap_info().pad):
+            self.session.logging.info(
+                "The current size of the heap_info pad field does not meet "
+                "the expected size, which most probably is a result from a "
+                "different value for MALLOC_ALIGNMENT. We try to fix this and "
+                "if no warnings/errors occur, we probably succeded.")
+
+            heap_info_dict = self.profile.vtypes['_heap_info']
+            heap_info_dict[1]['pad'][1][1]['count'] = expected_pad_size
+
+            correction_size = expected_pad_size - \
+                len(self.profile._heap_info().pad)
+
+            heap_info_dict = self._correct_vtype_offsets(heap_info_dict,
+                                                         correction_size,
+                                                         'pad')
+            self.profile.add_types({'_heap_info': heap_info_dict})
+
+
+    def _correct_vtype_offsets(self, vtype_dict, correction_size, first_key):
+
+        # first we correct the struct size
+        vtype_dict[0] = vtype_dict[0] + correction_size
+
+        # we first need to get the offset for the first key after which
+        # offsets should be changed
+        first_key_offset = vtype_dict[1][first_key][0]
+
+        for value in list(vtype_dict[1].values()):
+            if value[0] > first_key_offset:
+                value[0] = value[0] + correction_size
+
+        return vtype_dict
 
 
     # Goes to the top chunk of a given arena, gets its heap_info offset and
@@ -1170,6 +1401,14 @@ class HeapAnalysis(common.LinProcessFilter):
 
         if arena.top_chunk:
             last_heap_info = self._heap_for_ptr(arena.top_chunk)
+
+            if not last_heap_info:
+                self.session.logging.error(
+                    "Unexpected error: We didn't find a heap_info struct "
+                    "for the given top chunk. The reason might be swapped "
+                    "pages or wrong debug information. It will lead to "
+                    "further errors.")
+                return None
 
             if not last_heap_info.ar_ptr.dereference() == arena:
                 self.session.logging.error(
@@ -1219,9 +1458,12 @@ class HeapAnalysis(common.LinProcessFilter):
                     self.vmas, re.escape(self._main_heap_identifier))
 
                 if main_arena_range:
+                    offset = self.get_aligned_address(
+                        main_arena_range[0]
+                        + self._static_bin_first_chunk_dist)
+
                     main_arena.first_chunk = self.profile.malloc_chunk(
-                        main_arena_range[0] + self._first_chunk_distance,
-                        vm=self.process_as)
+                        offset, vm=self.process_as)
 
                 else:
                     self.session.logging.warn(
@@ -1237,9 +1479,9 @@ class HeapAnalysis(common.LinProcessFilter):
                         .format(self.task.pid))
 
             else:
-                arena.heaps = self._heaps_for_arena(arena)
                 # in this implementation, thread arenas don't use the
                 # first_chunk member, but their heaps keep them
+                arena.heaps = self._heaps_for_arena(arena)
 
 
     def _initialize_dummy_main_arena(self):
@@ -1295,12 +1537,10 @@ class HeapAnalysis(common.LinProcessFilter):
                     curr_chunk.is_bin_chunk = True
                     dummy_arena.freed_chunks.append(curr_chunk)
 
-
                 elif self._preserve_chunks:
                     dummy_arena.allocated_chunks.append(curr_chunk)
 
                 curr_chunk = next_chunk
-
 
             if dummy_arena.top_chunk:
                 end = dummy_arena.top_chunk.v() \
@@ -1311,8 +1551,6 @@ class HeapAnalysis(common.LinProcessFilter):
                         "is not equal to the range calculated with the top "
                         "chunk. This is unexpected, indicates a problem and "
                         "will most probably lead to unreliable results.")
-
-
 
 
     def _mark_heap_vm_areas(self):
@@ -1372,8 +1610,8 @@ class HeapAnalysis(common.LinProcessFilter):
 
         if additional_heaps:
             self.session.logging.warn(
-                "We probably found at least one heap, which is not part of our"
-                "internal list. This shouldn't be the case, indicates a "
+                "We probably found at least one heap, which is not part of "
+                "our internal list. This shouldn't be the case, indicates a "
                 "problem and will lead to unreliable results. The offset(s) "
                 "of the additional heap(s) is/are: "
                 + ("0x{:x} " * len(additional_heaps))
@@ -1399,6 +1637,28 @@ class HeapAnalysis(common.LinProcessFilter):
                     self._heap_slack_space[heap] = (vma.vm_end - (heap.v()
                                                                   + heap.size))
 
+    def _search_first_chunk(self, start_offset):
+        """Searches from the given start_offset for indicators of the first
+        chunk and returns its offset or None if it couldn't be found."""
+
+        first_chunk_offset = start_offset
+
+        for _ in range(8):
+            temp = self.process_as.read(first_chunk_offset,
+                                        self._size_sz)
+
+            temp = struct.unpack('I' if self._size_sz == 4 else 'Q', temp)[0]
+
+            # the first member of the malloc_chunk is the prev_size
+            # field, which should be 0x0 for the first chunk and the
+            # following member is size which should be > 0x0.
+            if temp != 0x0:
+                first_chunk_offset -= self._size_sz
+                return first_chunk_offset
+
+            first_chunk_offset += self._size_sz
+
+        return None
 
 
     def _initialize_heap_first_chunks(self):
@@ -1434,22 +1694,15 @@ class HeapAnalysis(common.LinProcessFilter):
 
                 expected_first_chunk_offset = self.get_aligned_address(
                     first_chunk_offset)
+                first_chunk_offset = self._search_first_chunk(
+                    first_chunk_offset)
 
-                for _ in range(8):
-                    temp = self.process_as.read(first_chunk_offset,
-                                                self._size_sz)
-
-                    temp = struct.unpack('I' if self._size_sz == 4 else 'Q',
-                                         temp)[0]
-
-                    # the first member of the malloc_chunk is the prev_size
-                    # field, which should be 0x0 for the first chunk and the
-                    # following member is size which should be > 0x0.
-                    if temp != 0x0:
-                        first_chunk_offset -= self._size_sz
-                        break
-
-                    first_chunk_offset += self._size_sz
+                if not first_chunk_offset:
+                    self.session.logging.warn(
+                        "We couldn't identify the first chunk for a thread "
+                        "arena. This is unexpected and will most probably lead"
+                        " to unreliable results.")
+                    return
 
                 # Normally, the first chunk is exactly the aligned address
                 # after the structs, but if we find it somewhere else, it is
@@ -1458,7 +1711,9 @@ class HeapAnalysis(common.LinProcessFilter):
                 # another MALLOC_ALIGNMENT value
                 if first_chunk_offset != expected_first_chunk_offset:
                     self.session.logging.warn(
-                        "We identified an unexpected address deviation, which "
+                        "We identified an unexpected address deviation. The "
+                        "first chunk for the current heap_info at 0x{:x} "
+                        "started {:d} bytes further than expected. This "
                         "indicates another glibc version than the one we are "
                         "using or another value for MALLOC_ALIGNMENT. Verify "
                         "which version is used and provide the debug "
@@ -1466,13 +1721,17 @@ class HeapAnalysis(common.LinProcessFilter):
                         "officially only those versions are supported when "
                         "not providing debug information for a specific "
                         "version: {:s}"
-                        .format(', '.join(_SUPPORTED_GLIBC_VERSIONS)))
+                        .format(heap.v(),
+                            first_chunk_offset - expected_first_chunk_offset,
+                            ', '.join(_SUPPORTED_GLIBC_VERSIONS)))
 
                     if self.session.profile.metadata("arch") == 'I386':
                         self.session.logging.warn(
                             "We just try for now to adjust the "
                             "MALLOC_ALIGNMENT to 16 byte (instead of 8). This "
-                            "might solve the problem.")
+                            "might prevent further problems. If not, this "
+                            "adjustments should be prevented to see, if "
+                            "everything works anyways.")
                         self._initialize_malloc_alignment(malloc_alignment=16)
 
                 heap.first_chunk = self.profile.malloc_chunk(
@@ -1481,7 +1740,6 @@ class HeapAnalysis(common.LinProcessFilter):
                 if arena.top_chunk != heap.first_chunk:
                     self._check_and_report_non_main_arena(
                         heap.first_chunk, heap.first_chunk.is_in_use())
-
 
 
     def _initialize_mmapped_first_chunks(self):
@@ -1511,7 +1769,8 @@ class HeapAnalysis(common.LinProcessFilter):
                     and str(vma.vm_flags).startswith('rw') \
                     and vma.vm_start not in heap_offsets:
 
-                mmap_chunk = self.profile.malloc_chunk(offset=vma.vm_start,
+                offset = self.get_aligned_address(vma.vm_start)
+                mmap_chunk = self.profile.malloc_chunk(offset,
                                                        vm=self.process_as)
 
                 if self._check_and_report_mmapped_chunk(mmap_chunk, vma):
@@ -1542,7 +1801,6 @@ class HeapAnalysis(common.LinProcessFilter):
                         self.heap_vmas.append(vma)
 
 
-
     def _check_and_report_non_main_arena(self, chunk, chunk_in_use):
         """Checks the given chunk for the NON_MAIN_ARENA bit and prints a
         warning if not set. This functions should obviously only be used with
@@ -1569,7 +1827,8 @@ class HeapAnalysis(common.LinProcessFilter):
     # we strictly test for prev_size to be 0x0 (normally always the case for
     # the first chunk in a memory region), the size to be != 0 and the mmapped
     # bit to be set
-    def _check_and_report_mmapped_chunk(self, mmap_chunk, mmap_vma):
+    def _check_and_report_mmapped_chunk(
+            self, mmap_chunk, mmap_vma, dont_report=False):
         """Checks the given chunk for various MMAPPED chunk specific
         attributes. Depending on the results and the location of the chunk,
         a info or warning is printed."""
@@ -1618,19 +1877,27 @@ class HeapAnalysis(common.LinProcessFilter):
             "mapped file and indicates an error and leads to wrong results. "
             "3. An unexpected error (might lead to unrealiable results).")
 
-
         # as the size for mmapped chunks is at least pagesize, we expect them
         # to be >= 4096
         # see glibc_2.23 malloc/malloc.c lines 2315 - 2318
-        if mmap_chunk.get_prev_size() != 0 or \
+        # with a changed MALLOC_ALIGNMENT value, mmapped chunks can start a few
+        # bytes after the beginning of the memory region
+        # moreover, their prev_size field contains the gap size
+        if not (mmap_chunk.get_prev_size() == self._front_misalign_correction
+                and mmap_chunk.chunksize() % self._min_pagesize ==
+                (self._min_pagesize - self._front_misalign_correction)
+                % self._min_pagesize) or \
                 mmap_chunk.chunksize() < self._min_pagesize or \
-                mmap_chunk.chunksize() % self._min_pagesize != 0 or \
                 mmap_chunk.v() + mmap_chunk.chunksize() > mmap_vma.vm_end:
+
+            if dont_report:
+                return False
 
             if mmap_chunk.get_prev_size() == 0 and mmap_chunk.get_size() == 0:
                 base_string += "has zero size. "
 
-                if mmap_chunk.v() == mmap_vma.vm_start:
+                if mmap_chunk.v() == self.get_aligned_address(
+                        mmap_vma.vm_start):
 
                     # it is possible that a vm_area is marked as rw and does
                     # not contain a stack or heap or mmap region. we
@@ -1660,7 +1927,8 @@ class HeapAnalysis(common.LinProcessFilter):
 
             else:
                 base_string += "has invalid values. "
-                if mmap_chunk.v() == mmap_vma.vm_start:
+                if mmap_chunk.v() == self.get_aligned_address(
+                        mmap_vma.vm_start):
                     self.session.logging.info(base_string +
                                               first_chunk_error_reasons)
 
@@ -1670,13 +1938,15 @@ class HeapAnalysis(common.LinProcessFilter):
                     self._mmap_slack_space[mmap_chunk] = (mmap_vma.vm_end -
                                                           mmap_chunk.v())
 
-
         elif mmap_chunk.prev_inuse() or mmap_chunk.non_main_arena():
+            if dont_report:
+                return False
+
             base_string += ("has either the prev_inuse or non_main_arena bit "
                             "set, which is normally not the case for MMAPPED "
                             "chunks.")
 
-            if mmap_chunk.v() == mmap_vma.vm_start:
+            if mmap_chunk.v() == self.get_aligned_address(mmap_vma.vm_start):
                 self.session.logging.info(
                     base_string + first_chunk_error_reasons)
 
@@ -1686,12 +1956,14 @@ class HeapAnalysis(common.LinProcessFilter):
 
                 self._mmap_slack_space[mmap_chunk] = (mmap_vma.vm_end
                                                       - mmap_chunk.v())
-
 
         elif not mmap_chunk.is_mmapped():
+            if dont_report:
+                return False
+
             base_string += "doesn't have the is_mmapped bit set. "
 
-            if mmap_chunk.v() == mmap_vma.vm_start:
+            if mmap_chunk.v() == self.get_aligned_address(mmap_vma.vm_start):
                 self.session.logging.info(
                     base_string + first_chunk_error_reasons)
 
@@ -1702,7 +1974,11 @@ class HeapAnalysis(common.LinProcessFilter):
                 self._mmap_slack_space[mmap_chunk] = (mmap_vma.vm_end
                                                       - mmap_chunk.v())
 
-        elif not self._check_mmap_alignment(mmap_chunk.v()):
+        elif not self._check_mmap_alignment(mmap_chunk.v() -
+                self._front_misalign_correction):
+            if dont_report:
+                return False
+
             self._log_mmapped_warning_messages(
                 base_string + "is not aligned. As chunks are normally always "
                 "aligned, this indicates a mistakenly chosen mmapped chunk "
@@ -1733,32 +2009,23 @@ class HeapAnalysis(common.LinProcessFilter):
         return False
 
 
-    def _get_max_fast_chunk_size(self):
-        """Returns the maximum size for the data part of fast chunks.
-        E.g. for 32 bit architectures, the max size is normally 64 bytes,
-        but 4 bytes are used by the size field of the malloc_chunk struct,
-        which leaves the data part 60 bytes."""
-
-        return 60 if self._size_sz == 4 else 120
-
-
     def iterate_through_chunks(self, first_chunk, mem_end, only_free=False,
-                               only_alloc=False):
+                               only_alloc=False, return_last_chunk=False):
         """This function iterates chunk after chunk until hitting mem_end.
         Tests for allocation status are not made via bins/fastbins but with
         chunk flags. Note: This function will not return the last chunk, if
-        only_free or/and only_alloc is set as there is no PREV_INUSE bit which
-        could be tested."""
+        only_free or/and only_alloc is set (unless return_last_chunk is set)
+        as there is no PREV_INUSE bit which could be tested."""
 
         if not (only_free or only_alloc):
-            for curr_chunk in first_chunk.next_chunk_generator():
+            for curr_chunk in first_chunk.next_chunk_generator(
+                    get_aligned_address_function=self.get_aligned_address):
                 if (curr_chunk.v() + curr_chunk.chunksize()) < mem_end:
                     yield curr_chunk
 
                 else:
                     yield curr_chunk
                     break
-
 
         else:
             curr_chunk = None
@@ -1767,7 +2034,6 @@ class HeapAnalysis(common.LinProcessFilter):
                 if not curr_chunk:
                     curr_chunk = next_chunk
                     continue
-
 
                 if (curr_chunk.v() + curr_chunk.chunksize()) < mem_end:
                     is_in_use = next_chunk.prev_inuse()
@@ -1779,10 +2045,11 @@ class HeapAnalysis(common.LinProcessFilter):
                 else:
                     # we hit last/top chunk. as there is no following chunk, we
                     # can't examine the PREV_INUSE bit
+                    if return_last_chunk:
+                        yield curr_chunk
                     break
 
                 curr_chunk = next_chunk
-
 
 
     def _offset_in_heap_range(self, offset):
@@ -1801,9 +2068,8 @@ class HeapAnalysis(common.LinProcessFilter):
         return False
 
 
-
     def _carve_main_arena(self):
-        """Calling this method assumes that we don't have debug information (in
+        """Calling this method means that we don't have debug information (in
         the sense of constant offsets for data structures) for the target libc
         implementation and do not know the location of the main_arena. If the
         current task contains threads however, we are able to get the location
@@ -1820,6 +2086,11 @@ class HeapAnalysis(common.LinProcessFilter):
 
             return None
 
+        # this function has not yet been called, as it normally depends on an
+        # initialized main_arena to function fully
+        # as we don't have any main arena yet, we try to call it without a
+        # main arena, which in most cases should work
+        self._initialize_internal_structs_and_values()
 
         libc_range = get_libc_range(self.vmas)
 
@@ -1873,7 +2144,6 @@ class HeapAnalysis(common.LinProcessFilter):
                         else:
                             bad_arenas.append(arena)
 
-
         reached_bad_arenas = False
 
         # now we try to use the potential arenas to find the main_arena
@@ -1897,6 +2167,7 @@ class HeapAnalysis(common.LinProcessFilter):
                                 "We most probably found the main_arena via "
                                 "heap_info structs")
 
+                        self._carve_method = 'heap_info'
                         return pot_main_arena
 
             reached_bad_arenas = True
@@ -1907,7 +2178,6 @@ class HeapAnalysis(common.LinProcessFilter):
             "find freed chunks and with them the location of the main_arena."
             .format(self.task.pid))
 
-
         # the previous method didn't work so we now try to gather the main
         # arena via freed chunks
         main_heap_range = get_mem_range_for_regex(
@@ -1916,22 +2186,22 @@ class HeapAnalysis(common.LinProcessFilter):
         if not main_heap_range:
             return None
 
-        first_chunk = self.profile.malloc_chunk(
-            offset=main_heap_range[0] + self._first_chunk_distance,
-            vm=self.process_as)
+        offset = self.get_aligned_address(main_heap_range[0] +
+                                          self._static_bin_first_chunk_dist)
+        first_chunk = self.profile.malloc_chunk(offset, vm=self.process_as)
 
         offset_to_top = self.profile.get_obj_offset("malloc_state", "top")
 
-
         # not used right here, but part of the next method of carving the
         # main arena
-        last_freed_chunk = None
+        top_chunk = None
 
         for free_chunk in self.iterate_through_chunks(first_chunk,
                                                       main_heap_range[1],
-                                                      only_free=True):
+                                                      only_free=True,
+                                                      return_last_chunk=True):
 
-            last_freed_chunk = free_chunk
+            top_chunk = free_chunk
 
             # we now try to follow the bk links to get to the main_arena
             for curr_free_chunk in free_chunk.walk_list('bk'):
@@ -1947,13 +2217,14 @@ class HeapAnalysis(common.LinProcessFilter):
                     maximum_offset_to_top = offset_to_binmap - offset_to_top
 
                     curr_off = curr_free_chunk.v()
-                    fmt = 'I' if self._size_sz == 4 else 'Q'
+                    fmt = 'I' if self._pointer_size == 4 else 'Q'
 
                     # as between the bins and top are only pointers, walking in
                     # size_sz steps should be no problem
-                    for i in range(0, maximum_offset_to_top, self._size_sz):
+                    for i in list(range(
+                            0, maximum_offset_to_top, self._pointer_size)):
                         temp = self.process_as.read(curr_off - i,
-                                                    self._size_sz)
+                                                    self._pointer_size)
                         temp = struct.unpack(fmt, temp)[0]
 
                         if main_heap_range[0] <= temp <= main_heap_range[1]:
@@ -1968,32 +2239,23 @@ class HeapAnalysis(common.LinProcessFilter):
                                     "We found the main_arena via a freed "
                                     "chunk.")
 
+                                self._carve_method = 'freed_chunk'
                                 return self.profile.malloc_state(
                                     offset=(curr_off - i) - offset_to_top,
                                     vm=self.process_as)
-
 
         # Ending up here means all previous methods were not able to find the
         # main arena. The last method we try at this point is to search for
         # pointers to the top chunk. At least the main_arena should have a
         # pointer to the top chunk
-        #
-        # TODO the way we do this (including the last method) is inefficient,
-        # as for most cases, all chunks from the main heap are walked twice
-        #  => improve it!
 
-        # we walk from the last freed chunk from the previous method or from
-        # the first chunk until the top chunk
-        if last_freed_chunk:
-            first_chunk = last_freed_chunk
+        self.session.logging.info(
+            "We couldn't identify any freed chunk leading to the main arena. "
+            "So the last approach is to search for the top chunk, and then "
+            "for pointers to it within the loaded libc module.")
 
-        top_chunk = None
-        for curr_chunk in self.iterate_through_chunks(first_chunk,
-                                                      main_heap_range[1]):
-            top_chunk = curr_chunk
-
-        if top_chunk.v() + top_chunk.chunksize() == main_heap_range[1]:
-
+        if top_chunk and top_chunk.v() + top_chunk.chunksize() == \
+                main_heap_range[1]:
             # we most probably found our top chunk and now search for pointers
             # to it
             for hit in self.search_vmas_for_needle(pointers=[top_chunk.v()]):
@@ -2001,15 +2263,17 @@ class HeapAnalysis(common.LinProcessFilter):
                     offset=hit['hit'] - offset_to_top, vm=self.process_as)
 
                 if top_chunk == pot_main_arena.top and \
-                        pot_main_arena.system_mem == \
-                        (top_chunk.v() + top_chunk.chunksize()
-                         - main_heap_range[0]):
+                        pot_main_arena.system_mem == (top_chunk.v() +
+                        top_chunk.chunksize() -
+                        (main_heap_range[0] +
+                         self._static_bin_first_chunk_dist)):
 
                     # as the 'thread arena carving' method didn't find an
                     # arena, the 'next' field should point to itself
                     if pot_main_arena.next == pot_main_arena:
                         self.session.logging.info(
                             "We found the main_arena via top chunk.")
+                        self._carve_method = 'top_chunk'
                         return pot_main_arena
 
                     else:
@@ -2019,15 +2283,8 @@ class HeapAnalysis(common.LinProcessFilter):
                                 is None:
                             self.session.logging.info(
                                 "We found the main_arena via top chunk.")
+                            self._carve_method = 'top_chunk'
                             return pot_main_arena
-
-
-        # This will most probably only happen, if the page containing the main
-        # arena has been swapped
-        self.session.logging.warn(
-            "We were not able to find the main arena for task {0:d} and since "
-            "we have no debug information about its offset, we can't retrieve "
-            "it directly.".format(self.task.pid))
 
         return None
 
@@ -2049,52 +2306,84 @@ class HeapAnalysis(common.LinProcessFilter):
         self._heap_slack_space = dict()
         self._hidden_chunks = set()
         self._stack_vmas_and_offsets = None
-        self._is_statically_linked = False
         self._has_dummy_arena = False
-        self._first_chunk_distance = 0
+        self._static_bin_first_chunk_dist = 0
+        self._is_probably_static_bin = False
+        self._front_misalign_correction = 0
+        self._bottom_chunk_gaps = dict()
+        self._malloc_alignment = 0
+        self._malloc_align_mask = 0
+        self._libc_version = ''
+        self._carve_method = ''
 
 
-    # TODO reliable verification via page table information
     def _check_and_report_arena_for_being_swapped(self, arena):
-        """Tests the fields of an arena for null bytes. If those fields are
-        null, it is a good indication that the corresponding memory region has
-        been swapped."""
+        """Tests some crucial fields of an arena for being swapped."""
 
-        if arena:
-            if arena.top.v() == arena.next.v() == arena.system_mem.v() == 0:
-                # arena has likely been swappped
-                self.session.logging.warn(
-                    "Some crucial fields of the arena at offset 0x{:x} are "
-                    "all null. The reason might be a wrong offset to the "
-                    "main arena, a statically linked binary, a fundamental "
-                    "error in this plugin, or (in most cases) swapped memory "
-                    "pages. Either way, the results will most probably be "
-                    "incorrect and incomplete.".format(arena.v()))
-                return True
+        if not arena:
+            # as we don't have any object to analyze further, we just return
+            # true in this case
+            return True
+
+        if arena.top.v() == 0 or arena.next.v() == 0 or \
+                arena.system_mem.v() == 0:
+
+            for field in ["top", "next", "system_mem"]:
+                address_to_test = arena.v()
+                address_to_test += self.profile.get_obj_offset("malloc_state",
+                                                               field)
+
+                if self._check_address_for_being_swapped(address_to_test):
+                    # at least parts of the arena have been swapped
+                    self.session.logging.warn(
+                        "Some crucial fields of the arena at offset 0x{:x} "
+                        "belong to swapped pages. Hence their values can't be "
+                        "retrieved, which will lead to more errors and "
+                        "unreliable results.".format(arena.v()))
+                    return True
+
+            self.session.logging.warn(
+                "Some crucial fields of the arena at offset 0x{:x} are null. "
+                "The reason might be a wrong offset to the "
+                "main arena, a statically linked binary or a fundamental "
+                "error in this plugin. Either way, the results will most "
+                "probably be incorrect and incomplete.".format(arena.v()))
 
         return False
 
 
-    # TODO reliable verification via page table information
     def _check_and_report_mp_for_being_swapped(self, malloc_par_struct):
-        """Tests the fields of the malloc_par struct. If those fields are null,
-        it is a good indication that the corresponding memory region has been
-        swapped."""
+        """Tests a field of the malloc_par struct for being swapped."""
 
-        if malloc_par_struct:
-            if malloc_par_struct.mmap_threshold.v() == 0:
-                # memory page belonging to malloc_par struct has likely
-                # been swappped
+        if not malloc_par_struct:
+            # as we don't have any object to analyze further, we just return
+            # true in this case
+            return True
+
+        elif malloc_par_struct.mmap_threshold.v() == 0:
+            address_to_test = malloc_par_struct.v()
+            address_to_test += self.profile.get_obj_offset("malloc_par",
+                                                           "mmap_threshold")
+
+            if self._check_address_for_being_swapped(address_to_test):
                 self.session.logging.warn(
-                    "At least the mmap_threshold field of the malloc_par "
-                    "struct at offset 0x{:x} is null. The reason might be a "
-                    "wrong offset to the malloc_par struct, a statically "
-                    "linked binary, a fundamental error in this plugin, or "
-                    "(in most cases) swapped memory pages. Either way, the "
-                    "MMAPPED chunk algorithms will not work perfectly and "
-                    "hence, some chunks might be missing."
+                    "The page containing the malloc_par struct at offset "
+                    "0x{:x} has been swapped. The MMAPPED chunk algorithms "
+                    "will hence not work perfectly and some MMAPPED chunks "
+                    "might be missing in the output."
                     .format(malloc_par_struct.v()))
                 return True
+
+            else:
+                self.session.logging.warn(
+                    "The mmap_threshold field of the malloc_par struct at "
+                    "offset 0x{:x} is null, BUT the corresponding page "
+                    "doesn't seem to be swapped. The reason might be a wrong "
+                    "offset to the malloc_par struct, a statically linked "
+                    "binary or a fundamental error in this plugin. Either "
+                    "way, the MMAPPED chunk algorithms will not work "
+                    "perfectly, hence some MMAPPED chunks might be missing "
+                    "in the output.".format(malloc_par_struct.v()))
 
         return False
 
@@ -2109,10 +2398,10 @@ class HeapAnalysis(common.LinProcessFilter):
 
         # processes normally have an associated mm_struct/memory descriptor
         # if there is none, it is probably a kernel thread
-        if task.mm:
-            self.session.plugins.cc().SwitchProcessContext(task)
+        if task.mm.dereference():
 
             self.task = task
+            self.process_as = task.get_process_address_space()
             self.vmas = self._get_vmas_for_task(task)
 
             if self.vmas:
@@ -2120,50 +2409,36 @@ class HeapAnalysis(common.LinProcessFilter):
 
                 if self._libc_profile_success:
 
-                    ###### taken from malloc/malloc.c (glibc-2.23)
-                    min_chunk_size = self.profile.get_obj_offset(
-                        "malloc_chunk", "fd_nextsize")
-                    self._minsize = self.get_aligned_address(min_chunk_size)
-                    ######
-
-                    self.process_as = task.get_process_address_space()
+                    # as these values are used on various locations,
+                    # we gather them only once
+                    self._chunk_fd_member_offset =  \
+                        self.profile.get_obj_offset("malloc_chunk", "fd")
+                    self._pointer_size = self.profile.get_obj_size("Pointer")
 
                     libc_range = get_libc_range(self.vmas)
-                    # we prepone setting the self._libc_offset as it is
-                    # required for _initialize_malloc_par
                     if libc_range:
                         self._libc_offset = libc_range[0]
-
-                    self._initialize_malloc_par()
-
-                    if not libc_range:
-                        # seems like a statically linked executable
-                        self.session.logging.warn(
-                            "Didn't find the libc filename in the vm_areas of "
-                            "the current process: {:d} - {:s} . This might "
-                            "lead to unreliable results or might be because "
-                            "the executable has been statically linked."
-                            .format(task.pid, repr(task.comm.v())))
-
-                        if self.mp_:
-                            # the beginning of the chunk area is pointed to by
-                            # mp_.sbrk_base
-                            self._is_statically_linked = True
-                            main_arena_range = get_mem_range_for_regex(
-                                self.vmas,
-                                re.escape(self._main_heap_identifier))
-
-                            self._first_chunk_distance = \
-                                self.mp_.sbrk_base.v() - main_arena_range[0]
-
-                    else:
                         self.session.logging.info(
                             "Found libc offset at: " + hex(self._libc_offset))
+
+                    if not self._libc_offset:
+                        # might be a statically linked executable
+                        self.session.logging.info(
+                            "Didn't find the libc filename in the vm_areas of "
+                            "the current process: {:d} - {:s} . The reason "
+                            "might be a statically linked binary or an "
+                            "unexpected error. We try to fix this issue for "
+                            "the first case. Without any follow up warnings, "
+                            "everything seems to be fine."
+                            .format(self.task.pid, repr(self.task.comm.v())))
+
+                        self._is_probably_static_bin = True
 
                     pot_main_arena = None
 
                     if self.plugin_args.main_arena:
                         main_arena_offset = self.plugin_args.main_arena
+
                     else:
                         main_arena_offset = self.profile.get_constant(
                             'main_arena')
@@ -2184,7 +2459,57 @@ class HeapAnalysis(common.LinProcessFilter):
                             "{:d}.".format(self.task.pid))
                         pot_main_arena = self._carve_main_arena()
 
+                        if not pot_main_arena and \
+                                self._test_and_load_special_glibc_profile(
+                                        pot_main_arena):
+                            # We redefined the malloc_state struct and with
+                            # this new struct, we search for the main_arena
+                            # again. See _test__load_special_glibc_profile for
+                            # further comments
+                            pot_main_arena = self._carve_main_arena()
+
+                        if not pot_main_arena:
+                            # This will most probably only happen, if the page
+                            # containing the main arena has been swapped
+                            self.session.logging.warn(
+                                "We were not able to find the main arena for "
+                                "task {0:d} and since we have no debug "
+                                "information about its offset, we can't "
+                                "retrieve it directly.".format(self.task.pid))
+
+                    pot_main_arena = \
+                        self._initialize_internal_structs_and_values(
+                            main_arena=pot_main_arena)
+
                     if pot_main_arena:
+                        if self._test_and_load_special_glibc_profile(
+                                pot_main_arena):
+                            # seems like the malloc_state definition has been
+                            # changed (see _test__load_special_glibc_profile
+                            # for further comments), so we reinitialize our
+                            # arena
+                            offset = pot_main_arena.v()
+                            if not self.plugin_args.main_arena and \
+                                    self._carve_method in \
+                                    ['top_chunk', 'freed_chunk']:
+                                # If the absolute offset for the main_arena
+                                # has been given, we don't touch the offset.
+                                # If not, and the main_arena has been gathered
+                                # via the top chunk, we subtract 8 bytes from
+                                # the previous offset, since this offset has
+                                # been calculated with a wrong 'top' offset
+                                # within the malloc state struct (the
+                                # additional have_fastchunks field lies before
+                                # the top chunk).
+                                offset -= 8
+
+                            pot_main_arena = self.profile.malloc_state(
+                                offset=offset, vm=self.process_as)
+
+                            pot_main_arena = \
+                                self._initialize_internal_structs_and_values(
+                                    main_arena=pot_main_arena)
+
                         if self._check_arenas(pot_main_arena) is False:
                             self.session.logging.warn(
                                 "Arena pointers don't seem to loop within the "
@@ -2215,9 +2540,9 @@ class HeapAnalysis(common.LinProcessFilter):
 
                         self._initialize_dummy_main_arena()
 
+                    self._initialize_tcache_bins()
                     self._initialize_mmapped_first_chunks()
                     self._initialize_heap_vma_list()
-
                     self.activate_chunk_preservation()
                     self.check_and_report_size_inconsistencies()
 
@@ -2244,6 +2569,117 @@ class HeapAnalysis(common.LinProcessFilter):
         return False
 
 
+    def _test_and_load_special_glibc_profile(self, arena):
+        """Arch linux uses for certain versions of their Glibc package (at
+        least 2.26-8) more recent code from the Glibc git repository, which is
+        not part of the official Glibc version 2.26 release. So if libc version
+        2.26 is used and something previously failed (which is why this
+        gets called), we load the malloc_state definition for the upcoming
+        Glibc 2.27 version.
+        This function returns True only if a new profile has been loaded.
+        This means, it will also return False if the new profile has already
+        been loaded."""
+
+        # the only currently supported/known case is arch's glibc package
+        # 2.26-8 for x64 platforms
+        if not (self._libc_version == '226' and
+                self.session.profile.metadata("arch") == 'AMD64'):
+            return False
+
+        # we first test, whether the 2.27 definitions already have been
+        # loaded
+        if hasattr(self.profile.malloc_state(), 'have_fastchunks'):
+            return False
+
+        if arena and arena.top.v() == 0 and arena.next.v() == 0 and \
+                arena.system_mem.v() == 0:
+            self.session.logging.info(
+                "Loading special profile as some fields "
+                "of the identified main_arena were null. Typically the "
+                "case for arch linux x64, with glibc package version "
+                ">= 2.26-8")
+            self.profile.add_types(GlibcProfile64.ms_227_vtype_64)
+            return True
+
+        curr_arena = arena
+        try:
+            for _ in range(0x100):
+                curr_arena = curr_arena.next
+                if arena == curr_arena:
+                    return False
+        except:
+            pass
+
+        self.session.logging.info(
+            "Loading special profile as the next "
+            "pointers of the arenas don't loop. Typically the "
+            "case for arch linux x64, with glibc package version >= 2.26-8")
+        self.profile.add_types(GlibcProfile64.ms_227_vtype_64)
+        return True
+
+
+    def _initialize_tcache_bins(self):
+
+        # the first chunk for an arena contains the
+        # tcache_perthread_struct (for glibc versions >= 2.26)
+        for arena in self.arenas:
+            if arena.is_main_arena:
+                arena.initialize_tcache_bins(arena.first_chunk)
+
+            else:
+                for heap_info in arena.heaps:
+                    if heap_info.prev == 0x0:
+                        arena.initialize_tcache_bins(heap_info.first_chunk)
+
+
+    def _check_and_correct_first_chunk_offset(self):
+        """This function checks for a gap between the beginning of the main
+        heap's memory region and the first chunk. If there is one, it either
+        means the binary has been linked statically or there is a different
+        MALLOC_ALIGNMENT set via compile time options or an unknown error.
+        In the first two cases, this functions tries to correct the according
+        variables."""
+
+        main_arena_range = get_mem_range_for_regex(
+            self.vmas, re.escape(self._main_heap_identifier))
+
+        if not main_arena_range:
+            # there seems to be no main heap, so nothing to do here
+            return
+
+        if self._is_probably_static_bin and self.mp_:
+            # the beginning of the chunk area is pointed to by mp_.sbrk_base
+            self._static_bin_first_chunk_dist = \
+                self.mp_.sbrk_base.v() - main_arena_range[0]
+
+        heap_beginning = main_arena_range[0] + \
+            self._static_bin_first_chunk_dist
+
+        # when the MALLOC_ALIGNMENT has been modified, the first chunk does
+        # not start at the beginning of the memory region, but a few bytes
+        # after.
+        first_chunk_offset = self._search_first_chunk(heap_beginning)
+        if first_chunk_offset and first_chunk_offset > heap_beginning:
+            self.session.logging.info(
+                "We identified a gap between the beginning of the main heap "
+                "and the first chunk. This indicates a different "
+                "MALLOC_ALIGNMENT value, which we now try to fix.")
+            self._front_misalign_correction = first_chunk_offset - \
+                heap_beginning
+
+            # the only supported case currently is an increasement from 8 to 16
+            # for MALLOC_ALIGNMENT for I386
+            if self.session.profile.metadata("arch") == 'I386' and \
+                    self._front_misalign_correction == 8:
+                self._malloc_alignment = 16
+
+            else:
+                self.session.logging.warn(
+                    "There seems to be a different MALLOC_ALIGNMENT in a case "
+                    "that we not yet support. So get in touch with the creator"
+                    " of this plugin and send him a nice 'WTF, fix this' ; )")
+
+
     def _walk_hidden_mmapped_chunks(self, hidden_chunk):
         """Helper function for carve_and_register_hidden_mmapped_chunks.
         Walks MMAPPED chunks beginning with hidden_chunks and registers them.
@@ -2259,7 +2695,6 @@ class HeapAnalysis(common.LinProcessFilter):
                     new_mmapped_chunks.append(mmapped_chunk)
 
         return new_mmapped_chunks
-
 
 
     def _carve_register_mmapped_chunks_hidden_behind_stack(self):
@@ -2303,9 +2738,8 @@ class HeapAnalysis(common.LinProcessFilter):
 
         if self._stack_vmas_and_offsets and mmapped_chunks:
             mmap_pointers = []
-            chunk_data_offset = self.profile.get_obj_offset("malloc_chunk",
-                                                            "fd")
-            mmap_pointers += [x.v() + chunk_data_offset
+
+            mmap_pointers += [x.v() + self._chunk_fd_member_offset
                               for x in mmapped_chunks]
 
             found_pointers = set()
@@ -2315,6 +2749,9 @@ class HeapAnalysis(common.LinProcessFilter):
                     hidden_mmap_vmas=self._stack_vmas_and_offsets):
 
                 found_pointers.add(hit['needle'])
+
+            if not found_pointers:
+                return
 
             if len(found_pointers) == len(mmap_pointers):
                 self.session.logging.warn(
@@ -2330,7 +2767,6 @@ class HeapAnalysis(common.LinProcessFilter):
                     "identified \"MMAPPED chunk\" with no associated pointer "
                     "on the stack might have been mistakenly chosen."
                     .format(len(found_pointers), len(mmap_pointers)))
-
 
 
     def _register_hidden_mmapped_chunks(self, new_mmapped_chunks):
@@ -2374,7 +2810,6 @@ class HeapAnalysis(common.LinProcessFilter):
         self._register_hidden_mmapped_chunks(new_mmapped_chunks)
 
 
-
     def search_vmas_for_needle(self, search_string=None, search_regex=None,
                                pointers=None, vmas=None, hidden_mmap_vmas=None,
                                vma_regex=None):
@@ -2383,6 +2818,8 @@ class HeapAnalysis(common.LinProcessFilter):
         regex = a regex identifying relevant vm_areas
         Returns a list of hits
         """
+
+        result = []
 
         if search_string:
             scanner = scan.BaseScanner(profile=self.profile,
@@ -2405,15 +2842,13 @@ class HeapAnalysis(common.LinProcessFilter):
                                           pointers=pointers)
 
         else:
-            return None
+            return result
 
         if not vmas or hidden_mmap_vmas:
             vmas = self.vmas
 
         if hidden_mmap_vmas:
             vmas = hidden_mmap_vmas
-
-        result = []
 
         for vma in vmas:
             if vma_regex and not hidden_mmap_vmas:
@@ -2431,8 +2866,8 @@ class HeapAnalysis(common.LinProcessFilter):
                 temp['vma'] = vma[0] if hidden_mmap_vmas else vma
                 temp['hit'] = hit
                 if pointers:
-                    pointer = self.process_as.read(hit, self._size_sz)
-                    pointer = struct.unpack('I' if self._size_sz == 4
+                    pointer = self.process_as.read(hit, self._pointer_size)
+                    pointer = struct.unpack('I' if self._pointer_size == 4
                                             else 'Q', pointer)[0]
                     temp['needle'] = pointer
 
@@ -2461,21 +2896,18 @@ class HeapAnalysis(common.LinProcessFilter):
         # has the prev_inuse bit set, but no previous chunk.
         first_chunk_offsets = set()
         for arena in self.arenas:
-            if arena.is_main_arena:
-                if arena.first_chunk:
-                    first_chunk_offsets.add(arena.first_chunk.v())
+            if arena.is_main_arena and arena.first_chunk:
+                first_chunk_offsets.add(arena.first_chunk.v())
 
             for heapinfo in arena.heaps:
                 if heapinfo.first_chunk:
                     first_chunk_offsets.add(heapinfo.first_chunk.v())
-
 
         addresses_to_remove = set()
 
         # get_all_chunks returns allocated chunks first, and then freed ones
         # so it doesn't screw up the 'last_chunk' functionality
         for chunk in self.get_all_chunks():
-
             # we already found hits for those, so we don't check for them
             # anymore
             if addresses_to_remove:
@@ -2528,19 +2960,32 @@ class HeapAnalysis(common.LinProcessFilter):
                                     "a freed chunk. This is unexpected and "
                                     "will lead to wrong results")
 
-
                         if last_chunk:
                             if last_chunk.v() + last_chunk.chunksize() \
                                     == chunk.v():
                                 chunk_to_add = last_chunk
 
                             else:
-                                self.session.logging.warn(
-                                    "The current previous chunk for chunk at "
-                                    "offset 0x{:x} does not seem to be its "
-                                    "predecessor. This is unexpected at this "
-                                    "point and might indicate a major "
-                                    "problem.")
+                                # this case might happen for glibc versions
+                                # with tcache support: the current chunks
+                                # prev_inuse bit is set, but the last chunk
+                                # is a freed (tcache) chunk, so we search the
+                                # freed chunks for the last chunk
+                                for freed_chunk in self.get_all_freed_chunks():
+                                    if freed_chunk.v() + \
+                                            freed_chunk.chunksize() == \
+                                            chunk.v() and \
+                                            freed_chunk.is_tcache_chunk:
+                                        chunk_to_add = freed_chunk
+
+                                if not chunk_to_add:
+                                    self.session.logging.warn(
+                                        "The current previous chunk at 0x{:x} "
+                                        "for chunk at offset 0x{:x} does "
+                                        "not seem to be its predecessor. "
+                                        "This is unexpected at this point "
+                                        "and might indicate a major problem."
+                                        .format(last_chunk.v(), chunk.v()))
 
                         else:
                             self.session.logging.error(
@@ -2550,10 +2995,8 @@ class HeapAnalysis(common.LinProcessFilter):
                             if self.session.GetParameter("debug"):
                                 pdb.post_mortem()
 
-
                     else:
                         chunk_to_add = chunk
-
 
                     if chunk_to_add not in list(chunks.keys()):
                         # in the case, multiple addresses match the same chunk:
@@ -2566,13 +3009,13 @@ class HeapAnalysis(common.LinProcessFilter):
         return chunks
 
 
-
     # Note: Does not return chunks containing pointers to the prev_size field
     # of the first chunk of the main heap/ heap_info area; but this shouldn't
     # be the case anyways. For all other chunks, the prev_size field is treated
     # appropriately
     def search_chunks_for_needle(self, search_string=None, search_regex=None,
-                                 pointers=None, search_struct=False):
+                                 pointers=None, search_struct=False,
+                                 given_hits=None):
         """Searches all chunks for the given pointer(s) and returns the ones
         containing them. It only searches the data part of a chunk (e.g.
         not fd/bk fields for bin chunks).
@@ -2582,6 +3025,8 @@ class HeapAnalysis(common.LinProcessFilter):
         search_struct = if set to True, also fields like size and fd/bk for bin
         chunks are included
         """
+
+        result = dict()
 
         # as searching every chunk for data is inefficient, we first search all
         # vmas and correlate the hits with known chunks afterwards
@@ -2597,10 +3042,11 @@ class HeapAnalysis(common.LinProcessFilter):
             hits = self.search_vmas_for_needle(search_regex=search_regex,
                                                vmas=self.heap_vmas)
 
-        else:
-            return None
+        elif given_hits:
+            hits = given_hits
 
-        result = dict()
+        else:
+            return result
 
         # the result structure is:
         # { chunk_with_hit: {
@@ -2630,7 +3076,6 @@ class HeapAnalysis(common.LinProcessFilter):
         return result
 
 
-
     def _ebp_unrolling(self, ebp, vma):
         """Helper function for carving hidden MMAPPED chunks.
         Tries to follow EBP pointers to the first one and returns its offset.
@@ -2650,8 +3095,9 @@ class HeapAnalysis(common.LinProcessFilter):
         while vma.vm_start <= temp < vma.vm_end and last_ebp != temp and \
                 i < max_steps:
             last_ebp = temp
-            temp = (self.process_as.read(temp, self._size_sz))
-            temp = struct.unpack('I' if self._size_sz == 4 else 'Q', temp)[0]
+            temp = (self.process_as.read(temp, self._pointer_size))
+            temp = struct.unpack(
+                'I' if self._pointer_size == 4 else 'Q', temp)[0]
             i += 1
 
         return last_ebp
@@ -2673,16 +3119,11 @@ class HeapAnalysis(common.LinProcessFilter):
 
         while distance >= self._min_pagesize:
 
-            temp_chunk = self.profile.malloc_chunk(offset=offset,
-                                                   vm=self.process_as)
+            temp_chunk = self.profile.malloc_chunk(
+                self.get_aligned_address(offset), vm=self.process_as)
 
-            if temp_chunk.get_prev_size() == 0 and \
-                    temp_chunk.chunksize() >= self._min_pagesize and \
-                    temp_chunk.chunksize() % self._min_pagesize == 0 and \
-                    temp_chunk.is_mmapped() and \
-                    not temp_chunk.prev_inuse() and \
-                    not temp_chunk.non_main_arena() and \
-                    temp_chunk.v() + temp_chunk.chunksize() <= vma.vm_end:
+            if self._check_and_report_mmapped_chunk(
+                    temp_chunk, vma, dont_report=True):
 
                 return temp_chunk
 
@@ -2693,7 +3134,7 @@ class HeapAnalysis(common.LinProcessFilter):
 
     def calculate_statistics(self):
         """Sets the class attribute self.statistics with a dict containing
-        e.g. number of allocated/freed/fastbin chunks, their sizes..."""
+        e.g. number of allocated/freed/fastbin/tcache chunks, their sizes..."""
 
         if not self.get_main_arena():
             return
@@ -2705,6 +3146,8 @@ class HeapAnalysis(common.LinProcessFilter):
         size_of_bin_chunks = 0
         number_of_fastbin_chunks = 0
         size_of_fastbin_chunks = 0
+        number_of_tcache_chunks = 0
+        size_of_tcache_chunks = 0
         number_of_top_chunks = 0
         size_of_top_chunks = 0
 
@@ -2721,6 +3164,10 @@ class HeapAnalysis(common.LinProcessFilter):
         ##### mallinfo specific values ####
         # includes bin and top chunks, also for empty main arena
         mallinfo_number_of_free_chunks = 0
+        # does not include tcache chunks
+        mallinfo_total_free_space = 0
+        # tcache chunks are added up here for mallinfo output
+        mallinfo_total_allocated_space = 0
 
         # the sum of the system_mem fields from all arenas
         non_mmapped_bytes = 0
@@ -2730,10 +3177,9 @@ class HeapAnalysis(common.LinProcessFilter):
         # includes also heap/arena struct sizes and bottom chunks
         total_allocated_space = 0
 
-        # includes top chunk and fastbins
+        # includes top chunk, tcache and fastbins
         total_free_space = 0
         ####################################
-
 
         for arena in self.arenas:
 
@@ -2753,6 +3199,10 @@ class HeapAnalysis(common.LinProcessFilter):
             for chunk in arena.freed_fast_chunks:
                 number_of_fastbin_chunks += 1
                 size_of_fastbin_chunks += chunk.chunksize()
+
+            for chunk in arena.freed_tcache_chunks:
+                number_of_tcache_chunks += 1
+                size_of_tcache_chunks += chunk.chunksize()
 
             for chunk in arena.freed_chunks:
                 number_of_bin_chunks += 1
@@ -2779,7 +3229,6 @@ class HeapAnalysis(common.LinProcessFilter):
                         size_of_thread_chunks += chunk.chunksize()
                         number_of_thread_chunks += 1
 
-
                 # total_allocated_space includes also the allocated space from
                 # heap_info and malloc_state structs (except for the
                 # main_arena)
@@ -2787,11 +3236,15 @@ class HeapAnalysis(common.LinProcessFilter):
                     number_of_heaps += 1
                     total_allocated_space += heap.first_chunk.v() - heap.v()
 
-
         ### mallinfo specific calculation
         total_free_space += size_of_top_chunks
         total_free_space += size_of_fastbin_chunks
+        total_free_space += size_of_tcache_chunks
         total_free_space += size_of_bin_chunks
+
+        mallinfo_total_free_space += size_of_top_chunks
+        mallinfo_total_free_space += size_of_fastbin_chunks
+        mallinfo_total_free_space += size_of_bin_chunks
 
         mallinfo_number_of_free_chunks += number_of_bin_chunks
         mallinfo_number_of_free_chunks += number_of_top_chunks
@@ -2799,6 +3252,15 @@ class HeapAnalysis(common.LinProcessFilter):
         total_allocated_space += size_of_main_chunks
         total_allocated_space += size_of_thread_chunks
         total_allocated_space += size_of_bottom_chunks
+
+        mallinfo_total_allocated_space = total_allocated_space
+        mallinfo_total_allocated_space += size_of_tcache_chunks
+        # includes the gaps after bottom chunks (caused by different
+        # MALLOC_ALIGNMENT) and in front of the first main_arena chunk
+        mallinfo_total_allocated_space += sum(list(
+            self._bottom_chunk_gaps.values()))
+        if self.get_main_arena().first_chunk:
+            mallinfo_total_allocated_space += self._front_misalign_correction
         ######################
 
         statistics = dict()
@@ -2808,6 +3270,8 @@ class HeapAnalysis(common.LinProcessFilter):
         statistics['size_of_bin_chunks'] = size_of_bin_chunks
         statistics['number_of_fastbin_chunks'] = number_of_fastbin_chunks
         statistics['size_of_fastbin_chunks'] = size_of_fastbin_chunks
+        statistics['number_of_tcache_chunks'] = number_of_tcache_chunks
+        statistics['size_of_tcache_chunks'] = size_of_tcache_chunks
         statistics['number_of_top_chunks'] = number_of_top_chunks
         statistics['size_of_top_chunks'] = size_of_top_chunks
         statistics['number_of_main_chunks'] = number_of_main_chunks
@@ -2819,7 +3283,10 @@ class HeapAnalysis(common.LinProcessFilter):
 
         statistics['non_mmapped_bytes'] = non_mmapped_bytes
         statistics['total_allocated_space'] = total_allocated_space
+        statistics['mallinfo_total_allocated_space'] = \
+            mallinfo_total_allocated_space
         statistics['total_free_space'] = total_free_space
+        statistics['mallinfo_total_free_space'] = mallinfo_total_free_space
         statistics['mallinfo_number_of_free_chunks'] = \
             mallinfo_number_of_free_chunks
 
@@ -2847,6 +3314,11 @@ class HeapAnalysis(common.LinProcessFilter):
             number_of_mmapped_chunks += 1
             size_of_mmapped_chunks += chunk.chunksize()
 
+            # apparently, mp_.mmapped_mem also includes the gap at the chunks
+            # beginning, so we add it up here (the gap is stored in the
+            # prev_size field)
+            size_of_mmapped_chunks += chunk.get_prev_size()
+
         self.statistics['number_of_mmapped_chunks'] = number_of_mmapped_chunks
         self.statistics['size_of_mmapped_chunks'] = size_of_mmapped_chunks
 
@@ -2871,14 +3343,19 @@ class HeapAnalysis(common.LinProcessFilter):
                      + self.statistics['total_free_space']
                      + self.statistics['size_of_mmapped_chunks'])
 
-        chunk_sum += sum(self._mmap_slack_space.values())
-        chunk_sum += sum(self._heap_slack_space.values())
-
+        # this takes the potential gap at the beginning of mmapped chunks
+        # into account.
+        # since for hidden chunks the first gap doesn't matter (for them,
+        # the vmas are not part of the self.heap_vmas) we don't use them here
+        # the gap is stored in the mmapped chunk's prev_size field
+        chunk_sum -= sum([x.get_prev_size() for x in self._hidden_chunks])
+        chunk_sum += sum(list(self._mmap_slack_space.values()))
+        chunk_sum += sum(list(self._heap_slack_space.values()))
 
         vma_sum += sum([x.chunksize() for x in self._hidden_chunks])
         # as we can't simply add the vm_area for the hidden chunks to the
         # vma_sum, as it contains also other data, we add the hidden chunks
-        # and their slack space to the vma_sum
+        # and the following slack space to the vma_sum
         #
         # _mmap_slack_space is filled with the "chunk" after the last mmapped
         # chunk which isn't really a chunk but only empty space. to get them,
@@ -2890,7 +3367,22 @@ class HeapAnalysis(common.LinProcessFilter):
         vma_sum += sum([y for x, y in self._mmap_slack_space.items()
                         if x in hidden_next_chunks])
 
-        vma_sum -= self._first_chunk_distance
+        # for heaps without a main heap, this value isn't set, so its safe
+        # to just subtract it
+        vma_sum -= self._static_bin_first_chunk_dist
+
+        # this takes the cases into account, where the first chunk for an arena
+        # has a extra gap. is done only for the main arena, for thread arenas
+        # this is already been taken care of in the calculation of
+        # self.statistics['total_allocated_space']
+        # we subtract that additional space only, if there are chunks in the
+        # main heap
+        if self.get_main_arena().first_chunk:
+            vma_sum -= self._front_misalign_correction
+
+        # for thread arenas, however, there might be an additional gap after
+        # the tow bottom chunks if MALLOC_ALIGNMENT has been modified
+        vma_sum -= sum(list(self._bottom_chunk_gaps.values()))
 
         return chunk_sum == vma_sum
 
@@ -2902,7 +3394,8 @@ class HeapAnalysis(common.LinProcessFilter):
         if not self.statistics:
             self.calculate_statistics()
 
-        if self.compare_mmapped_chunks_with_mp_() is False:
+        mmap_info_is_correct = False
+        if self._compare_mmapped_chunks_with_mp_() is False:
             self.session.logging.info(
                 "The values from the malloc_par struct don't correspond to "
                 "our found MMAPPED chunks. This indicates we didn't find all "
@@ -2912,7 +3405,7 @@ class HeapAnalysis(common.LinProcessFilter):
             self._carve_register_mmapped_chunks_hidden_behind_stack()
             self._calculate_mmapped_statistics()
 
-            if self.compare_mmapped_chunks_with_mp_() is False:
+            if self._compare_mmapped_chunks_with_mp_() is False:
                 self.session.logging.info(
                     "Seems like we didn't find (all) MMAPPED chunks behind "
                     "stack frames. We now search in all anonymous vm_areas "
@@ -2921,7 +3414,7 @@ class HeapAnalysis(common.LinProcessFilter):
                 self._carve_and_register_hidden_mmapped_chunks_globally()
                 self._calculate_mmapped_statistics()
 
-                if self.compare_mmapped_chunks_with_mp_() is False:
+                if self._compare_mmapped_chunks_with_mp_() is False:
                     self.session.logging.warn(
                         "The calculated count and size of all MMAPPED chunks "
                         "doesn't meet the values from the gathered malloc_par "
@@ -2936,24 +3429,27 @@ class HeapAnalysis(common.LinProcessFilter):
                                 self.mp_.n_mmaps,
                                 self.mp_.mmapped_mem))
 
-
                     self._search_stacks_for_mmap_pointers()
 
                 else:
+                    mmap_info_is_correct = True
                     self.session.logging.info(
                         "Seems like all missing MMAPPED chunks have been "
                         "found.")
 
             else:
+                mmap_info_is_correct = True
                 self.session.logging.info(
                     "Seems like all missing MMAPPED chunks have been found.")
 
+        else:
+            mmap_info_is_correct = True
 
-
-        if self._compare_vma_sizes_with_chunks() is False:
+        if not mmap_info_is_correct:
             for warning in self._mmapped_warnings:
                 self.session.logging.warn(warning)
 
+        if self._compare_vma_sizes_with_chunks() is False:
             self.session.logging.warn(
                 "The calculated sum from all heap objects and chunks does not "
                 "meet the sum from all heap relevant vm_areas. This either "
@@ -2970,11 +3466,15 @@ class HeapAnalysis(common.LinProcessFilter):
 
         main_heap_size = 0
         size_all_vmas = 0
+
+        # we first gather the size of all vmas containing main/thread arenas
+        # but not mmapped chunks
         mmapped_first_chunk_pointers = \
             [x.v() for x in self.get_main_arena().mmapped_first_chunks]
 
         relevant_vmas = [x for x in self.heap_vmas
-                         if x['vma'].vm_start
+                         if x['vma'].vm_start +
+                         self._front_misalign_correction
                          not in mmapped_first_chunk_pointers]
 
         for vma in relevant_vmas:
@@ -2988,8 +3488,10 @@ class HeapAnalysis(common.LinProcessFilter):
             size_all_vmas += size
 
         if not self._has_dummy_arena:
-            main_heap_size -= self._first_chunk_distance
+            main_heap_size -= self._static_bin_first_chunk_dist
+            size_all_vmas -= self._static_bin_first_chunk_dist
 
+        # we compare the main heap vmas with the main arena's system_mem size
         if self.get_main_arena().system_mem != main_heap_size:
             self.session.logging.warn(
                 "The size of the vm_area identified to belong to the main "
@@ -2998,15 +3500,13 @@ class HeapAnalysis(common.LinProcessFilter):
                 "that the wrong vm_area has been selected and hence leading "
                 "to wrong chunks output.")
 
+        # if the main arena is ok, we compare the size of all other arenas too
         else:
             system_mem_size = 0
             for arena in self.arenas:
                 system_mem_size += arena.system_mem
 
-            system_mem_size += sum(self._heap_slack_space.values())
-
-            if not self._has_dummy_arena:
-                system_mem_size += self._first_chunk_distance
+            system_mem_size += sum(list(self._heap_slack_space.values()))
 
             if size_all_vmas != system_mem_size:
                 self.session.logging.warn(
@@ -3018,10 +3518,70 @@ class HeapAnalysis(common.LinProcessFilter):
                     "either to missing or wrong chunks in the output.")
 
 
-    def _initialize_malloc_par(self):
+    def _check_malloc_par(self, malloc_par, check_threshold=False):
+        """Checks some fields of the given malloc_par struct for having
+        reasonable values.
+        returns True, if everything seems fine"""
+
+        if not malloc_par:
+            return False
+
+        # no_dyn_threshold is a flag and should be either 0 or 1
+        if not (malloc_par.no_dyn_threshold == 0 or
+                malloc_par.no_dyn_threshold == 1):
+            return False
+
+        # some fields are signed, but shouldn't be negative:
+        if malloc_par.n_mmaps < 0 or malloc_par.n_mmaps_max < 0 or \
+                malloc_par.max_n_mmaps < 0:
+            return False
+
+        # the number of mmapped chunks must be not larger than n_mmaps_max
+        # (upper limit for number of mmapped chunks)
+        if malloc_par.n_mmaps > malloc_par.n_mmaps_max:
+            return False
+
+        # the number of mmapped chunks can't be higher as their size
+        if malloc_par.n_mmaps > malloc_par.mmapped_mem:
+            return False
+
+        # and if there are mmapped chunks, there should be a size for them.
+        # mmap_threshold can be set to a small value like 1, which still
+        # results of chunks filling at least one pagesize
+        if malloc_par.n_mmaps > 0:
+            if malloc_par.mmapped_mem < \
+                    (malloc_par.n_mmaps * self._min_pagesize):
+                return False
+
+        # otherwise, there shouldn't be a size for mmapped chunks but no number
+        if malloc_par.mmapped_mem > 0 and malloc_par.n_mmaps <= 0:
+            return False
+
+        # the values of these fields are (most probably) at least not larger
+        # than 0x1000
+        if malloc_par.arena_test > 0x1000 or malloc_par.arena_max > 0x1000:
+            return False
+
+        # while it is possible to set mmap_threshold to 0, we test it for being
+        # > 0, to better differentiate random data from a real malloc_par
+        # struct, since this function is mainly used for identifying a real
+        # malloc_par struct, without having debug symbols.
+        if check_threshold:
+            # taken from line 874 of malloc/mallo.c (glibc 2.26)
+            max_field_value = 512 * 1024 if self._pointer_size == 4 else \
+                    4 * 1024 * 1024 * self.profile.get_obj_size("long")
+            if malloc_par.mmap_threshold <= 0 or \
+                    malloc_par.mmap_threshold > max_field_value:
+                return False
+
+        return True
+
+
+    def _initialize_malloc_par(self, main_arena=None):
         """Initializes the malloc_par struct."""
 
         mp_offset = None
+        absolute_offset = None
 
         if self.mp_offset:
             mp_offset = self.mp_offset
@@ -3032,20 +3592,161 @@ class HeapAnalysis(common.LinProcessFilter):
 
         if mp_offset:
             if self._libc_offset:
-                mp_offset += self._libc_offset
+                absolute_offset = self._libc_offset + mp_offset
 
-            self.mp_ = self.profile.malloc_par(offset=mp_offset,
+            # for statically linked binaries, there is no libc vma
+            else:
+                absolute_offset = mp_offset
+
+        if not absolute_offset and \
+                [x for x in self.vmas if x['name'] ==
+                    self._main_heap_identifier]:
+            # either mp_ offset hasn't given on the cmd line and/or the libc
+            # couldn't be found (maybe because it's a statically linked binary
+            # so we try to find it manually (doesn't currently work for
+            # statically linked binaries)
+            main_arena_range = get_mem_range_for_regex(
+                self.vmas, re.escape(self._main_heap_identifier))
+
+            sbrk_base_offset = self.profile.get_obj_offset("malloc_par",
+                                                           "sbrk_base")
+
+            hits = None
+            if self._is_probably_static_bin:
+                # If the binary has been linked statically, main_arena and
+                # malloc_par are located in the binary.
+                # In this case, mp_.sbrk_base points not at the beginning of
+                # the main heap but somewhere behind, so we try to find
+                # pointers somewhere in this space and hope we get not too many
+                # ;-)
+                vmas = [x for x in self.vmas if x['vma'].vm_file]
+                # The upper limit is chosen based on past experience.
+                # It is the maximum amount of bytes to walk from the beginning
+                # of the the main heap area.
+                upper_search_limit = \
+                    self._min_pagesize * self._pointer_size / 4
+                pointers = [x+main_arena_range[0] for x in
+                            list(range(0, upper_search_limit, 8))]
+
+                hits = self.search_vmas_for_needle(
+                    pointers=pointers, vmas=vmas)
+
+            else:
+                hits = self.search_vmas_for_needle(
+                    pointers=[main_arena_range[0]], vma_regex=_LIBC_REGEX)
+
+            # if there are more than one hit, we try to filter out all false
+            # positives
+            mp_candidates = []
+            if hits and len(hits) >= 2:
+                top_offset = self.profile.get_obj_offset("malloc_state", "top")
+                for hit in hits:
+                    # One test to find a FP hit is to test against main_arena.
+                    # This case happens, if no chunk has been yet allocated in
+                    # the main arena, so the main heap is empty and the top
+                    # field points to the top chunk at beginning of the
+                    # main heap
+                    if main_arena and hit['hit'] == \
+                            main_arena.v() + top_offset:
+                        continue
+
+                    else:
+                        temp = self.profile.malloc_par(
+                            hit['hit']-sbrk_base_offset, vm=self.process_as)
+                        if not self._check_malloc_par(temp):
+                            continue
+
+                    mp_candidates.append(hit)
+
+                # if the first round didn't get rid of all FP, we recheck by
+                # including a check for the mmap_threshold value, which however
+                # can lead to wrong results
+                if len(mp_candidates) > 1:
+                    temp_candidates = []
+                    for hit in mp_candidates:
+                        temp = self.profile.malloc_par(
+                            hit['hit']-sbrk_base_offset, vm=self.process_as)
+                        if self._check_malloc_par(temp, check_threshold=True):
+                            temp_candidates.append(hit)
+
+                    mp_candidates = temp_candidates
+
+            elif hits and len(hits) == 1:
+                mp_candidates.append(hits[0])
+
+            # if there is still more than one candidate for the malloc_par
+            # struct, we don't have any tests at the moment to differentiate
+            # random data from a real malloc_par
+            if len(mp_candidates) == 1:
+                absolute_offset = mp_candidates[0]['hit'] - sbrk_base_offset
+
+            else:
+                self.session.logging.info(
+                    "We searched for the malloc_par struct but found {:d} "
+                    "possible candidates. Unfortunately, we currently have "
+                    "no way to handle this situation appropriately."
+                    .format(len(mp_candidates)))
+
+        if absolute_offset:
+            self.mp_ = self.profile.malloc_par(offset=absolute_offset,
                                                vm=self.process_as)
 
-            self._check_and_report_mp_for_being_swapped(self.mp_)
+            if not self._check_and_report_mp_for_being_swapped(self.mp_):
+                self.session.logging.info("Seems like we found a valid "
+                                          "malloc_par struct.")
+
+            else:
+                self.session.logging.info(
+                    "We found a possible malloc_par struct instance but some "
+                    "fields don't seem valid.")
 
         else:
+            if self._is_probably_static_bin:
+                self.session.logging.warn(
+                    "Didn't find the libc filename in the vm_areas of "
+                    "the current process: {:d} - {:s} . The reason "
+                    "might be a statically linked binary or an "
+                    "unexpected error. As we didn't find the malloc_par "
+                    "struct, we are not able to fix this "
+                    "issue for statically linked binaries. This will most "
+                    "probably lead to unreliable results."
+                    .format(self.task.pid, repr(self.task.comm.v())))
+
             self.session.logging.warn(
                 "It seems like the debug information for the mp_ offset are "
                 "missing. This means some checks/verifications can't be done.")
 
 
-    def compare_mmapped_chunks_with_mp_(self):
+    def _initialize_internal_structs_and_values(self, main_arena=None):
+        """Initializes malloc_par struct, sets chunk minsize and corrects
+        MALLOC_ALIGNMENT and malloc_state (fastbinsY) if necessary.
+        If a main_arena is given and the malloc_state struct has been updated,
+        this function returns an updated main_arena."""
+
+        self._initialize_malloc_par(main_arena=main_arena)
+
+        # This function checks for a gap between the beginning
+        # of the main heap's memory region and the first chunk.
+        # If there is one, it either means the binary has been
+        # linked statically or there is a differen MALLOC_ALIGNMENT
+        # set via compile time options or an unknown error.
+        # In the first two cases, this functions tries to correct
+        # the according variables. As its following function
+        # depends on these adjustments, this function must be run
+        # first.
+        self._check_and_correct_first_chunk_offset()
+        self._initialize_malloc_alignment()
+
+        self._check_and_correct_heapinfo_pad()
+
+        if self._check_and_correct_fastbins_count() and main_arena:
+            return self.profile.malloc_state(main_arena.v(),
+                                             vm=self.process_as)
+
+        return main_arena
+
+
+    def _compare_mmapped_chunks_with_mp_(self):
         """Compares the calculated count and size of all MMAPPED chunks with
         the data from the malloc_par struct.
         Returns None on any errors, True if count and sizes match and
@@ -3057,13 +3758,14 @@ class HeapAnalysis(common.LinProcessFilter):
         if not self.statistics:
             self.calculate_statistics()
 
-        if self.mp_.mmapped_mem == self.statistics['size_of_mmapped_chunks'] \
-                and self.mp_.n_mmaps \
-                == self.statistics['number_of_mmapped_chunks']:
+        mmapped_size = self.statistics['size_of_mmapped_chunks']
+
+        if self.mp_.mmapped_mem == mmapped_size and \
+                self.mp_.n_mmaps == \
+                self.statistics['number_of_mmapped_chunks']:
             return True
 
         return False
-
 
 
     def get_mallinfo_string(self):
@@ -3099,10 +3801,10 @@ class HeapAnalysis(common.LinProcessFilter):
                    + str(self.statistics['size_of_fastbin_chunks'])
                    + "\n")
         result += ("Total allocated space (uordblks):      "
-                   + str(self.statistics['total_allocated_space'])
+                   + str(self.statistics['mallinfo_total_allocated_space'])
                    + "\n")
         result += ("Total free space (fordblks):           "
-                   + str(self.statistics['total_free_space'])
+                   + str(self.statistics['mallinfo_total_free_space'])
                    + "\n")
 
         return result
@@ -3119,14 +3821,21 @@ class HeapAnalysis(common.LinProcessFilter):
                    "statically linked ELF binary or from the libc library.")),
         dict(name='malloc_par', type='IntParser', default=None,
              help=("The malloc_par pointer either extracted from the "
-                   "linked ELF binary or from the libc library."))
+                   "linked ELF binary or from the libc library.")),
+        dict(name='glibc_version', type='IntParser', default=None,
+             help=("Forces the internal logic to use the specified glibc "
+                   " version, which will disable the internal logic to "
+                   "identify the version in use. Mainly necessary for "
+                   "statically linked binaries. Version must be specified "
+                   "as an integer, so e.g. 226 for version 2.26"))
     ]
+
 
 
 class HeapOverview(HeapAnalysis):
     """Tries to gather a list of all arenas/heaps and all allocated chunks."""
 
-    __name = "heapinfo"
+    name = "heapinfo"
 
     table_header = [
         dict(name="pid", width=6),
@@ -3142,20 +3851,27 @@ class HeapOverview(HeapAnalysis):
 
     def collect(self):
 
-        for task in self.filter_processes():
-            if not task.mm:
-                self.session.logging.warn("Analysis for Task {:d} aborted as "
-                                          "it seems to be a kernel thread.\n"
-                                          .format(task.pid))
-                continue
+        cc = self.session.plugins.cc()
+        with cc:
+            for task in self.filter_processes():
+                #if not task.mm.dereference():
+                    #self.session.logging.warn(
+                        #"Analysis for Task {:d} aborted as "
+                        #"it seems to be a kernel thread.\n".format(task.pid))
+                    #continue
 
-            try:
-                if self.init_for_task(task):
+                try:
+                    if not self.init_for_task(task):
+                        continue
+
+                    cc.SwitchProcessContext(task)
 
                     freed_chunks = self.statistics['number_of_bin_chunks']
                     freed_chunks += self.statistics['number_of_fastbin_chunks']
+                    freed_chunks += self.statistics['number_of_tcache_chunks']
                     freed_size = self.statistics['size_of_bin_chunks']
                     freed_size += self.statistics['size_of_fastbin_chunks']
+                    freed_size += self.statistics['size_of_tcache_chunks']
 
                     non_mmapped_chunks = \
                         self.statistics['number_of_main_chunks']
@@ -3164,7 +3880,6 @@ class HeapOverview(HeapAnalysis):
                     non_mmapped_size = self.statistics['size_of_main_chunks']
                     non_mmapped_size += \
                         self.statistics['size_of_thread_chunks']
-
 
                     yield(task.pid,
                           self.statistics['number_of_arenas'],
@@ -3176,10 +3891,10 @@ class HeapOverview(HeapAnalysis):
                           freed_chunks,
                           freed_size)
 
-            except:
-                self.session.logging.warn("Analysis for Task {:d} failed.\n"
-                                          .format(task.pid))
-                self.session.logging.warn(traceback.format_exc())
+                except:
+                    self.session.logging.warn(
+                        "Analysis for Task {:d} failed.\n".format(task.pid))
+                    self.session.logging.warn(traceback.format_exc())
 
 
 
@@ -3187,7 +3902,7 @@ class HeapObjects(HeapAnalysis):
     """Prints the structs of heap objects (such as allocated chunks, arenas,
     ...)"""
 
-    __name = "heapobjects"
+    name = "heapobjects"
 
     __args = [
         dict(name='print_allocated', type="Boolean", default=False,
@@ -3201,9 +3916,7 @@ class HeapObjects(HeapAnalysis):
     ]
 
 
-
     def render(self, renderer):
-
         for task in self.filter_processes():
             if not task.mm:
                 self.session.logging.warn("Object dumping aborted for Task "
@@ -3215,7 +3928,6 @@ class HeapObjects(HeapAnalysis):
                 if self.init_for_task(task):
                     # as printing requires walking allocated chunks, we prevent
                     # walking the memory two times
-
 
                     print_output_separator = '=' * 65
                     format_string = "{0:s} {1:s} {0:s}"
@@ -3241,11 +3953,9 @@ class HeapObjects(HeapAnalysis):
                             renderer.write(arena)
                             renderer.write("\n")
 
-
                         renderer.write("Top chunk: ")
                         renderer.write(arena.top_chunk)
                         renderer.write("\n")
-
 
                         for heap in arena.heaps:
                             renderer.write(heap)
@@ -3256,7 +3966,6 @@ class HeapObjects(HeapAnalysis):
 
                     renderer.write(print_output_separator)
                     renderer.write("\n")
-
 
                     if self.plugin_args.print_allocated:
                         renderer.write("\n")
@@ -3300,7 +4009,6 @@ class HeapObjects(HeapAnalysis):
                         renderer.write(print_output_separator)
                         renderer.write("\n")
 
-
                     if self.plugin_args.print_freed:
                         renderer.write("\n")
                         renderer.write(
@@ -3314,7 +4022,6 @@ class HeapObjects(HeapAnalysis):
 
                         renderer.write(print_output_separator)
                         renderer.write("\n")
-
 
                     if self.plugin_args.print_mallinfo:
                         renderer.write("\n")
@@ -3334,6 +4041,7 @@ class HeapObjects(HeapAnalysis):
                 self.session.logging.warn(traceback.format_exc())
 
 
+
 class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
     """Dumps allocated/freed chunks from selected processes """
 
@@ -3341,11 +4049,11 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
     _filename_format_string = ("{:d}.{}-chunk_offset-0x{:0{:d}X}_size-{:d}"
                                "_dumped-{:d}_stripped-{:d}.dmp")
 
-
     table_header = [
         dict(name="pid", width=6),
         dict(name="allocated", width=12),
         dict(name="freed_bin", width=12),
+        dict(name="freed_tcache", width=12),
         dict(name="freed_fastbin", width=14),
         dict(name="top_chunks", width=12)
     ]
@@ -3361,6 +4069,7 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
 
                 allocated_chunk_count = 0
                 freed_fastbin_chunks = 0
+                freed_tcache_chunks = 0
                 freed_bin_chunks = 0
                 top_chunks = 0
 
@@ -3397,14 +4106,12 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
                 for chunk in self.get_all_mmapped_chunks():
                     allocated_chunk_count += 1
 
-
                     self.dump_chunk_to_file(chunk,
                                             chunk.chunksize(),
                                             'allocated-mmapped')
 
-
-                # here we differentiate fastbin chunks from bin chunks, as
-                # fastbin chunks only overwrite one dword size of data with a
+                # here we differentiate tcache/fastbin chunks from bin chunks,
+                # as those chunks only overwrite one dword size of data with a
                 # pointer while bin chunks overwrite 2
                 for freed_chunk in self.get_all_freed_fastbin_chunks():
                     freed_fastbin_chunks += 1
@@ -3412,37 +4119,47 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
                                             freed_chunk.chunksize(),
                                             'freed-fastbin')
 
+                for freed_chunk in self.get_all_freed_tcache_chunks():
+                    freed_tcache_chunks += 1
+                    self.dump_chunk_to_file(freed_chunk,
+                                            freed_chunk.chunksize(),
+                                            'freed-tcache')
+
                 for freed_chunk in self.get_all_freed_bin_chunks():
                     freed_bin_chunks += 1
                     self.dump_chunk_to_file(freed_chunk,
                                             freed_chunk.chunksize(),
                                             'freed-bin')
 
-
                 yield dict(pid=task.pid, allocated=allocated_chunk_count,
                            freed_bin=freed_bin_chunks,
                            freed_fastbin=freed_fastbin_chunks,
+                           freed_tcache=freed_tcache_chunks,
                            top_chunks=top_chunks)
 
 
     def dump_chunk_to_file(self, chunk, chunksize, identifier):
         """Used as the wrapper to dump a given chunk to file."""
 
-        fd_offset = self.profile.get_obj_offset("malloc_chunk", "fd")
-
         try:
             data = chunk.to_string()
-            if data != None:
-                start, _ = chunk.start_and_length()
+            if isinstance(data, obj.NoneObject):
+                self.session.logging.warn(
+                    "Unable to read from chunk at offset: 0x{:x}."
+                    .format(chunk.v()))
+                return
 
-                filename = self._filename_format_string.format(
-                    self.task.pid, identifier, chunk.v(), self._size_sz * 2,
-                    chunksize, len(data), start - chunk.v() - fd_offset)
+            start, _ = chunk.start_and_length()
 
-                with self.session.GetRenderer().open(
-                        directory=self.dump_dir,
-                        filename=filename, mode='wb') as output_file:
-                    output_file.write(data)
+            filename = self._filename_format_string.format(
+                self.task.pid, identifier, chunk.v(), self._pointer_size * 2,
+                chunksize, len(data),
+                start - chunk.v() - self._chunk_fd_member_offset)
+
+            with self.session.GetRenderer().open(
+                    directory=self.dump_dir,
+                    filename=filename, mode='wb') as output_file:
+                output_file.write(data)
 
         except:
             print(traceback.format_exc())
@@ -3455,15 +4172,22 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
                 pass
 
 
-# TODO: yara support
-class HeapPointerSearch(HeapAnalysis):
+
+class HeapPointerSearch(HeapAnalysis, yarascanner.YaraScanMixin):
     """Searches all chunks for the given string, regex or pointer(s)."""
 
-    __name = "heapsearch"
+    name = "heapsearch"
+
+    def __init__(self, *args, **kwargs):
+        super(HeapPointerSearch, self).__init__(ignore_required=True, **kwargs)
+
 
     def render(self, renderer):
         if not (self.plugin_args.pointers or self.plugin_args.string
-                or self.plugin_args.regex or self.plugin_args.chunk_addresses):
+                or self.plugin_args.regex or self.plugin_args.chunk_addresses
+                or self.plugin_args.yara_file
+                or self.plugin_args.binary_string
+                or self.plugin_args.yara_expression):
             renderer.write("Specify something to search for.\n")
 
         else:
@@ -3480,7 +4204,6 @@ class HeapPointerSearch(HeapAnalysis):
                             pointers=self.plugin_args.pointers,
                             search_struct=self.plugin_args.search_struct)
 
-
                     if self.plugin_args.string:
                         temp_hits = self.search_chunks_for_needle(
                             search_string=self.plugin_args.string,
@@ -3492,7 +4215,6 @@ class HeapPointerSearch(HeapAnalysis):
 
                             else:
                                 hits[chunk] = needles
-
 
                     if self.plugin_args.regex:
                         temp_hits = self.search_chunks_for_needle(
@@ -3506,7 +4228,39 @@ class HeapPointerSearch(HeapAnalysis):
                             else:
                                 hits[chunk] = needles
 
+                    if self.plugin_args.yara_file or \
+                            self.plugin_args.binary_string or \
+                            self.plugin_args.yara_expression:
 
+                        yara_hits = []
+
+                        for vma in self.heap_vmas:
+                            adr = addrspace.Run(
+                                start=vma['vma'].vm_start,
+                                end=vma['vma'].vm_end,
+                                address_space=
+                                    self.task.get_process_address_space())
+
+                            for hit in self.generate_hits(adr):
+                                temp_hit = dict()
+                                temp_hit['hit'] = hit[1]
+                                rulenames = set()
+                                for i in hit[0].strings:
+                                    rulenames.add(i[2])
+
+                                temp_hit['needle'] = ','.join(rulenames)
+                                yara_hits.append(temp_hit)
+
+                        temp_hits = self.search_chunks_for_needle(
+                            given_hits=yara_hits,
+                            search_struct=self.plugin_args.search_struct)
+
+                        for chunk, needles in temp_hits.items():
+                            if chunk in list(hits.keys()):
+                                hits[chunk].update(needles)
+
+                            else:
+                                hits[chunk] = needles
 
                     if self.plugin_args.chunk_addresses:
                         # first we gather the chunks of interest
@@ -3542,14 +4296,14 @@ class HeapPointerSearch(HeapAnalysis):
                                 pointers=pointers,
                                 search_struct=self.plugin_args.search_struct)
 
-
                             # temp_hits: chunks that contain a pointer to one
                             # of the chunks of interest and the pointer values
                             for hit_chunk, data in temp_hits.items():
                                 if hit_chunk not in list(hits.keys()):
                                     hits[hit_chunk] = {base_chunk: data}
 
-                                elif base_chunk not in list(hits[hit_chunk].keys()):
+                                elif base_chunk not in \
+                                        list(hits[hit_chunk].keys()):
                                     hits[hit_chunk][base_chunk] = data
 
                                 else:
@@ -3569,6 +4323,11 @@ class HeapPointerSearch(HeapAnalysis):
                     if hits:
                         renderer.write("{0:s} Search results {0:s}"
                                        .format('=' * 18))
+
+                    else:
+                        renderer.write(
+                            "We didn't find anything for the given needle(s).")
+                        return
 
                     for chunk, needles in hits.items():
                         renderer.write("\n\n")
@@ -3604,7 +4363,7 @@ class HeapPointerSearch(HeapAnalysis):
                                 if len(data) <= 9:
                                     renderer.write(
                                         (hex(needle) if isinstance(needle, int)
-                                         else needle) + ": "
+                                         else repr(needle)) + ": "
                                         + ', '.join(["0x{:X}".format(x) for x
                                                      in data]))
 
@@ -3612,8 +4371,8 @@ class HeapPointerSearch(HeapAnalysis):
                                 else:
                                     renderer.write(
                                         (hex(needle) if isinstance(needle, int)
-                                         else needle) + ": The needle has been"
-                                        + "found on {0:d} offsets.\n"
+                                         else repr(needle)) + ": The needle "
+                                        + "has been found on {0:d} offsets.\n"
                                         .format(len(data)))
 
                                 renderer.write("\n")
@@ -3650,7 +4409,7 @@ class HeapReferenceSearch(HeapAnalysis):
     """Examines the data part of the given chunk for references to other
     chunks."""
 
-    __name = "heaprefs"
+    name = "heaprefs"
 
     def CreateAllocationMap(self, start, length):
         """Creates colorful hex map for pointers in a chunk"""
@@ -3668,9 +4427,9 @@ class HeapReferenceSearch(HeapAnalysis):
 
         # walks the chunk of interest and gathers all potential chunk pointers
         # with their offset within the chunk
-        for i in range(start, start+length, 4):
-            temp = struct.unpack(int_string,
-                                 self.process_as.read(i, self._size_sz))[0]
+        for i in list(range(start, start+length, 4)):
+            temp = struct.unpack(
+                int_string, self.process_as.read(i, self._pointer_size))[0]
             if temp == 0:
                 continue
 
@@ -3680,9 +4439,9 @@ class HeapReferenceSearch(HeapAnalysis):
             else:
                 offset_and_pointers[temp] = [i]
 
-
         # gathers a list of chunks, referenced by the potential chunk pointers
-        chunks = self.get_chunks_for_addresses(list(offset_and_pointers.keys()))
+        chunks = \
+            self.get_chunks_for_addresses(list(offset_and_pointers.keys()))
 
         for chunk, pointers in chunks.items():
             for pointer_offset, offsets in offset_and_pointers.items():
@@ -3691,7 +4450,7 @@ class HeapReferenceSearch(HeapAnalysis):
                         for offset in offsets:
                             address_map.AddRange(
                                 offset,
-                                offset+self._size_sz,
+                                offset+self._pointer_size,
                                 'Pointer to chunk at offset: 0x{:X}'
                                 .format(chunk.v()),
                                 color_index=self._get_next_color_index(
@@ -3742,7 +4501,8 @@ class HeapReferenceSearch(HeapAnalysis):
                         self.session.logging.warn(
                             "The chunk at offset 0x{:x} seems to have "
                             "a length not divisable by 4. This is unexpected "
-                            "and indicates a fundamental error.".format(chunk.v()))
+                            "and indicates a fundamental error."
+                            .format(chunk.v()))
 
                     dump = self.session.plugins.dump(
                         offset=start, length=length,
@@ -3781,6 +4541,7 @@ class malloc_chunk(obj.Struct):
         self.is_bottom_chunk = False
         self.is_fastbin_chunk = False
         self.is_bin_chunk = False
+        self.is_tcache_chunk = False
         self.is_top_chunk = False
 
         # since glibc 2.25, size and prev_size have been renamed
@@ -3865,18 +4626,20 @@ class malloc_chunk(obj.Struct):
 ###############################################################################
 
     def is_allocated_chunk(self):
-        """Returns True if this chunk is not a bottom, small/large bin, fastbin
-        or top chunk."""
+        """Returns True if this chunk is not a bottom, small/large bin,
+        fastbin, tcache or top chunk."""
 
         return not self.is_fastbin_chunk and not self.is_bin_chunk and \
-            not self.is_top_chunk and not self.is_bottom_chunk
+            not self.is_top_chunk and not self.is_bottom_chunk and not \
+            self.is_tcache_chunk
 
 
     def is_freed_chunk(self):
         """Returns True if this chunk is a small/large bin, fastbin or top
         chunk."""
 
-        return self.is_fastbin_chunk or self.is_bin_chunk or self.is_top_chunk
+        return self.is_fastbin_chunk or self.is_bin_chunk or \
+            self.is_top_chunk or self.is_tcache_chunk
 
 
     # TODO make this function easier
@@ -3899,12 +4662,12 @@ class malloc_chunk(obj.Struct):
                 data_offset = self.fd_nextsize.obj_offset
 
             # The data part of an allocated chunk reaches until the next
-            # chunk's prev_size field. On freeing the current chunk, the next
+            # chunk's size field. On freeing the current chunk, the next
             # chunk's prev_size field is overwritten with the size information
             # from this chunk and hence doesn't anymore contain useful data
             length -= self.prev_size.obj_size
 
-        elif self.is_fastbin_chunk:
+        elif self.is_fastbin_chunk or self.is_tcache_chunk:
             data_offset = self.bk.obj_offset
 
         elif self.is_bottom_chunk:
@@ -3919,7 +4682,6 @@ class malloc_chunk(obj.Struct):
             # both chunks don't use the prev_size field of the next chunk
             length -= self.prev_size.obj_size
 
-
         # we first subtract the offset to the beginning of data
         length -= data_offset - self.v()
 
@@ -3929,7 +4691,6 @@ class malloc_chunk(obj.Struct):
         length += self.prev_size.obj_size
 
         return [data_offset, length]
-
 
 
     def to_string(self, length=None, offset=None):
@@ -3944,11 +4705,11 @@ class malloc_chunk(obj.Struct):
         data_offset = None
         size = None
 
-        if not length or not offset:
+        if not (length and offset):
             start, leng = self.start_and_length()
-            data_offset = self.v() + offset if offset else start
-            size = length if length else leng
 
+        data_offset = self.v() + offset if offset else start
+        size = length if length else leng
 
         if size <= 0:
             return b""
@@ -3956,16 +4717,21 @@ class malloc_chunk(obj.Struct):
         data = self.obj_vm.read(data_offset, size)
 
         if not data:
-            return obj.NoneObject("Unable to read {0} bytes from {1}",
-                                  size, data_offset)
+            return obj.NoneObject()
 
         return data
 
 
-    def next_chunk(self):
-        """Returns the following chunk."""
+    def next_chunk(self, get_aligned_address_function=None):
+        """Returns the following chunk.
+        get_aligned_address_function is only necessary for MMAPPED chunks
+        and only in cases, where MALLOC_ALIGNMENT has been modified."""
 
-        return self.obj_profile.malloc_chunk(self.v() + self.chunksize(),
+        offset = self.v() + self.chunksize()
+        if get_aligned_address_function:
+            offset = get_aligned_address_function(offset)
+
+        return self.obj_profile.malloc_chunk(offset,
                                              vm=self.obj_vm)
 
     def is_in_use(self):
@@ -3975,19 +4741,23 @@ class malloc_chunk(obj.Struct):
         return self.next_chunk().prev_inuse()
 
 
-    def next_chunk_generator(self):
-        """Returns all following chunks, beginning with the current."""
+    def next_chunk_generator(self, get_aligned_address_function=None):
+        """Returns all following chunks, beginning with the current.
+        get_aligned_address_function is only necessary for MMAPPED chunks
+        and only in cases, where MALLOC_ALIGNMENT has been modified."""
 
         yield self
 
-        next_chunk = self.next_chunk()
+        next_chunk = self.next_chunk(
+            get_aligned_address_function=get_aligned_address_function)
 
         # We expect the last chunk to have null size field.
         # Further circumstances must be checked in calling functions.
-        while next_chunk.get_size() != 0:
+        while next_chunk and next_chunk.get_size() != 0:
             yield next_chunk
-            next_chunk = self.obj_profile.malloc_chunk(
-                next_chunk.v() + next_chunk.chunksize(), vm=self.obj_vm)
+
+            next_chunk = next_chunk.next_chunk(
+                get_aligned_address_function=get_aligned_address_function)
 
         # TODO at the moment we return the last chunk, as other functions
         # rely on it for tests; this should be changed in a future release
@@ -4001,6 +4771,7 @@ class _heap_info(obj.Struct):
     def __init__(self, **kwargs):
         super(_heap_info, self).__init__(**kwargs)
         self.first_chunk = None
+
 
 
 class malloc_state(obj.Struct):
@@ -4026,6 +4797,11 @@ class malloc_state(obj.Struct):
         # result from walking the bins lists
         self.freed_chunks = list(self.get_freed_chunks_bins())
 
+        # result from walking the tcache_perthread_struct entries
+        # this will be done after the heap has been initialized, as the struct
+        # is contained in a chunk
+        self.freed_tcache_chunks = list()
+
         # We generally use this variable instead of the struct field.
         # The reason is the scenario, in which we didn't find any main_arena
         # and need to set up a dummy arena
@@ -4043,6 +4819,8 @@ class malloc_state(obj.Struct):
         # only used with main_arena
         self.allocated_mmapped_chunks = None
 
+        # only used for glibc versions >= 2.26
+        self.tcache_perthread_struct = None
 
     def get_freed_chunks_fastbins(self):
         """Returns all freed chunks referenced by the fastbins."""
@@ -4065,6 +4843,46 @@ class malloc_state(obj.Struct):
 
                     free_chunk.is_bin_chunk = True
                     yield free_chunk
+
+
+    def initialize_tcache_bins(self, first_chunk):
+        if not first_chunk:
+            return
+
+        # tcache has been introduced in glibc version 2.26, so if the vtype
+        # information are not available we assume an older version
+        if not self.obj_profile.has_type("tcache_perthread_struct"):
+            return
+
+        if not first_chunk.chunksize() >= self.obj_profile.get_obj_size(
+                "tcache_perthread_struct"):
+            return
+
+        tps_offset = self.obj_profile.get_obj_offset("malloc_chunk", "fd")
+        self.tcache_perthread_struct = \
+            self.obj_profile.tcache_perthread_struct(
+                first_chunk.v() - tps_offset, vm=self.obj_vm)
+
+        self.freed_tcache_chunks = list(self.get_freed_chunks_tcache_bins())
+
+
+    def get_freed_chunks_tcache_bins(self):
+        """Returns all freed chunks referenced by the tcache_perthread_struct.
+        """
+
+        if not self.tcache_perthread_struct:
+            yield None
+
+        tcache_entry_offset = self.obj_profile.get_obj_offset("malloc_chunk",
+                                                              "fd")
+        for entry in self.tcache_perthread_struct.entries:
+            for centry in entry.walk_list("next"):
+                if not centry:
+                    continue
+                freed_chunk = self.obj_profile.malloc_chunk(
+                    centry.v() - tcache_entry_offset, vm=self.obj_vm)
+                freed_chunk.is_tcache_chunk = True
+                yield freed_chunk
 
 
 
@@ -4114,6 +4932,31 @@ class GlibcProfile32(basic.Profile32Bits, basic.BasicClasses):
             }]],
             "size": [8, ["unsigned int"]]
         }]
+    }
+
+    mp_226_vtype_32 = {
+        "malloc_par": [64, {
+            "arena_max": [16, ["unsigned int"]],
+            "arena_test": [12, ["unsigned int"]],
+            "max_mmapped_mem": [40, ["unsigned int"]],
+            "max_n_mmaps": [28, ["int"]],
+            "mmap_threshold": [8, ["unsigned int"]],
+            "mmapped_mem": [36, ["unsigned int"]],
+            "n_mmaps": [20, ["int"]],
+            "n_mmaps_max": [24, ["int"]],
+            "no_dyn_threshold": [32, ["int"]],
+            "sbrk_base": [44, ["Pointer", {
+                "target": "char",
+                "target_args": None
+            }]],
+            "tcache_bins": [48, ["unsigned int"]],
+            "tcache_count": [56, ["unsigned int"]],
+            "tcache_max_bytes": [52, ["unsigned int"]],
+            "tcache_unsorted_limit": [60, ["unsigned int"]],
+            "top_pad": [4, ["unsigned int"]],
+            "trim_threshold": [0, ["long unsigned int"]]
+        }]
+
     }
 
     mp_224_vtype_32 = {
@@ -4204,6 +5047,53 @@ class GlibcProfile32(basic.Profile32Bits, basic.BasicClasses):
         }]
     }
 
+    ms_227_vtype_32 = {
+        "malloc_state": [1112, {
+            "attached_threads": [1100, ["unsigned int"]],
+            "have_fastchunks": [8, ["int"]],
+            "binmap": [1076, ["Array", {
+                "count": 4,
+                "target": "unsigned int",
+                "target_args": None
+            }]],
+            "bins": [60, ["Array", {
+                "count": 254,
+                "target": "Pointer",
+                "target_args": {
+                    "target": "malloc_chunk",
+                    "target_args": None
+                }
+            }]],
+            "fastbinsY": [12, ["Array", {
+                "count": 10,
+                "target": "Pointer",
+                "target_args": {
+                    "target": "malloc_chunk",
+                    "target_args": None
+                }
+            }]],
+            "flags": [4, ["int"]],
+            "last_remainder": [56, ["Pointer", {
+                "target": "malloc_chunk",
+                "target_args": None
+            }]],
+            "max_system_mem": [1108, ["unsigned int"]],
+            "mutex": [0, ["int"]],
+            "next": [1092, ["Pointer", {
+                "target": "malloc_state",
+                "target_args": None
+            }]],
+            "next_free": [1096, ["Pointer", {
+                "target": "malloc_state",
+                "target_args": None
+            }]],
+            "system_mem": [1104, ["unsigned int"]],
+            "top": [52, ["Pointer", {
+                "target": "malloc_chunk",
+                "target_args": None
+            }]]
+        }]
+    }
 
     ms_220_vtype_32 = {
         "malloc_state": [1104, {
@@ -4251,10 +5141,41 @@ class GlibcProfile32(basic.Profile32Bits, basic.BasicClasses):
         }]
     }
 
+    te_226_vtype_32 = {
+        "tcache_entry": [4, {
+            "next": [0, ["Pointer", {
+                "target": "tcache_entry",
+                "target_args": None
+            }]]
+        }]
+    }
+
+    tps_226_vtype_32 = {
+        "tcache_perthread_struct": [320, {
+            "counts": [0, ["Array", {
+                "count": 64,
+                "target": "char",
+                "target_args": None
+            }]],
+            "entries": [64, ["Array", {
+                "count": 64,
+                "target": "Pointer",
+                "target_args": {
+                    "target": "tcache_entry",
+                    "target_args": None
+                }
+            }]]
+        }]
+    }
+
     version_dict = {
         '220': [glibc_base_vtype_32, ms_220_vtype_32, mp_220_vtype_32],
         '223': [glibc_base_vtype_32, ms_223_vtype_32, mp_220_vtype_32],
-        '224': [glibc_base_vtype_32, ms_223_vtype_32, mp_224_vtype_32]
+        '224': [glibc_base_vtype_32, ms_223_vtype_32, mp_224_vtype_32],
+        '226': [glibc_base_vtype_32, ms_223_vtype_32, mp_226_vtype_32,
+                te_226_vtype_32, tps_226_vtype_32],
+        '227': [glibc_base_vtype_32, ms_227_vtype_32, mp_226_vtype_32,
+                te_226_vtype_32, tps_226_vtype_32]
     }
 
 
@@ -4262,7 +5183,6 @@ class GlibcProfile32(basic.Profile32Bits, basic.BasicClasses):
         super(GlibcProfile32, self).__init__(**kwargs)
         profile = dict()
 
-        # at the moment: either 2.24 (2.25 is similar to 2.24), 2.23 or < 2.23
         if version:
             try:
                 self.session.logging.info(
@@ -4286,6 +5206,7 @@ class GlibcProfile32(basic.Profile32Bits, basic.BasicClasses):
                 profile.update(vtypes)
 
         self.add_types(profile)
+
 
 
 class GlibcProfile64(basic.ProfileLP64, basic.BasicClasses):
@@ -4355,6 +5276,30 @@ class GlibcProfile64(basic.ProfileLP64, basic.BasicClasses):
         }]
     }
 
+    mp_226_vtype_64 = {
+        "malloc_par": [112, {
+            "arena_max": [32, ["long unsigned int"]],
+            "arena_test": [24, ["long unsigned int"]],
+            "max_mmapped_mem": [64, ["long unsigned int"]],
+            "max_n_mmaps": [48, ["int"]],
+            "mmap_threshold": [16, ["long unsigned int"]],
+            "mmapped_mem": [56, ["long unsigned int"]],
+            "n_mmaps": [40, ["int"]],
+            "n_mmaps_max": [44, ["int"]],
+            "no_dyn_threshold": [52, ["int"]],
+            "sbrk_base": [72, ["Pointer", {
+                "target": "char",
+                "target_args": None
+            }]],
+            "tcache_bins": [80, ["long unsigned int"]],
+            "tcache_count": [96, ["long unsigned int"]],
+            "tcache_max_bytes": [88, ["long unsigned int"]],
+            "tcache_unsorted_limit": [104, ["long unsigned int"]],
+            "top_pad": [8, ["long unsigned int"]],
+            "trim_threshold": [0, ["long unsigned int"]]
+        }]
+    }
+
     mp_224_vtype_64 = {
         "malloc_par": [80, {
             "arena_max": [32, ["long unsigned int"]],
@@ -4372,6 +5317,54 @@ class GlibcProfile64(basic.ProfileLP64, basic.BasicClasses):
             }]],
             "top_pad": [8, ["long unsigned int"]],
             "trim_threshold": [0, ["long unsigned int"]]
+        }]
+    }
+
+    ms_227_vtype_64 = {
+        "malloc_state": [2200, {
+            "mutex": [0, ["int"]],
+            "flags": [4, ["int"]],
+            "have_fastchunks": [8, ["int"]],
+            "fastbinsY": [16, ["Array", {
+                "count": 10,
+                "target": "Pointer",
+                "target_args": {
+                    "target": "malloc_chunk",
+                    "target_args": None
+                }
+            }]],
+            "top": [96, ["Pointer", {
+                "target": "malloc_chunk",
+                "target_args": None
+            }]],
+            "last_remainder": [104, ["Pointer", {
+                "target": "malloc_chunk",
+                "target_args": None
+            }]],
+            "bins": [112, ["Array", {
+                "count": 254,
+                "target": "Pointer",
+                "target_args": {
+                    "target": "malloc_chunk",
+                    "target_args": None
+                }
+            }]],
+            "binmap": [2144, ["Array", {
+                "count": 4,
+                "target": "unsigned int",
+                "target_args": None
+            }]],
+            "next": [2160, ["Pointer", {
+                "target": "malloc_state",
+                "target_args": None
+            }]],
+            "next_free": [2168, ["Pointer", {
+                "target": "malloc_state",
+                "target_args": None
+            }]],
+            "attached_threads": [2176, ["long unsigned int"]],
+            "system_mem": [2184, ["long unsigned int"]],
+            "max_system_mem": [2192, ["long unsigned int"]]
         }]
     }
 
@@ -4468,18 +5461,48 @@ class GlibcProfile64(basic.ProfileLP64, basic.BasicClasses):
         }]
     }
 
+    te_226_vtype_64 = {
+        "tcache_entry": [8, {
+            "next": [0, ["Pointer", {
+                "target": "tcache_entry",
+                "target_args": None
+            }]]
+        }]
+    }
+
+    tps_226_vtype_64 = {
+        "tcache_perthread_struct": [576, {
+            "counts": [0, ["Array", {
+                "count": 64,
+                "target": "char",
+                "target_args": None
+            }]],
+            "entries": [64, ["Array", {
+                "count": 64,
+                "target": "Pointer",
+                "target_args": {
+                    "target": "tcache_entry",
+                    "target_args": None
+                }
+            }]]
+        }]
+    }
+
     version_dict = {
         '220': [glibc_base_vtype_64, ms_220_vtype_64, mp_220_vtype_64],
         '223': [glibc_base_vtype_64, ms_223_vtype_64, mp_220_vtype_64],
-        '224': [glibc_base_vtype_64, ms_223_vtype_64, mp_224_vtype_64]
+        '224': [glibc_base_vtype_64, ms_223_vtype_64, mp_224_vtype_64],
+        '226': [glibc_base_vtype_64, ms_223_vtype_64, mp_226_vtype_64,
+                te_226_vtype_64, tps_226_vtype_64],
+        '227': [glibc_base_vtype_64, ms_227_vtype_64, mp_226_vtype_64,
+                te_226_vtype_64, tps_226_vtype_64]
     }
 
 
     def __init__(self, version=None, **kwargs):
         super(GlibcProfile64, self).__init__(**kwargs)
-        profile = self.glibc_base_vtype_64
+        profile = dict()
 
-        # at the moment: either 2.24 (2.25 is similar to 2.24), 2.23 or < 2.23
         if version:
             try:
                 self.session.logging.info(
