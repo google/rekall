@@ -147,8 +147,9 @@ class Zsh(heap_analysis.HeapAnalysis):
 
                     try:
                         command = chunks_dict[histent.node.nam.v()]
-                        command = command.to_string()
-                        command = command[:command.index("\x00")]
+                        command = command.get_chunk_data()
+                        command = command[:command.index(b'\x00')]
+                        command = command.decode('utf-8')
 
                     except KeyError:
                         self.session.logging.warn(
@@ -156,7 +157,7 @@ class Zsh(heap_analysis.HeapAnalysis):
                             "command-reference does not seem to exist.")
 
                     except ValueError:
-                        pass
+                        command = command.get_chunk_data()
 
                     if histent.stim == histent.ftim == 0 and command == '':
                         histent_vma = heap_analysis.get_vma_for_offset(
