@@ -129,9 +129,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return self.v().rstrip(b"\x00")
 
     def __str__(self):
-        # Assume we are encoded as utf8 (This may not be true should
-        # we require decoding to be explicit?)
-        return self.__bytes__().decode("utf8", "replace")
+        return utils.encode_string(self.__bytes__())
 
     def __len__(self):
         return len(str(self))
