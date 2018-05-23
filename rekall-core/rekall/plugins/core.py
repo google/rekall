@@ -1013,7 +1013,7 @@ class SetProcessContextMixin(object):
 
             message = ("Switching to process context: {0} "
                        "(Pid {1}@{2:#x})").format(
-                           process.name, process.pid, process)
+                           process.name.v(), process.pid, process)
 
             self.session.SetCache(
                 "default_address_space",
