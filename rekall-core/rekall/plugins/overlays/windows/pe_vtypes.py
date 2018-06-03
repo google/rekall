@@ -916,13 +916,13 @@ class PE(object):
         name_table = export_directory.AddressOfNames.dereference()
         ordinal_table = export_directory.AddressOfNameOrdinals.dereference()
 
-        seen_ordinals = set()
+        seen_functions = set()
 
         # First do the names.
         for i, name in enumerate(name_table):
             ordinal = int(ordinal_table[i])
-            seen_ordinals.add(ordinal)
             func = function_table[ordinal]
+            seen_functions.add(func)
             func.obj_name = "%s:%s" % (dll, name.dereference())
 
             yield (dll, func, name.dereference(), ordinal)
@@ -930,11 +930,10 @@ class PE(object):
         # Now the functions without names
         for i, func in enumerate(function_table):
             ordinal = export_directory.Base + i
-            if ordinal in seen_ordinals:
+            if func in seen_functions:
                 continue
 
-            yield (dll, function_table[ordinal],
-                   obj.NoneObject("Name not accessible"), ordinal)
+            yield (dll, func, obj.NoneObject("Name not accessible"), ordinal)
 
     def GetProcAddress(self, name):
         """Scan the export table for a function of the given name.
