@@ -68,7 +68,7 @@ class Keepassx(heap_analysis.HeapAnalysis):
 
                 for i, chunk in enumerate(self.get_all_allocated_chunks()):
                     self.session.report_progress(
-                        "Iterating over all chunks %(curr)s %(spinner)s",
+                        "Indexing all chunks %(curr)s %(spinner)s",
                         curr=i)
                     chunks_dict[chunk.v() + data_offset] = chunk
 
@@ -92,33 +92,33 @@ class Keepassx(heap_analysis.HeapAnalysis):
                     relevant_chunk_size - 
                     self.profile.malloc_chunk().size.obj_size)
 
-                for chunk in list(chunks_dict.values()):
+                unpack_string = 'I' if self._pointer_size == 4 else 'Q'
 
+                for i, chunk in enumerate(chunks_dict.values()):
+                    self.session.report_progress(
+                        "Working on chunks %(curr)s %(spinner)s", curr=i)
                     try:
                         # chunks containing refs to password entries typically
                         # have a size of 96 in the tested 32 bit environment
                         if not chunk.chunksize() == relevant_chunk_size:
                             continue
 
-                        p_entry_data = chunk.to_string()
+                        p_entry_data = chunk.get_chunk_data()
 
                         field_strings = []
 
                         # the pointers to title, username and so on are at
                         # these offsets
                         for i in pointer_offsets:
-                            if self.session.profile.metadata("arch") == 'I386':
-                                pointer = struct.unpack('I',
-                                                        p_entry_data[i:i+4])[0]
-                            else:
-                                pointer = struct.unpack('Q',
-                                                        p_entry_data[i:i+8])[0]
+                            pointer = struct.unpack(
+                                unpack_string,
+                                p_entry_data[i:i+self._pointer_size])[0]
 
                             # if there is no chunk for the given pointer, we
                             # most probably have a wrong chunk. this will
                             # throw a KeyError exception and we proceed with
                             # the next chunk
-                            curr_chunk_data = chunks_dict[pointer].to_string()
+                            curr_chunk_data = chunks_dict[pointer].get_chunk_data()
 
                             string_size = struct.unpack(
                                 'I', curr_chunk_data[8:12])[0]

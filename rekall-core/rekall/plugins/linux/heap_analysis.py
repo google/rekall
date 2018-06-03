@@ -51,6 +51,7 @@ from rekall.plugins import core
 from rekall import addrspace
 from rekall import scan
 from rekall import obj
+from rekall_lib import utils
 
 #############
 
@@ -63,7 +64,7 @@ _MIN_LARGE_SIZE = None
 
 # Probably more versions would work, especially when the corresponding vtype
 # information are provided, but those are the versions we tested against
-_SUPPORTED_GLIBC_VERSIONS = ['2.25', '2.24', '2.23', '2.22', '2.21', '2.20']
+_SUPPORTED_GLIBC_VERSIONS = ['2.27', '2.26', '2.25', '2.24', '2.23', '2.22', '2.21', '2.20']
 _LIBC_REGEX = '(?:^|/)libc[^a-zA-Z][^/]*\\.so'
 
 
@@ -72,11 +73,8 @@ def get_vma_for_offset(vmas, offset):
     Expects the output from _get_vmas_for_task as argument.
     """
 
-    for vma in vmas:
-        if vma['vma'].vm_start <= offset < vma['vma'].vm_end:
-            return vma
-
-    return None
+    vma = vmas.get_containing_range(offset)
+    return None if vma[0] == None else vma
 
 
 def get_vma_name_for_regex(vmas, regex):
@@ -85,9 +83,9 @@ def get_vma_name_for_regex(vmas, regex):
     if not vmas or not regex:
         return None
 
-    for vma in vmas:
-        if re.search(regex, vma['name'], re.IGNORECASE):
-            return vma['name']
+    for _, _, vm_data in vmas:
+        if re.search(regex, vm_data['name'], re.IGNORECASE):
+            return vm_data['name']
 
 
 def get_libc_filename(vmas):
@@ -111,15 +109,21 @@ def get_mem_range_for_regex(vmas, regex):
     _get_vmas_for_task as argument."""
 
     offsets = None
-    if vmas:
-        for vma in vmas:
-            if re.search(regex, vma['name'], re.IGNORECASE):
-                if not offsets:
-                    offsets = [vma['vma'].vm_start]
-                    offsets.append(vma['vma'].vm_end)
+    if not vmas:
+        return None
 
-                else:
-                    offsets[1] = vma['vma'].vm_end
+    for vm_start, vm_end, vm_data in vmas:
+        if re.search(regex, vm_data['name'], re.IGNORECASE):
+            if not offsets:
+                offsets = [vm_start]
+                offsets.append(vm_end)
+
+            else:
+                if vm_start < offsets[0]:
+                    offsets[0] = vm_start
+
+                if vm_end > offsets[1]:
+                    offsets[1] = vm_end
 
     return offsets
 
@@ -150,18 +154,18 @@ class HeapAnalysis(common.LinProcessFilter):
     def activate_chunk_preservation(self):
         """Sets _preserve_chunks to True. This forces all allocated chunk
         functions to store chunks in lists, which highly increases the speed
-        of a second walk over those chunks. This feature can only be activated
-        if performance is set to 'fast'."""
+        of a second walk over those chunks. This feature can be disabled
+        with the cmd line option disable_chunk_preservation."""
 
         if not self._preserve_chunks and \
-                self.session.GetParameter("performance") == "fast":
-            self.session.logging.warn(
-                "Chunk preservation has been activated (result from using "
-                "performance=fast). This might consume large amounts of memory"
-                " depending on the chunk count. If you are low on free memory "
+                not self.plugin_args.disable_chunk_preservation:
+            self.session.logging.info(
+                "Chunk preservation has been activated. "
+                "This might consume large amounts of memory "
+                "depending on the chunk count. If you are low on free memory "
                 "space (RAM), you might want to deactivate this feature by "
-                "not using the 'fast' option. The only downside is in some "
-                "cases a longer plugin runtime.")
+                "using the cmd line option disable_chunk_preservation. The "
+                "only downside is a longer plugin runtime.")
 
             self._preserve_chunks = True
 
@@ -204,7 +208,7 @@ class HeapAnalysis(common.LinProcessFilter):
         if not task.mm:
             return None
 
-        result = []
+        result = utils.RangedCollection()
 
         thread_stack_offsets = self._get_saved_stack_frame_pointers(task)
         # The first pair contains the "main" thread and the mm start_stack
@@ -214,14 +218,17 @@ class HeapAnalysis(common.LinProcessFilter):
 
         heap_area = False
         for vma in task.mm.mmap.walk_list("vm_next"):
-            temp_vma = dict()
+            data = dict()
 
+            data['vm_flags'] = ''.join(vma.vm_flags)
             if vma.vm_file.dereference():
+                data['is_file'] = True
                 fname = task.get_path(vma.vm_file)
                 if heap_area:
                     heap_area = False
 
             else:
+                data['is_file'] = False
                 fname = ""
                 if heap_area:
                     fname = self._heap_vma_identifier
@@ -249,16 +256,15 @@ class HeapAnalysis(common.LinProcessFilter):
                             fname += "]" if task.pid == pid else \
                                      ":{:d}]".format(pid)
 
-                            temp_vma['ebp'] = offsets['ebp']
-                            temp_vma['esp'] = offsets['esp']
+                            data['ebp'] = offsets['ebp']
+                            data['esp'] = offsets['esp']
 
                             heap_area = False
 
-            temp_vma['name'] = fname
-            temp_vma['vma'] = vma
-            result.append(temp_vma)
+            data['name'] = fname
+            result.insert(vma.vm_start, vma.vm_end, data)
 
-        return sorted(result, key=lambda vma: vma['vma'].vm_start)
+        return result
 
 
     def _load_libc_profile(self):
@@ -526,8 +532,8 @@ class HeapAnalysis(common.LinProcessFilter):
                 "invalid pointer.")
             return
 
-        mmap_vma = get_vma_for_offset(self.vmas, mmap_first_chunk.v())['vma']
-        current_border = mmap_vma.vm_end
+        mmap_vma = get_vma_for_offset(self.vmas, mmap_first_chunk.v())
+        current_border = mmap_vma[1]
 
         # we can't check here for hitting the bottom, as mmapped regions can
         # contain slack space but this test is in essence done in
@@ -603,7 +609,7 @@ class HeapAnalysis(common.LinProcessFilter):
         if size + self._size_sz + self._malloc_align_mask < self._minsize:
             return self._minsize & ~ self._malloc_align_mask
 
-        return ((size + self._size_sz + self._malloc_align_mask)
+        return (int(size + self._size_sz + self._malloc_align_mask)
                 & ~ self._malloc_align_mask)
 
     # essentially an implementation of the call
@@ -1040,12 +1046,14 @@ class HeapAnalysis(common.LinProcessFilter):
 
         heap_hit = None
 
-        if self.get_main_arena:
-            for arena in self.arenas:
-                for heap in arena.heaps:
-                    if vma.vm_start <= heap.v() < vma.vm_end:
-                        if not heap_hit or heap.v() > heap_hit.v():
-                            heap_hit = heap
+        if not self.get_main_arena:
+            return None
+
+        for arena in self.arenas:
+            for heap in arena.heaps:
+                if vma[0] <= heap.v() < vma[1]:
+                    if not heap_hit or heap.v() > heap_hit.v():
+                        heap_hit = heap
 
         return heap_hit
 
@@ -1073,59 +1081,48 @@ class HeapAnalysis(common.LinProcessFilter):
 
     # We don't use the code from glibc for this function, as it depends on the
     # HEAP_MAX_SIZE value and we might not have the correct value
-    def _heap_for_ptr(self, ptr, vma=None, suppress_warning=False):
+    def _heap_for_ptr(self, ptr, suppress_warning=False):
         """Returns a new heap_info struct object within the memory region, the
         given pointer belongs to. If the vm_area contains multiple heaps it
         walks all heap_info structs until it finds the corresponding one.
         """
 
-        if self._libc_profile_success:
-            ptr_offset = None
-
-            if isinstance(ptr, Number):
-                ptr_offset = ptr
-
-            else:
-                ptr_offset = ptr.v()
-
-            if not vma:
-                temp = get_vma_for_offset(self.vmas, ptr_offset)
-                if temp:
-                    vma = temp['vma']
-
-            if vma:
-                heap_info = self.profile._heap_info(offset=vma.vm_start,
-                                                    vm=self.process_as)
-
-                # there might be at least two heaps in one vm_area
-                while heap_info.v() + heap_info.size < ptr_offset:
-                    heap_info = self.profile._heap_info(
-                        offset=heap_info.v() + heap_info.size,
-                        vm=self.process_as)
-
-                if heap_info.ar_ptr not in self.arenas and not \
-                        suppress_warning:
-                    self.session.logging.warn(
-                        "The arena pointer of the heap_info struct gathered "
-                        "from the given offset {0:x} does not seem to point "
-                        "to any known arena. This either indicates a fatal "
-                        "error which probably leads to unreliable results "
-                        "or might be the result from using a pointer to a "
-                        "MMAPPED region.".format(ptr_offset)
-                    )
-
-                return heap_info
-
-            else:
-                self.session.logging.warn(
-                    "No vm_area found for the given pointer 0x{:x}."
-                    .format(ptr_offset))
-        else:
+        if not self._libc_profile_success:
             self.session.logging.error(
                 "Libc profile is not loaded, hence no struct or constant "
                 "information. Aborting")
+            return None
 
-        return None
+        vma = get_vma_for_offset(self.vmas, ptr)
+
+        if not vma:
+            self.session.logging.warn(
+                "No vm_area found for the given pointer 0x{:x}."
+                .format(ptr))
+            return None
+
+        heap_info = self.profile._heap_info(offset=vma[0],
+                                            vm=self.process_as)
+
+        # there might be at least two heaps in one vm_area
+        while heap_info.v() + heap_info.size < ptr:
+            heap_info = self.profile._heap_info(
+                offset=heap_info.v() + heap_info.size,
+                vm=self.process_as)
+
+        if heap_info.ar_ptr not in self.arenas and not \
+                suppress_warning:
+            self.session.logging.warn(
+                "The arena pointer of the heap_info struct gathered "
+                "from the given offset {0:x} does not seem to point "
+                "to any known arena. This either indicates a fatal "
+                "error which probably leads to unreliable results "
+                "or might be the result from using a pointer to a "
+                "MMAPPED region.".format(ptr)
+            )
+
+        return heap_info
+
 
     def _get_number_of_cores(self):
         """Returns the number of cpu cores for the current memory image."""
@@ -1255,10 +1252,7 @@ class HeapAnalysis(common.LinProcessFilter):
 
         self.task = None
         self.statistics = None
-        self._mmap_slack_space = dict()
         self._heap_slack_space = dict()
-        self._hidden_chunks = set()
-        self._stack_vmas_and_offsets = None
 
         self._preserve_chunks = False
 
@@ -1400,7 +1394,7 @@ class HeapAnalysis(common.LinProcessFilter):
         heap_infos = list()
 
         if arena.top_chunk:
-            last_heap_info = self._heap_for_ptr(arena.top_chunk)
+            last_heap_info = self._heap_for_ptr(arena.top_chunk.v())
 
             if not last_heap_info:
                 self.session.logging.error(
@@ -1453,7 +1447,7 @@ class HeapAnalysis(common.LinProcessFilter):
             self.arenas.append(arena)
 
             if arena.is_main_arena:
-                main_arena.mmapped_first_chunks = list()
+                main_arena.mmapped_first_chunks = set()
                 main_arena_range = get_mem_range_for_regex(
                     self.vmas, re.escape(self._main_heap_identifier))
 
@@ -1527,8 +1521,13 @@ class HeapAnalysis(common.LinProcessFilter):
 
                     break
 
-                self._check_and_report_chunksize(next_chunk,
-                                                 main_arena_range[1])
+                if not self._check_and_report_chunksize(next_chunk,
+                                                        main_arena_range[1]):
+                    self.session.logging.warn(
+                        "Seems like we are not walking a valid glibc heap, so "
+                        "we are stopping right now.")
+                    break
+
                 is_in_use = next_chunk.prev_inuse()
 
                 if (curr_chunk.v() + curr_chunk.chunksize()) \
@@ -1565,7 +1564,9 @@ class HeapAnalysis(common.LinProcessFilter):
         for heap in known_heaps:
             vma = get_vma_for_offset(self.vmas, heap.v())
             if vma:
-                vma['name'] = self._heap_vma_identifier
+                vm_data = vma[2]
+                vm_data['name'] = self._heap_vma_identifier
+                self.vmas.insert(vma[0], vma[1], vm_data)
 
 
     def _check_heap_consistency(self):
@@ -1575,21 +1576,19 @@ class HeapAnalysis(common.LinProcessFilter):
 
         known_heaps = [heap for arenas in self.arenas for heap in arenas.heaps]
         temp_heaps = set()
-        for vm_area in self.vmas:
-            name = vm_area['name']
-            vma = vm_area['vma']
+        for vm_start, vm_end, vm_data in self.vmas:
+            name = vm_data['name']
+
             if name == self._heap_vma_identifier or \
                     name == self._pot_mmapped_vma_identifier:
-                heap_info = self._heap_for_ptr(vma.vm_start,
-                                               vma=vma,
-                                               suppress_warning=True)
+                heap_info = self._heap_for_ptr(vm_start, suppress_warning=True)
 
                 if heap_info.ar_ptr in self.arenas:
 
                     if heap_info not in known_heaps:
                         temp_heaps.add(heap_info)
 
-                    while heap_info.v() + heap_info.size < vma.vm_end \
+                    while heap_info.v() + heap_info.size < vm_end \
                             and heap_info.ar_ptr in self.arenas:
 
                         heap_info = self.profile._heap_info(
@@ -1630,12 +1629,13 @@ class HeapAnalysis(common.LinProcessFilter):
                 # there are scenarios in which one vma shares heap_infos from
                 # different arenas so we gather here the last heap_info of a
                 # given vma and test for slack space
-                vma = get_vma_for_offset(self.vmas, arena.top_chunk.v())['vma']
+                vma = get_vma_for_offset(self.vmas, arena.top_chunk.v())
                 heap = self._last_heap_for_vma(vma)
 
-                if heap.v() + heap.size < vma.vm_end:
-                    self._heap_slack_space[heap] = (vma.vm_end - (heap.v()
-                                                                  + heap.size))
+                vm_end = vma[1]
+                if heap.v() + heap.size < vm_end:
+                    self._heap_slack_space[heap] = (vm_end - (heap.v()
+                                                              + heap.size))
 
     def _search_first_chunk(self, start_offset):
         """Searches from the given start_offset for indicators of the first
@@ -1761,44 +1761,52 @@ class HeapAnalysis(common.LinProcessFilter):
 
         # now we gather all vm_areas that do not contain a known
         # heap_info struct
-        for vm_area in self.vmas:
-            name = vm_area['name']
-            vma = vm_area['vma']
+        for vm_start, vm_end, vm_data in self.vmas:
+            name = vm_data['name']
+
             if (name == self._heap_vma_identifier
                     or name == self._pot_mmapped_vma_identifier) \
-                    and str(vma.vm_flags).startswith('rw') \
-                    and vma.vm_start not in heap_offsets:
+                    and vm_data['vm_flags'].startswith('rw') \
+                    and vm_start not in heap_offsets:
 
-                offset = self.get_aligned_address(vma.vm_start)
+                offset = self.get_aligned_address(vm_start)
                 mmap_chunk = self.profile.malloc_chunk(offset,
                                                        vm=self.process_as)
 
-                if self._check_and_report_mmapped_chunk(mmap_chunk, vma):
-                    main_arena.mmapped_first_chunks.append(mmap_chunk)
+                if self._check_and_report_mmapped_chunk(
+                        mmap_chunk, (vm_start, vm_end, vm_data)):
+                    main_arena.mmapped_first_chunks.add(mmap_chunk)
 
 
     def _initialize_heap_vma_list(self):
         """Searches for vmas that are known to belong to the heap and adds
         them to the internal heap_vmas list."""
 
-        self.heap_vmas = []
+        self.heap_vmas = utils.RangedCollection()
 
-        for vma in self.vmas:
-            if vma['name'] == self._main_heap_identifier:
-                self.heap_vmas.append(vma)
+        for vm_start, vm_end, vm_data in self.vmas:
+            if vm_data['name'] == self._main_heap_identifier:
+                self.heap_vmas.insert(vm_start, vm_end, vm_data)
+
+        for mmap_chunk in self.get_all_mmapped_chunks():
+            self._add_mmapped_chunk_to_heap_vma_list(mmap_chunk)
 
         for arena in self.arenas:
-            if arena.is_main_arena:
-                for mmap_chunk in arena.mmapped_first_chunks:
-                    vma = get_vma_for_offset(self.vmas, mmap_chunk.v())
-                    if vma not in self.heap_vmas:
-                        self.heap_vmas.append(vma)
-
-            else:
+            if not arena.is_main_arena:
                 for heap in arena.heaps:
                     vma = get_vma_for_offset(self.vmas, heap.v())
-                    if vma not in self.heap_vmas:
-                        self.heap_vmas.append(vma)
+                    self.heap_vmas.insert(vma[0], vma[1], vma[2])
+
+
+    def _add_mmapped_chunk_to_heap_vma_list(self, mmapped_chunk):
+        vm_data = dict()
+        vm_data['is_file'] = False
+        vm_data['name'] = 'mmapped_chunk'
+
+        self.heap_vmas.insert(
+            mmapped_chunk.v(),
+            mmapped_chunk.v() + mmapped_chunk.chunksize(),
+            vm_data)
 
 
     def _check_and_report_non_main_arena(self, chunk, chunk_in_use):
@@ -1877,6 +1885,8 @@ class HeapAnalysis(common.LinProcessFilter):
             "mapped file and indicates an error and leads to wrong results. "
             "3. An unexpected error (might lead to unrealiable results).")
 
+        mmap_vma_start = mmap_vma[0]
+        mmap_vma_end = mmap_vma[1]
         # as the size for mmapped chunks is at least pagesize, we expect them
         # to be >= 4096
         # see glibc_2.23 malloc/malloc.c lines 2315 - 2318
@@ -1888,7 +1898,7 @@ class HeapAnalysis(common.LinProcessFilter):
                 (self._min_pagesize - self._front_misalign_correction)
                 % self._min_pagesize) or \
                 mmap_chunk.chunksize() < self._min_pagesize or \
-                mmap_chunk.v() + mmap_chunk.chunksize() > mmap_vma.vm_end:
+                mmap_chunk.v() + mmap_chunk.chunksize() > mmap_vma_end:
 
             if dont_report:
                 return False
@@ -1897,14 +1907,14 @@ class HeapAnalysis(common.LinProcessFilter):
                 base_string += "has zero size. "
 
                 if mmap_chunk.v() == self.get_aligned_address(
-                        mmap_vma.vm_start):
+                        mmap_vma_start):
 
                     # it is possible that a vm_area is marked as rw and does
                     # not contain a stack or heap or mmap region. we
                     # identified this case only when no threads are active
                     number_of_heap_vmas = 0
-                    for vma in self.vmas:
-                        if vma['name'] == self._heap_vma_identifier:
+                    for _, _, vm_data in self.vmas:
+                        if vm_data['name'] == self._heap_vma_identifier:
                             number_of_heap_vmas += 1
 
                     if number_of_heap_vmas <= 1 and len(self.arenas) == 1 \
@@ -1922,21 +1932,17 @@ class HeapAnalysis(common.LinProcessFilter):
                 else:
                     self._log_mmapped_warning_messages(
                         base_string + zero_middle_chunk_error_reasons)
-                    self._mmap_slack_space[mmap_chunk] = (mmap_vma.vm_end -
-                                                          mmap_chunk.v())
 
             else:
                 base_string += "has invalid values. "
                 if mmap_chunk.v() == self.get_aligned_address(
-                        mmap_vma.vm_start):
+                        mmap_vma_start):
                     self.session.logging.info(base_string +
                                               first_chunk_error_reasons)
 
                 else:
                     self._log_mmapped_warning_messages(
                         base_string + middle_chunk_error_reasons)
-                    self._mmap_slack_space[mmap_chunk] = (mmap_vma.vm_end -
-                                                          mmap_chunk.v())
 
         elif mmap_chunk.prev_inuse() or mmap_chunk.non_main_arena():
             if dont_report:
@@ -1946,16 +1952,13 @@ class HeapAnalysis(common.LinProcessFilter):
                             "set, which is normally not the case for MMAPPED "
                             "chunks.")
 
-            if mmap_chunk.v() == self.get_aligned_address(mmap_vma.vm_start):
+            if mmap_chunk.v() == self.get_aligned_address(mmap_vma_start):
                 self.session.logging.info(
                     base_string + first_chunk_error_reasons)
 
             else:
                 self._log_mmapped_warning_messages(
                     base_string + middle_chunk_error_reasons)
-
-                self._mmap_slack_space[mmap_chunk] = (mmap_vma.vm_end
-                                                      - mmap_chunk.v())
 
         elif not mmap_chunk.is_mmapped():
             if dont_report:
@@ -1963,16 +1966,13 @@ class HeapAnalysis(common.LinProcessFilter):
 
             base_string += "doesn't have the is_mmapped bit set. "
 
-            if mmap_chunk.v() == self.get_aligned_address(mmap_vma.vm_start):
+            if mmap_chunk.v() == self.get_aligned_address(mmap_vma_start):
                 self.session.logging.info(
                     base_string + first_chunk_error_reasons)
 
             else:
                 self._log_mmapped_warning_messages(
                     base_string + middle_chunk_error_reasons)
-
-                self._mmap_slack_space[mmap_chunk] = (mmap_vma.vm_end
-                                                      - mmap_chunk.v())
 
         elif not self._check_mmap_alignment(mmap_chunk.v() -
                 self._front_misalign_correction):
@@ -2002,8 +2002,8 @@ class HeapAnalysis(common.LinProcessFilter):
             return True
 
         # if the first test fails, we still look for thread stack segments
-        for vma in self.vmas:
-            if vma['name'].startswith('[stack:'):
+        for _, _, vm_data in self.vmas:
+            if vm_data['name'].startswith('[stack:'):
                 return True
 
         return False
@@ -2058,9 +2058,9 @@ class HeapAnalysis(common.LinProcessFilter):
         the main arena and hence can not use the later on generated internal
         heap_vmas list."""
 
-        for vma in self.vmas:
-            if vma['vma'].vm_start <= offset < vma['vma'].vm_end:
-                name = vma['name']
+        for vm_start, vm_end, vm_data in self.vmas:
+            if vm_start <= offset < vm_end:
+                name = vm_data['name']
                 if name == self._main_heap_identifier \
                         or name == self._heap_vma_identifier:
                     return True
@@ -2113,11 +2113,11 @@ class HeapAnalysis(common.LinProcessFilter):
         # first we try to find a heap_info struct whose ar_ptr points right
         # after itself this is the case for the first vm_area containing the
         # first heap_info and the according malloc_state struct
-        for vma in self.vmas:
-            if vma['name'] == self._heap_vma_identifier \
-                    or vma['name'] == self._pot_mmapped_vma_identifier:
+        for vm_start, vm_end, vm_data in self.vmas:
+            if vm_data['name'] == self._heap_vma_identifier \
+                    or vm_data['name'] == self._pot_mmapped_vma_identifier:
 
-                heap_info = self.profile._heap_info(offset=vma['vma'].vm_start,
+                heap_info = self.profile._heap_info(offset=vm_start,
                                                     vm=self.process_as)
 
                 # we try to find a heap_info struct which is followed by a
@@ -2125,10 +2125,9 @@ class HeapAnalysis(common.LinProcessFilter):
                 # (which is the one followed by the malloc_state struct) is 0x0
                 heap_info_size = self.profile.get_obj_size('_heap_info')
 
-                if vma['vma'].vm_start <= heap_info.ar_ptr.v() \
-                        <= vma['vma'].vm_end:
+                if vm_start <= heap_info.ar_ptr.v() <= vm_end:
                     heap_info_address = self.get_aligned_address(
-                        heap_info_size + vma['vma'].vm_start)
+                        heap_info_size + vm_start)
 
                     if heap_info.ar_ptr.v() == heap_info_address \
                             and heap_info.prev.v() == 0x0:
@@ -2302,10 +2301,7 @@ class HeapAnalysis(common.LinProcessFilter):
         self._mmapped_warnings = set()
         self.task = None
         self.statistics = None
-        self._mmap_slack_space = dict()
         self._heap_slack_space = dict()
-        self._hidden_chunks = set()
-        self._stack_vmas_and_offsets = None
         self._has_dummy_arena = False
         self._static_bin_first_chunk_dist = 0
         self._is_probably_static_bin = False
@@ -2702,29 +2698,26 @@ class HeapAnalysis(common.LinProcessFilter):
 
         # list of new mmapped chunks lists (first and following chunks)
         new_mmapped_chunks = []
-        relevant_vmas = []
 
         for vma in self.vmas:
-            if not re.search('^\[stack', vma['name']):
+            vm_data = vma[2]
+            if not re.search('^\[stack', vm_data['name']):
                 continue
 
+            vm_start = vma[0]
             current_chunks = []
-            last_ebp = self._ebp_unrolling(vma['ebp'], vma['vma'])
-            search_start = last_ebp if last_ebp else vma['vma'].vm_start
+            last_ebp = self._ebp_unrolling(vm_data['ebp'], vma)
+            search_start = last_ebp if last_ebp else vm_start
 
             temp_chunk = self._search_first_hidden_mmapped_chunk(search_start,
-                                                                 vma['vma'])
+                                                                 vma)
             current_chunks = self._walk_hidden_mmapped_chunks(temp_chunk)
 
             if current_chunks:
                 new_mmapped_chunks.append(current_chunks)
-                relevant_vmas.append([vma, current_chunks[0].v()])
-
-            else:
-                relevant_vmas.append([vma, vma['vma'].vm_end])
+                vm_data['stack_first_mmap_chunk'] = current_chunks[0].v()
 
         self._register_hidden_mmapped_chunks(new_mmapped_chunks)
-        self._stack_vmas_and_offsets = relevant_vmas
 
 
     def _search_stacks_for_mmap_pointers(self):
@@ -2736,7 +2729,7 @@ class HeapAnalysis(common.LinProcessFilter):
 
         mmapped_chunks = self.get_all_mmapped_chunks()
 
-        if self._stack_vmas_and_offsets and mmapped_chunks:
+        if mmapped_chunks:
             mmap_pointers = []
 
             mmap_pointers += [x.v() + self._chunk_fd_member_offset
@@ -2744,9 +2737,7 @@ class HeapAnalysis(common.LinProcessFilter):
 
             found_pointers = set()
 
-            for hit in self.search_vmas_for_needle(
-                    pointers=mmap_pointers,
-                    hidden_mmap_vmas=self._stack_vmas_and_offsets):
+            for hit in self.search_vmas_for_needle(pointers=mmap_pointers):
 
                 found_pointers.add(hit['needle'])
 
@@ -2775,15 +2766,14 @@ class HeapAnalysis(common.LinProcessFilter):
         """
 
         if new_mmapped_chunks:
-
             main_arena = self.get_main_arena()
             for chunks in new_mmapped_chunks:
+                main_arena.mmapped_first_chunks.add(chunks[0])
+
                 for chunk in chunks:
                     if chunk not in main_arena.allocated_mmapped_chunks:
                         main_arena.allocated_mmapped_chunks.append(chunk)
-
-                    main_arena.mmapped_first_chunks.append(chunks[0])
-                    self._hidden_chunks.add(chunk)
+                        self._add_mmapped_chunk_to_heap_vma_list(chunk)
 
 
     def _carve_and_register_hidden_mmapped_chunks_globally(self):
@@ -2792,16 +2782,18 @@ class HeapAnalysis(common.LinProcessFilter):
         # list of new mmapped chunks lists (first and following chunks)
         new_mmapped_chunks = []
 
-        for vma in self.vmas:
+        for vm_start, vm_end, vm_data in self.vmas:
+            vm_name = vm_data['name']
+
             # we walk only over anonymous and stack related vmas (for the case,
             # the ebp_unrolling went wrong)
-            if vma['name'] != self._pot_mmapped_vma_identifier \
-                    and vma['name'] != self._heap_vma_identifier \
-                    and not re.search('^\[stack', vma['name']):
+            if vm_name != self._pot_mmapped_vma_identifier \
+                    and vm_name != self._heap_vma_identifier \
+                    and not re.search('^\[stack', vm_name):
                 continue
 
             temp_chunk = self._search_first_hidden_mmapped_chunk(
-                vma['vma'].vm_start, vma['vma'])
+                vm_start, (vm_start, vm_end, vm_data))
             current_chunks = self._walk_hidden_mmapped_chunks(temp_chunk)
 
             if current_chunks:
@@ -2810,30 +2802,23 @@ class HeapAnalysis(common.LinProcessFilter):
         self._register_hidden_mmapped_chunks(new_mmapped_chunks)
 
 
-    def search_vmas_for_needle(self, search_string=None, search_regex=None,
-                               pointers=None, vmas=None, hidden_mmap_vmas=None,
-                               vma_regex=None):
-        """Searches all vmas or only the given ones for the given pointer(s).
+    def search_vmas_for_needle(self, search_string=None, pointers=None,
+                               vmas=None, vma_regex=None):
+        """Searches all vmas or only the given ones for the given needle(s).
         pointers = a list of int pointers
-        regex = a regex identifying relevant vm_areas
         Returns a list of hits
         """
 
         result = []
 
         if search_string:
+            search_string = utils.SmartStr(search_string)
+
             scanner = scan.BaseScanner(profile=self.profile,
                                        session=self.session,
                                        address_space=self.process_as,
                                        checks=[('StringCheck',
                                                 dict(needle=search_string))])
-
-        elif search_regex:
-            scanner = scan.BaseScanner(profile=self.profile,
-                                       session=self.session,
-                                       address_space=self.process_as,
-                                       checks=[('RegexCheck',
-                                                dict(regex=search_regex))])
 
         elif pointers:
             scanner = scan.PointerScanner(profile=self.profile,
@@ -2844,26 +2829,23 @@ class HeapAnalysis(common.LinProcessFilter):
         else:
             return result
 
-        if not vmas or hidden_mmap_vmas:
+        if not vmas:
             vmas = self.vmas
 
-        if hidden_mmap_vmas:
-            vmas = hidden_mmap_vmas
-
-        for vma in vmas:
-            if vma_regex and not hidden_mmap_vmas:
-                if not re.search(vma_regex, vma['name']):
+        for vm_start, vm_end, vm_data in vmas:
+            if vma_regex:
+                if not re.search(vma_regex, vm_data['name']):
                     continue
 
-            start = vma[0]['vma'].vm_start if hidden_mmap_vmas \
-                else vma['vma'].vm_start
+            end = vm_end
+            # this is set for stack segments that also contain mmapped chunks
+            if 'stack_first_mmap_chunk' in vm_data:
+                end = vm_data['stack_first_mmap_chunk']
 
-            end = vma[1] if hidden_mmap_vmas else vma['vma'].vm_end
-            length = end - start
+            length = end - vm_start
 
-            for hit in scanner.scan(offset=start, maxlen=length):
+            for hit in scanner.scan(offset=vm_start, maxlen=length):
                 temp = dict()
-                temp['vma'] = vma[0] if hidden_mmap_vmas else vma
                 temp['hit'] = hit
                 if pointers:
                     pointer = self.process_as.read(hit, self._pointer_size)
@@ -2874,12 +2856,16 @@ class HeapAnalysis(common.LinProcessFilter):
                 elif search_string:
                     temp['needle'] = search_string
 
-                elif search_regex:
-                    temp['needle'] = search_regex
-
                 result.append(temp)
 
         return result
+
+
+    def is_address_part_of_heap(self, address):
+        """Returns true if the address points at any memory region belonging
+        to the known heap."""
+
+        return self.heap_vmas.get_containing_range(address)[0] != None
 
 
     def get_chunks_for_addresses(self, addresses, ignore_prevsize=False):
@@ -2889,7 +2875,11 @@ class HeapAnalysis(common.LinProcessFilter):
 
         chunks = dict()
         last_chunk = None
+        # first, get rid of duplicates
         addresses = set(addresses)
+        # next, only consider addresses actually pointing somewhere in the heap
+        addresses = set([x for x in addresses if 
+            self.is_address_part_of_heap(x)])
 
         # get all first chunk offsets (from all arenas/heapinfo structs;
         # MMAPPED chunks can be ignored). The first chunk of a memory region
@@ -3013,15 +3003,14 @@ class HeapAnalysis(common.LinProcessFilter):
     # of the first chunk of the main heap/ heap_info area; but this shouldn't
     # be the case anyways. For all other chunks, the prev_size field is treated
     # appropriately
-    def search_chunks_for_needle(self, search_string=None, search_regex=None,
-                                 pointers=None, search_struct=False,
-                                 given_hits=None):
-        """Searches all chunks for the given pointer(s) and returns the ones
+    def search_chunks_for_needle(self, search_string=None, pointers=None,
+                                 search_struct=False, given_hits=None):
+        """Searches all chunks for the given needle(s) and returns the ones
         containing them. It only searches the data part of a chunk (e.g.
         not fd/bk fields for bin chunks).
 
         pointers = a list of int pointers
-        search_string/search_regex = a string or regex to search for in a chunk
+        search_string = a string to search for in a chunk
         search_struct = if set to True, also fields like size and fd/bk for bin
         chunks are included
         """
@@ -3036,10 +3025,6 @@ class HeapAnalysis(common.LinProcessFilter):
 
         elif search_string:
             hits = self.search_vmas_for_needle(search_string=search_string,
-                                               vmas=self.heap_vmas)
-
-        elif search_regex:
-            hits = self.search_vmas_for_needle(search_regex=search_regex,
                                                vmas=self.heap_vmas)
 
         elif given_hits:
@@ -3081,7 +3066,10 @@ class HeapAnalysis(common.LinProcessFilter):
         Tries to follow EBP pointers to the first one and returns its offset.
         """
 
-        if not vma.vm_start <= ebp < vma.vm_end:
+        vm_start = vma[0]
+        vm_end = vma[1]
+
+        if not vm_start <= ebp < vm_end:
             return None
 
         temp = ebp
@@ -3092,7 +3080,7 @@ class HeapAnalysis(common.LinProcessFilter):
         max_steps = 0x2000
         i = 0
 
-        while vma.vm_start <= temp < vma.vm_end and last_ebp != temp and \
+        while vm_start <= temp < vm_end and last_ebp != temp and \
                 i < max_steps:
             last_ebp = temp
             temp = (self.process_as.read(temp, self._pointer_size))
@@ -3108,6 +3096,8 @@ class HeapAnalysis(common.LinProcessFilter):
         This function searches from initial_address until vma.vm_end for a
         MMAPPED chunk and returns it if found."""
 
+        vm_end = vma[1]
+
         # As mmapped regions are normally on pagesize boundaries (4096 or a
         # multiple of it) we only look at those offsets for a mmapped chunk
         offset = self._get_page_aligned_address(initial_address)
@@ -3115,7 +3105,7 @@ class HeapAnalysis(common.LinProcessFilter):
         # as the minimum size for mmapped chunks is normally equal to pagesize
         # (4096 bytes), there should be at least 4096 bytes behind the current
         # position - see also comment in check_and_report_mmap_chunk
-        distance = vma.vm_end - offset
+        distance = vm_end - offset
 
         while distance >= self._min_pagesize:
 
@@ -3129,10 +3119,10 @@ class HeapAnalysis(common.LinProcessFilter):
 
             else:
                 offset += self._min_pagesize
-                distance = vma.vm_end - offset
+                distance = vm_end - offset
 
 
-    def calculate_statistics(self):
+    def _calculate_statistics(self):
         """Sets the class attribute self.statistics with a dict containing
         e.g. number of allocated/freed/fastbin/tcache chunks, their sizes..."""
 
@@ -3309,6 +3299,7 @@ class HeapAnalysis(common.LinProcessFilter):
 
         number_of_mmapped_chunks = 0
         size_of_mmapped_chunks = 0
+        mallinfo_size_of_mmapped_chunks = 0
 
         for chunk in self.get_all_mmapped_chunks():
             number_of_mmapped_chunks += 1
@@ -3317,10 +3308,12 @@ class HeapAnalysis(common.LinProcessFilter):
             # apparently, mp_.mmapped_mem also includes the gap at the chunks
             # beginning, so we add it up here (the gap is stored in the
             # prev_size field)
-            size_of_mmapped_chunks += chunk.get_prev_size()
+            mallinfo_size_of_mmapped_chunks += chunk.get_prev_size()
 
+        mallinfo_size_of_mmapped_chunks += size_of_mmapped_chunks
         self.statistics['number_of_mmapped_chunks'] = number_of_mmapped_chunks
         self.statistics['size_of_mmapped_chunks'] = size_of_mmapped_chunks
+        self.statistics['mallinfo_size_of_mmapped_chunks'] = mallinfo_size_of_mmapped_chunks
 
 
     def _compare_vma_sizes_with_chunks(self):
@@ -3333,39 +3326,17 @@ class HeapAnalysis(common.LinProcessFilter):
             return None
 
         vma_sum = 0
-        for vma in self.heap_vmas:
-            vma_sum += (vma['vma'].vm_end - vma['vma'].vm_start)
+        for vm_start, vm_end , _ in self.heap_vmas:
+            vma_sum += (vm_end - vm_start)
 
         if not self.statistics:
-            self.calculate_statistics()
+            self._calculate_statistics()
 
         chunk_sum = (self.statistics['total_allocated_space']
                      + self.statistics['total_free_space']
                      + self.statistics['size_of_mmapped_chunks'])
 
-        # this takes the potential gap at the beginning of mmapped chunks
-        # into account.
-        # since for hidden chunks the first gap doesn't matter (for them,
-        # the vmas are not part of the self.heap_vmas) we don't use them here
-        # the gap is stored in the mmapped chunk's prev_size field
-        chunk_sum -= sum([x.get_prev_size() for x in self._hidden_chunks])
-        chunk_sum += sum(list(self._mmap_slack_space.values()))
         chunk_sum += sum(list(self._heap_slack_space.values()))
-
-        vma_sum += sum([x.chunksize() for x in self._hidden_chunks])
-        # as we can't simply add the vm_area for the hidden chunks to the
-        # vma_sum, as it contains also other data, we add the hidden chunks
-        # and the following slack space to the vma_sum
-        #
-        # _mmap_slack_space is filled with the "chunk" after the last mmapped
-        # chunk which isn't really a chunk but only empty space. to get them,
-        # we call next_chunk on any mmapped chunk, including the last one for
-        # each memory segment (which is the relevant one)
-        hidden_next_chunks = [x.next_chunk() for x in self._hidden_chunks]
-
-        # now we get only the slack space for the hidden chunks
-        vma_sum += sum([y for x, y in self._mmap_slack_space.items()
-                        if x in hidden_next_chunks])
 
         # for heaps without a main heap, this value isn't set, so its safe
         # to just subtract it
@@ -3381,7 +3352,7 @@ class HeapAnalysis(common.LinProcessFilter):
             vma_sum -= self._front_misalign_correction
 
         # for thread arenas, however, there might be an additional gap after
-        # the tow bottom chunks if MALLOC_ALIGNMENT has been modified
+        # the two bottom chunks if MALLOC_ALIGNMENT has been modified
         vma_sum -= sum(list(self._bottom_chunk_gaps.values()))
 
         return chunk_sum == vma_sum
@@ -3392,7 +3363,7 @@ class HeapAnalysis(common.LinProcessFilter):
         prints warnings on any discrepancies."""
 
         if not self.statistics:
-            self.calculate_statistics()
+            self._calculate_statistics()
 
         mmap_info_is_correct = False
         if self._compare_mmapped_chunks_with_mp_() is False:
@@ -3424,10 +3395,11 @@ class HeapAnalysis(common.LinProcessFilter):
                         "either results from an error in getting all chunks "
                         "or in choosing the correct vm_areas. Either way, the "
                         "MMAPPED results will be wrong."
-                        .format(self.statistics['number_of_mmapped_chunks'],
-                                self.statistics['size_of_mmapped_chunks'],
-                                self.mp_.n_mmaps,
-                                self.mp_.mmapped_mem))
+                        .format(
+                            self.statistics['number_of_mmapped_chunks'],
+                            self.statistics['mallinfo_size_of_mmapped_chunks'],
+                            self.mp_.n_mmaps,
+                            self.mp_.mmapped_mem))
 
                     self._search_stacks_for_mmap_pointers()
 
@@ -3469,18 +3441,13 @@ class HeapAnalysis(common.LinProcessFilter):
 
         # we first gather the size of all vmas containing main/thread arenas
         # but not mmapped chunks
-        mmapped_first_chunk_pointers = \
-            [x.v() for x in self.get_main_arena().mmapped_first_chunks]
+        for vm_start, vm_end, vm_data in self.heap_vmas:
+            if vm_data['name'] == 'mmapped_chunk':
+                continue
 
-        relevant_vmas = [x for x in self.heap_vmas
-                         if x['vma'].vm_start +
-                         self._front_misalign_correction
-                         not in mmapped_first_chunk_pointers]
+            size = (vm_end - vm_start)
 
-        for vma in relevant_vmas:
-            size = (vma['vma'].vm_end - vma['vma'].vm_start)
-
-            if vma['name'] == self._main_heap_identifier:
+            if vm_data['name'] == self._main_heap_identifier:
                 # as the main heap can spread among multiple vm_areas, we add
                 # their sizes up
                 main_heap_size += size
@@ -3599,7 +3566,7 @@ class HeapAnalysis(common.LinProcessFilter):
                 absolute_offset = mp_offset
 
         if not absolute_offset and \
-                [x for x in self.vmas if x['name'] ==
+                [x for x in self.vmas if x[2]['name'] ==
                     self._main_heap_identifier]:
             # either mp_ offset hasn't given on the cmd line and/or the libc
             # couldn't be found (maybe because it's a statically linked binary
@@ -3619,12 +3586,12 @@ class HeapAnalysis(common.LinProcessFilter):
                 # the main heap but somewhere behind, so we try to find
                 # pointers somewhere in this space and hope we get not too many
                 # ;-)
-                vmas = [x for x in self.vmas if x['vma'].vm_file]
+                vmas = [x for x in self.vmas if x[2]['is_file']]
                 # The upper limit is chosen based on past experience.
                 # It is the maximum amount of bytes to walk from the beginning
                 # of the the main heap area.
-                upper_search_limit = \
-                    self._min_pagesize * self._pointer_size / 4
+                upper_search_limit = int(\
+                    self._min_pagesize * self._pointer_size / 4)
                 pointers = [x+main_arena_range[0] for x in
                             list(range(0, upper_search_limit, 8))]
 
@@ -3756,9 +3723,9 @@ class HeapAnalysis(common.LinProcessFilter):
             return None
 
         if not self.statistics:
-            self.calculate_statistics()
+            self._calculate_statistics()
 
-        mmapped_size = self.statistics['size_of_mmapped_chunks']
+        mmapped_size = self.statistics['mallinfo_size_of_mmapped_chunks']
 
         if self.mp_.mmapped_mem == mmapped_size and \
                 self.mp_.n_mmaps == \
@@ -3778,7 +3745,7 @@ class HeapAnalysis(common.LinProcessFilter):
             return None
 
         if not self.statistics:
-            self.calculate_statistics()
+            self._calculate_statistics()
 
         result = ""
 
@@ -3795,7 +3762,7 @@ class HeapAnalysis(common.LinProcessFilter):
                    + str(self.statistics['number_of_mmapped_chunks'])
                    + "\n")
         result += ("Bytes in mapped regions (hblkhd):      "
-                   + str(self.statistics['size_of_mmapped_chunks'])
+                   + str(self.statistics['mallinfo_size_of_mmapped_chunks'])
                    + "\n")
         result += ("Free bytes held in fastbins (fsmblks): "
                    + str(self.statistics['size_of_fastbin_chunks'])
@@ -3827,7 +3794,10 @@ class HeapAnalysis(common.LinProcessFilter):
                    " version, which will disable the internal logic to "
                    "identify the version in use. Mainly necessary for "
                    "statically linked binaries. Version must be specified "
-                   "as an integer, so e.g. 226 for version 2.26"))
+                   "as an integer, so e.g. 226 for version 2.26")),
+        dict(name='disable_chunk_preservation', type="Boolean", default=False,
+             help="Prevents chunks from being held in memory. Should only be "
+                  "used if analysis exhaustes available memory.")
     ]
 
 
@@ -3854,17 +3824,12 @@ class HeapOverview(HeapAnalysis):
         cc = self.session.plugins.cc()
         with cc:
             for task in self.filter_processes():
-                #if not task.mm.dereference():
-                    #self.session.logging.warn(
-                        #"Analysis for Task {:d} aborted as "
-                        #"it seems to be a kernel thread.\n".format(task.pid))
-                    #continue
-
                 try:
+                    cc.SwitchProcessContext(task)
+
                     if not self.init_for_task(task):
                         continue
 
-                    cc.SwitchProcessContext(task)
 
                     freed_chunks = self.statistics['number_of_bin_chunks']
                     freed_chunks += self.statistics['number_of_fastbin_chunks']
@@ -4142,7 +4107,7 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
         """Used as the wrapper to dump a given chunk to file."""
 
         try:
-            data = chunk.to_string()
+            data = chunk.get_chunk_data()
             if isinstance(data, obj.NoneObject):
                 self.session.logging.warn(
                     "Unable to read from chunk at offset: 0x{:x}."
@@ -4174,7 +4139,8 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
 
 
 class HeapPointerSearch(HeapAnalysis, yarascanner.YaraScanMixin):
-    """Searches all chunks for the given string, regex or pointer(s)."""
+    """Searches all chunks for the given string, yara rule or chunk pointer(s).
+    """
 
     name = "heapsearch"
 
@@ -4184,7 +4150,7 @@ class HeapPointerSearch(HeapAnalysis, yarascanner.YaraScanMixin):
 
     def render(self, renderer):
         if not (self.plugin_args.pointers or self.plugin_args.string
-                or self.plugin_args.regex or self.plugin_args.chunk_addresses
+                or self.plugin_args.chunk_addresses
                 or self.plugin_args.yara_file
                 or self.plugin_args.binary_string
                 or self.plugin_args.yara_expression):
@@ -4216,39 +4182,27 @@ class HeapPointerSearch(HeapAnalysis, yarascanner.YaraScanMixin):
                             else:
                                 hits[chunk] = needles
 
-                    if self.plugin_args.regex:
-                        temp_hits = self.search_chunks_for_needle(
-                            search_regex=self.plugin_args.regex,
-                            search_struct=self.plugin_args.search_struct)
-
-                        for chunk, needles in temp_hits.items():
-                            if chunk in list(hits.keys()):
-                                hits[chunk].update(needles)
-
-                            else:
-                                hits[chunk] = needles
-
                     if self.plugin_args.yara_file or \
                             self.plugin_args.binary_string or \
                             self.plugin_args.yara_expression:
 
                         yara_hits = []
 
-                        for vma in self.heap_vmas:
+                        for vm_start, vm_end, _ in self.heap_vmas:
                             adr = addrspace.Run(
-                                start=vma['vma'].vm_start,
-                                end=vma['vma'].vm_end,
+                                start=vm_start,
+                                end=vm_end,
                                 address_space=
                                     self.task.get_process_address_space())
 
                             for hit in self.generate_hits(adr):
                                 temp_hit = dict()
                                 temp_hit['hit'] = hit[1]
-                                rulenames = set()
+                                rule_strings = set()
                                 for i in hit[0].strings:
-                                    rulenames.add(i[2])
+                                    rule_strings.add(i[1])
 
-                                temp_hit['needle'] = ','.join(rulenames)
+                                temp_hit['needle'] = ','.join(rule_strings)
                                 yara_hits.append(temp_hit)
 
                         temp_hits = self.search_chunks_for_needle(
@@ -4390,9 +4344,6 @@ class HeapPointerSearch(HeapAnalysis, yarascanner.YaraScanMixin):
              help=("Expects address(es) belonging to a chunk(s) of interest, "
                    "and prints all chunks having a pointer somewhere into "
                    "the data part of that chunk(s).")),
-        dict(name='regex', type='str', default=None,
-             help=("Searches all chunks with the given regex and prints "
-                   "all hits.")),
         dict(name='string', type='str', default=None,
              help=("Searches all chunks for the given string and prints "
                    "all hits.")),
@@ -4506,6 +4457,7 @@ class HeapReferenceSearch(HeapAnalysis):
 
                     dump = self.session.plugins.dump(
                         offset=start, length=length,
+                        width=16, rows=(length/16)+1,
                         address_map=self.CreateAllocationMap(start, length),
                         address_space=self.process_as)
 
@@ -4693,9 +4645,8 @@ class malloc_chunk(obj.Struct):
         return [data_offset, length]
 
 
-    def to_string(self, length=None, offset=None):
-        """Returns a string containing the data part of the given allocated
-        chunk.
+    def get_chunk_data(self, length=None, offset=None):
+        """Returns the data part of the given allocated chunk.
         The length parameter is intended only for printing shorter
         parts of the current chunk.
         The offset makes only sense in combination with the length parameter
