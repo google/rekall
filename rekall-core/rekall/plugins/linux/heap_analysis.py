@@ -4812,7 +4812,7 @@ class malloc_state(obj.Struct):
         tps_offset = self.obj_profile.get_obj_offset("malloc_chunk", "fd")
         self.tcache_perthread_struct = \
             self.obj_profile.tcache_perthread_struct(
-                first_chunk.v() - tps_offset, vm=self.obj_vm)
+                first_chunk.v() + tps_offset, vm=self.obj_vm)
 
         self.freed_tcache_chunks = list(self.get_freed_chunks_tcache_bins())
 
