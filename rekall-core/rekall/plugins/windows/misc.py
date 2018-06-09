@@ -152,15 +152,16 @@ class WinVirtualMap(common.WindowsCommandPlugin):
 
         # Types are described in the _MI_SYSTEM_VA_TYPE enum and are
         # listed in the vector of regions.
-        for i, region in enumerate(visible_state.SystemVaRegions):
-            if region.NumberOfBytes > 0:
-                yield dict(
-                    type=utils.MaybeConsume(
-                        "AssignedRegion", region_types.get(i, "Unknown")),
-                    region=region,
-                    virt_start=region.BaseAddress.v(),
-                    length=region.NumberOfBytes,
-                    virt_end=region.BaseAddress.v() + region.NumberOfBytes)
+        if region_types:
+            for i, region in enumerate(visible_state.SystemVaRegions):
+                if region.NumberOfBytes > 0:
+                    yield dict(
+                        type=utils.MaybeConsume(
+                            "AssignedRegion", region_types.get(i, "Unknown")),
+                        region=region,
+                        virt_start=region.BaseAddress.v(),
+                        length=region.NumberOfBytes,
+                        virt_end=region.BaseAddress.v() + region.NumberOfBytes)
 
     def collect_from_MiSystemVaType(self):
         system_va_table = self.profile.get_constant_object(

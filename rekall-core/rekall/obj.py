@@ -232,6 +232,9 @@ class NoneObject(with_metaclass(registry.UniqueObjectIdMetaclass, object)):
         # functions in object with self
         return self
 
+    def __nonzero__(self):
+        return False
+
     def __bool__(self):
         return False
 
@@ -413,6 +416,9 @@ class BaseObject(with_metaclass(registry.UniqueObjectIdMetaclass, object)):
         the later form is not going to work when X is a NoneObject.
         """
         return self.is_valid()
+
+    def __nonzero__(self):
+        return self.__bool__()
 
     def __eq__(self, other):
         return self.v() == other or (

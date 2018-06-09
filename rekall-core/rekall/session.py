@@ -1139,6 +1139,9 @@ class Session(with_metaclass(registry.MetaclassRegistry, object)):
     def __bool__(self):
         return bool(self.state)
 
+    def __nonzero__(self):
+        return self.__bool__()
+
 
 class DynamicNameSpace(dict):
     """A namespace which dynamically reflects the currently active plugins.

@@ -582,6 +582,9 @@ class ListMixIn(object):
         # List entries are valid when both Flinks and Blink are valid
         return bool(self.m(self._forward)) or bool(self.m(self._backward))
 
+    def __nonzero__(self):
+        return self.__bool__()
+
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_type, self.obj_name)
 
