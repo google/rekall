@@ -34,9 +34,9 @@ KNOWN_REVISION_IDS = {
 
 # TODO: Find more abort codes.
 KNOWN_ABORT_INDICATOR_CODES = {
-    '\x00\x00\x00\x00': "NO ABORT",
-    '\x05\x00\x00\x00': "MACHINE CHECK DURING VM EXIT",
-    '\x0d\x00\x00\x00': "TXT SHUTDOWN",
+    b'\x00\x00\x00\x00': "NO ABORT",
+    b'\x05\x00\x00\x00': "MACHINE CHECK DURING VM EXIT",
+    b'\x0d\x00\x00\x00': "TXT SHUTDOWN",
     }
 
 
