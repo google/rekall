@@ -337,12 +337,18 @@ class AddressResolverMixin(object):
                 address)
 
         # Symbols not found at all, use module name.
-        if not symbols or address - offset > max_distance:
+        if not symbols:
+            if address - module.start > max_distance:
+                return (-1, [])
+
             if address == module.start:
                 return (module.start, [module.name])
 
             return (module.start, [
                 "%s+%#x" % (module.name, address - module.start)])
+
+        if address - offset > max_distance:
+            return (-1, [])
 
         # Exact symbols found.
         if offset == address:
