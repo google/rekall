@@ -574,7 +574,7 @@ class FormattedAddress(object):
     address is discarded, no formatting is done and we save some cycles.
     """
 
-    def __init__(self, resolver, address, max_distance=1e6, max_count=100,
+    def __init__(self, resolver, address, max_distance=0x1000000, max_count=100,
                  hex_if_unknown=True):
         self.resolver = resolver
         self.address = address
