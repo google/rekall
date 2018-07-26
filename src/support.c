@@ -79,7 +79,7 @@ static uint64_t _read_long_long_phys(AMD64PagedMemory *self, uint64_t address) {
   return _unpack_uint64(result);
 
   error:
-    // An error occured in the base address space. We ignore the error and just
+    // An error occurred in the base address space. We ignore the error and just
     // return 0.
     PyErr_Clear();
     return 0;

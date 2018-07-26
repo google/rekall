@@ -46,7 +46,7 @@ class Error(Exception):
 
 
 class PluginError(Error):
-    """An error occured in a plugin."""
+    """An error occurred in a plugin."""
 
 
 class InvalidArgs(Error):

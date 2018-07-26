@@ -517,7 +517,7 @@ int init_elf_objs(void) {
 //
 // Returns:
 //  Pointer to the allocated string with the path if found(free it yourself),
-//  NULL if the path could not be found or an error occured.
+//  NULL if the path could not be found or an error occurred.
 //
 char *find_specific_module_path(void) {
   struct utsname utsbuf;

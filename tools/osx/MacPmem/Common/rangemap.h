@@ -79,7 +79,7 @@ void pmem_rangemap_destroy(pmem_rangemap *rangemap);
 // Add a range to the map, with the appropriate 'flags'.
 //
 // Arguments:
-//   rangemap: The rangemap being manipulated. May grow to accomodate the
+//   rangemap: The rangemap being manipulated. May grow to accommodate the
 //      new size.
 //   start: The first offset in the range.
 //   end: The last offset in the range.

@@ -48,7 +48,7 @@ $ pip install rekall-agent
 In this part we will run the Rekall Agent with our own hosted HTTP
 server. This setup is suitable for those users who do not want to use
 the Google Cloud - but they will need to ensure the servers are
-publically accessible and have sufficient disk space to store all the
+publicly accessible and have sufficient disk space to store all the
 collected data. Nevertheless this mode of operation is a good way to
 try out the Rekall Agent on a small scale installation.
 
