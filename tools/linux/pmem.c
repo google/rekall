@@ -173,7 +173,7 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
   /* Increment the file offset. */
   *poff += to_read;
 
-  /* Error occured we zero pad the result. */
+  /* Error occurred we zero pad the result. */
   if(!zero_page)
     zero_page = get_zeroed_page(GFP_KERNEL);
 
