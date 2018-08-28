@@ -77,8 +77,9 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
             data = self.fhandle.read(length)
 
             return data + addrspace.ZEROER.GetZeros(length - len(data))
-        except IOError:
+        except (IOError, OverflowError):
             return addrspace.ZEROER.GetZeros(length)
+
 
     def read_long(self, addr):
         string = self.read(addr, 4)
