@@ -640,21 +640,20 @@ class inet_sock(obj.Struct):
 
     @utils.safe_property
     def src_port(self):
-        return (self.m("sport") or self.m("inet_sport")).cast(
-            "unsigned be short")
+        return (self.multi_m("sport", "inet_sport")).cast("unsigned be short")
 
     @utils.safe_property
     def dst_port(self):
-        return ((self.m("dport") or self.m("inet_dport")).cast(
-            "unsigned be short") or self.sk.m("__sk_common.u3.u1.skc_dport") or
-                self.sk.m("__sk_common.u3.skc_dport"))
+        return self.multi_m("dport", "inet_dport", "__sk_common.u3.u1.skc_dport",
+                            "__sk_common.u3.skc_dport").cast("unsigned be short")
+
     @utils.safe_property
     def src_addr(self):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
-            return (self.m("rcv_saddr") or self.m("inet_rcv_saddr") or
-                    self.sk.m("__sk_common.u1.u1.skc_rcv_saddr") or
-                    self.m("inet_saddr")).cast(
-                        "Ipv4Address")
+            return self.multi_m(
+                "rcv_saddr", "inet_rcv_saddr",
+                "sk.__sk_common.u1.u1.skc_rcv_saddr",
+                "inet_saddr").cast("Ipv4Address")
 
         else:
             return self.m("pinet6.saddr").cast("Ipv6Address")
@@ -662,14 +661,13 @@ class inet_sock(obj.Struct):
     @utils.safe_property
     def dst_addr(self):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
-            return (self.m("daddr") or self.m("inet_daddr") or
-                    self.sk.m("__sk_common.u1.u1.skc_daddr") or
-                    self.sk.m("__sk_common.skc_daddr")).cast(
-                        "Ipv4Address")
+            return self.multi_m("daddr", "inet_daddr",
+                                 "sk.__sk_common.u1.u1.skc_daddr",
+                                 "sk.__sk_common.skc_daddr").cast("Ipv4Address")
 
         else:
-            return (self.m("pinet6.daddr").cast("Ipv6Address") or
-                    self.m("pinet6.daddr_cache").cast("Ipv6Address"))
+            return self.multi_m("pinet6.daddr", "pinet6.daddr_cache").cast(
+                "Ipv6Address")
 
 
 class files_struct(obj.Struct):

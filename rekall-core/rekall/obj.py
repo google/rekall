@@ -185,6 +185,9 @@ class NoneObject(with_metaclass(registry.UniqueObjectIdMetaclass, object)):
         if self.strict:
             self.bt = ''.join(traceback.format_stack()[:-2])
 
+    def __hash__(self):
+        return 0
+
     def __str__(self):
         # If we are strict we blow up here
         if self.strict:

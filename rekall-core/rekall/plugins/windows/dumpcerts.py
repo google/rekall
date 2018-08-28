@@ -139,7 +139,9 @@ class CertDump(core.DirectoryDumperMixin, CertScan):
     table_header = [
         dict(name="address", style="address"),
         dict(name="type", width=10),
+        dict(name="length", width=10),
         dict(name="Filename", width=30),
+        dict(name="data", hidden=True),
         dict(name="description"),
     ]
 

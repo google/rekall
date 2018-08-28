@@ -269,7 +269,7 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
 
             self.session.report_progress(" Dumping %s", filename)
             with renderer.open(directory=self.dump_dir,
-                               filename=filename, mode="wb") as out_fd:
+                               filename=filename[:100], mode="wb") as out_fd:
                 filename = out_fd.name
 
                 # Sometimes we get both subsections.
