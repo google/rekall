@@ -106,6 +106,7 @@
       <WppRecorderEnabled>true</WppRecorderEnabled>
       <WppKernelMode>true</WppKernelMode>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);usbdex.lib;ntstrsafe.lib;wdmsec.lib</AdditionalDependencies>
@@ -128,6 +129,8 @@
       <WppRecorderEnabled>true</WppRecorderEnabled>
       <WppKernelMode>true</WppKernelMode>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);usbdex.lib;ntstrsafe.lib;wdmsec.lib</AdditionalDependencies>
@@ -139,6 +142,8 @@
       <WppRecorderEnabled>true</WppRecorderEnabled>
       <WppKernelMode>true</WppKernelMode>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);usbdex.lib;ntstrsafe.lib;wdmsec.lib</AdditionalDependencies>

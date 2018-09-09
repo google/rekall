@@ -1,6 +1,7 @@
 /*
-   Copyright 2012 Michael Cohen <scudette@gmail.com>
-
+   Copyright 2018 Velocidex Innovations <mike@velocidex.com>
+   Copyright 2014-2017 Google Inc.
+  
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -160,16 +161,18 @@ struct PmemMemoryControl {
   Our Device Extension Structure.
 */
 typedef struct _DEVICE_EXTENSION {
-  /* How we should acquire memory. */
-  enum WDD_ACQUISITION_MODE mode;
-
   /* If we read from \\Device\\PhysicalMemory, this is the handle to that. */
   HANDLE MemoryHandle;
+
+  /* How we should acquire memory. */
+  enum WDD_ACQUISITION_MODE mode;
 
   int WriteEnabled;
 
   /* Hold a handle to the pte_mmap object. */
   PTE_MMAP_OBJ *pte_mmapper;
+
+  FAST_MUTEX mu;
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;
 
 // 5e1ce668-47cb-410e-a664-5c705ae4d71b
