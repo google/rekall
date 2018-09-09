@@ -236,7 +236,8 @@ class WindowsFileMappingDescriptor(intel.AddressTranslationDescriptor):
         else:
             renderer.format(
                 "Private Mapping by {0}\n",
-                subsection.ControlArea.Segment.u1.CreatingProcess.deref())
+                subsection.ControlArea.Segment.u1.multi_m(
+                    "CreatingProcess", "CreatingProcessId"))
 
         for task, virtual_address in self.get_owners(subsection=subsection):
             renderer.format(
