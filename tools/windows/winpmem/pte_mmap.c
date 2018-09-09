@@ -6,10 +6,12 @@
 // priviledged instructions as invlpg. It will only run in ring 0.
 //
 //
-//
+// Copyright 2018 Velocidex Innovations <mike@velocidex.com>
+// Copyright 2014 - 2017 Google Inc.
 // Copyright 2012 Google Inc. All Rights Reserved.
-// Author: Johannes Stüttgen (johannes.stuettgen@gmail.com)
-//
+// Authors: Johannes Stüttgen (johannes.stuettgen@gmail.com)
+//          Michael Cohen <mike@velocidex.com>
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -25,6 +27,7 @@
 #include "pte_mmap.h"
 #include "winpmem.h"
 
+
 // Edit the page tables to point a virtual address to a specific physical page.
 //
 // Args:
@@ -35,6 +38,10 @@
 //  PTE_SUCCESS or PTE_ERROR
 //
 static PTE_STATUS pte_remap_rogue_page(PTE_MMAP_OBJ *self, PHYS_ADDR target) {
+  if (self->rogue_page.pointer == NULL) {
+	// We do not have a rogue page to remap at all.
+	return PTE_ERROR;
+  }
   // Can only remap pages, addresses must be page aligned.
   if (((!target) & PAGE_MASK) || self->rogue_page.offset) {
     WinDbgPrint("Failed to map %#016llx, "
@@ -109,23 +116,23 @@ static PTE_STATUS virt_find_pte(PTE_MMAP_OBJ *self, void *addr,
 
   vaddr.pointer = addr;
 
-  WinDbgPrintDebug("Resolving PTE for Address:%#016llx", vaddr);
+  WinDbgPrint("Resolving PTE for Address:%#016llx", vaddr);
 
   // Get contents of cr3 register to get to the PML4
   cr3 = self->get_cr3_();
 
-  WinDbgPrintDebug("Kernel CR3 is %p", cr3);
-  WinDbgPrintDebug("Kernel PML4 is at %p physical",
+  WinDbgPrint("Kernel CR3 is %p", cr3);
+  WinDbgPrint("Kernel PML4 is at %p physical",
                    PFN_TO_PAGE(cr3.pml4_p));
 
   // Resolve the PML4
   pml4 = (PML4E *)self->phys_to_virt_(PFN_TO_PAGE(cr3.pml4_p));
-  WinDbgPrintDebug("kernel PML4 is at %p virtual", pml4);
+  WinDbgPrint("kernel PML4 is at %p virtual", pml4);
 
   // Resolve the PDPT
   pml4e = (pml4 + vaddr.pml4_index);
 
-  WinDbgPrintDebug("PML4 entry %d is at %p", vaddr.pml4_index,
+  WinDbgPrint("PML4 entry %d is at %p", vaddr.pml4_index,
                    pml4e);
 
   if (!pml4e->present) {
@@ -135,7 +142,7 @@ static PTE_STATUS virt_find_pte(PTE_MMAP_OBJ *self, void *addr,
     self->print_pte_(self, PTE_ERR, (PTE *)pml4e);
     goto error;
   }
-  WinDbgPrintDebug("PML4[%#010x]: %p)", vaddr.pml4_index, pml4e);
+  WinDbgPrint("PML4[%#010x]: %p)", vaddr.pml4_index, pml4e);
 
 
   pdpt = (PDPTE *)self->phys_to_virt_(PFN_TO_PAGE(pml4e->pdpt_p));
@@ -155,9 +162,9 @@ static PTE_STATUS virt_find_pte(PTE_MMAP_OBJ *self, void *addr,
     self->print_pte_(self, PTE_ERR, (PTE *)pdpte);
     goto error;
   }
-  WinDbgPrintDebug("PDPT[%#010x]: %p)", vaddr.pdpt_index, pdpte);
+  WinDbgPrint("PDPT[%#010x]: %p)", vaddr.pdpt_index, pdpte);
   pd = (PDE *)self->phys_to_virt_(PFN_TO_PAGE(pdpte->pd_p));
-  WinDbgPrintDebug("Points to PD:     %p)", pd);
+  WinDbgPrint("Points to PD:     %p)", pd);
 
   // Resolve the PT
   pde = (pd + vaddr.pd_index);
@@ -174,9 +181,9 @@ static PTE_STATUS virt_find_pte(PTE_MMAP_OBJ *self, void *addr,
     goto error;
   }
 
-  WinDbgPrintDebug("PD  [%#010x]: %p)", vaddr.pd_index, pde);
+  WinDbgPrint("PD  [%#010x]: %p)", vaddr.pd_index, pde);
   pt = (PTE *)self->phys_to_virt_(PFN_TO_PAGE(pde->pt_p));
-  WinDbgPrintDebug("Points to PT:     %p)", pt);
+  WinDbgPrint("Points to PT:     %p)", pt);
 
   // Get the PTE and Page Frame
   *pte = (pt + vaddr.pt_index);
@@ -186,7 +193,7 @@ static PTE_STATUS virt_find_pte(PTE_MMAP_OBJ *self, void *addr,
     self->print_pte_(self, PTE_ERR, (*pte));
     goto error;
   }
-  WinDbgPrintDebug("PT  [%#010x]: %p)", vaddr.pt_index, *pte);
+  WinDbgPrint("PT  [%#010x]: %p)", vaddr.pt_index, *pte);
 
   status = PTE_SUCCESS;
 error:

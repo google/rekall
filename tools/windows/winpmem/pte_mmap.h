@@ -2,6 +2,8 @@
 // Notice: This is only an abstract base class and cannot be used standalone.
 // Use the actual implementation for your operating system (eg. pte_mmap_linux).
 //
+// Copyright 2018 Velocidex Innovations <mike@velocidex.com>
+// Copyright 2014 - 2017 Google Inc.
 // Copyright 2012 Google Inc. All Rights Reserved.
 // Author: Johannes Stüttgen (johannes.stuettgen@gmail.com)
 //
@@ -24,8 +26,11 @@
 
 #define PFN_TO_PAGE(pfn) (pfn << PAGE_SHIFT)
 #define PAGE_TO_PFN(pfn) (pfn >> PAGE_SHIFT)
-
+ 
 typedef unsigned __int64 pte_uint64;
+
+#pragma warning(disable:4214) 
+#pragma warning(disable:4201)  /*nonstandard extension used: nameless struct/union */
 
 #pragma pack(push, 1)
 typedef union CR3_ {

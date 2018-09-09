@@ -1,7 +1,10 @@
 // Subclass of the pte_mmap module. Contains implementations for the Windows
 // specific part of the module.
 //
+// Copyright 2018 Velocidex Innovations <mike@velocidex.com>
+// Copyright 2014 - 2017 Google Inc.
 // Copyright 2012 Google Inc. All Rights Reserved.
+//
 // Author: Johannes Stüttgen (johannes.stuettgen@gmail.com)
 // Author: Michael Cohen (scudette@gmail.com)
 //
@@ -18,55 +21,52 @@
 // limitations under the License.
 
 #include "pte_mmap_windows.h"
-
 static char rogue_page[PAGE_SIZE * 3] = "";
 static char *page_aligned_space = NULL;
 static MDL *rogue_mdl = NULL;
-
 
 // Get a free, non-paged page of memory. On windows we can not
 // allocate from pool because pool storage is controlled by large page
 // PTEs. So we just use a static page in the driver executable.
 static void *pte_get_rogue_page(void) {
-  if (page_aligned_space == NULL) {
-    // We would ideally like to just allocate memory from non paged
-    // pool but on Windows 7, non paged pool is allocated from large
-    // pages and we wont be able to use the page in PTE remapping. So
-    // this code creates an MDL from a static buffer within the
-    // driver's data section. We must ensure that this buffer is not
-    // paged out though so we must call MmGetSystemAddressForMdlSafe
-    // to ensure the MDL is locked into memory.
+	if (page_aligned_space == NULL) {
+		// We would ideally like to just allocate memory from non paged
+		// pool but on Windows 7, non paged pool is allocated from large
+		// pages and we wont be able to use the page in PTE remapping. So
+		// this code creates an MDL from a static buffer within the
+		// driver's data section. We must ensure that this buffer is not
+		// paged out though so we must call MmGetSystemAddressForMdlSafe
+		// to ensure the MDL is locked into memory.
 
-    // page_aligned_space is the first page aligned offset within the
-    // buffer.
-    page_aligned_space = &rogue_page[0];
-    page_aligned_space += PAGE_SIZE - ((__int64)&rogue_page[0]) % PAGE_SIZE;
+		// page_aligned_space is the first page aligned offset within the
+		// buffer.
+		page_aligned_space = &rogue_page[0];
+		page_aligned_space += PAGE_SIZE - ((__int64)&rogue_page[0]) % PAGE_SIZE;
 
-    // MDL is for a single page.
-    rogue_mdl = IoAllocateMdl(page_aligned_space, PAGE_SIZE,
-			      FALSE, FALSE, NULL);
-    if (!rogue_mdl) {
-      return NULL;
-    };
+		// MDL is for a single page.
+		rogue_mdl = IoAllocateMdl(page_aligned_space, PAGE_SIZE,
+			FALSE, FALSE, NULL);
+		if (!rogue_mdl) {
+			return NULL;
+		}
 
-    try {
-      // This locks the physical page into memory.
-      MmProbeAndLockPages(rogue_mdl, KernelMode, IoWriteAccess);
-      page_aligned_space = MmGetSystemAddressForMdlSafe(rogue_mdl,
-							HighPagePriority |
-							MdlMappingNoExecute);
-      return page_aligned_space;
-    } except(EXCEPTION_EXECUTE_HANDLER) {
-      NTSTATUS ntStatus = GetExceptionCode();
+		try {
+			// This locks the physical page into memory.
+			MmProbeAndLockPages(rogue_mdl, KernelMode, IoReadAccess);
+			page_aligned_space = MmMapLockedPagesSpecifyCache(
+				rogue_mdl, KernelMode, MmCached, NULL, 0, NormalPagePriority);
+			return page_aligned_space;
 
-      WinDbgPrint("Exception while locking inBuf 0X%08X in METHOD_NEITHER\n",
-		  ntStatus);
-      IoFreeMdl(rogue_mdl);
-      rogue_mdl = NULL;
-      return NULL;
-    }
-  }
-  return page_aligned_space;
+		} except(EXCEPTION_EXECUTE_HANDLER) {
+			NTSTATUS ntStatus = GetExceptionCode();
+
+			WinDbgPrint("Exception while locking rogue_mdl %#08X\n", ntStatus);
+			IoFreeMdl(rogue_mdl);
+			rogue_mdl = NULL;
+			return NULL;
+		}
+	}
+	return page_aligned_space;
 }
 
 // Frees a single page allocated with vmalloc(). Rogue page is static
@@ -75,7 +75,6 @@ static void pte_free_rogue_page(void *page) {
   if (rogue_mdl) {
     MmUnlockPages(rogue_mdl);
     IoFreeMdl(rogue_mdl);
-    page_aligned_space = NULL;
     rogue_mdl = NULL;
   };
   return;
@@ -143,6 +142,9 @@ PTE_MMAP_OBJ *pte_mmap_windows_new(void) {
 
   // Initialize attributes that rely on memory allocation
   self->rogue_page.pointer = self->get_rogue_page_();
+  if (self->rogue_page.pointer == NULL) {
+	  goto error;
+  }
   WinDbgPrintDebug("Looking up PTE for rogue page: %p",
                    self->rogue_page);
   if (self->find_pte_(self, self->rogue_page.pointer, &self->rogue_pte)) {

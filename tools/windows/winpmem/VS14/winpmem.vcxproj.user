@@ -8,4 +8,7 @@
     <VerifyFlags>133563</VerifyFlags>
     <TestCertificate>CN="WDKTestCert mic,131384300355942867" | 7EA426631F0B9F382BA48901017D8EF0D2B1AD4F</TestCertificate>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

@@ -27,8 +27,7 @@
   need to check if the kernel address is at all valid.
 */
 
-IMAGE_DOS_HEADER *KernelGetModuleBaseByPtr(IN void *in_section,
-					   IN void *exported_name) {
+IMAGE_DOS_HEADER *KernelGetModuleBaseByPtr(IN void *in_section) {
   unsigned char *p;
   IMAGE_DOS_HEADER *dos = NULL;
   IMAGE_NT_HEADERS *nt;
@@ -147,7 +146,7 @@ IMAGE_SECTION_HEADER *GetSection(IMAGE_DOS_HEADER *image_base, char *name) {
     ((uintptr_t)&nt->OptionalHeader + nt->FileHeader.SizeOfOptionalHeader);
 
   for (i=0; i<number_of_sections; i++) {
-    if(!strcmp(sections[i].Name, name))
+    if(!strcmp((char *)sections[i].Name, name))
       return &sections[i];
   };
 

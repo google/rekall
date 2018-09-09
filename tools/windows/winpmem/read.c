@@ -1,4 +1,6 @@
 /*
+  Copyright 2018 Velocidex Innovations <mike@velocidex.com>
+  Copyright 2014-2017 Google Inc.
   Copyright 2012 Michael Cohen <scudette@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +55,6 @@ static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension,
   SIZE_T ViewSize = PAGE_SIZE;
   NTSTATUS NtStatus;
 
-
   if (EnsureExtensionHandle(extension)) {
     /* Map page into the Kernel AS */
     NtStatus = ZwMapViewOfSection(extension->MemoryHandle, (HANDLE) -1,
@@ -78,11 +79,10 @@ static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension,
 static LONG MapIOPagePartialRead(IN PDEVICE_EXTENSION extension,
                                  LARGE_INTEGER offset, PCHAR buf,
                                  ULONG count) {
+	extension;
   ULONG page_offset = offset.QuadPart % PAGE_SIZE;
   ULONG to_read = min(PAGE_SIZE - page_offset, count);
   PUCHAR mapped_buffer = NULL;
-  SIZE_T ViewSize = PAGE_SIZE;
-  NTSTATUS NtStatus;
   LARGE_INTEGER ViewBase;
 
   // Round to page size
@@ -93,15 +93,21 @@ static LONG MapIOPagePartialRead(IN PDEVICE_EXTENSION extension,
     ViewBase, PAGE_SIZE, MmNonCached);
 
   if (mapped_buffer) {
-    RtlCopyMemory(buf, mapped_buffer + page_offset, to_read);
+	try {
+	  // Be extra careful here to not produce a BSOD.
+	  RtlCopyMemory(buf, mapped_buffer+page_offset, to_read);
+    } except(EXCEPTION_EXECUTE_HANDLER) {
+	  WinDbgPrintDebug("Unable to read %d bytes from %p for %p\n", to_read, source, offset.QuadPart - page_offset);
+	  Pmem_KernelExports.MmUnmapIoSpace(mapped_buffer, PAGE_SIZE);
+	  return -1;
+	 }
+
+    Pmem_KernelExports.MmUnmapIoSpace(mapped_buffer, PAGE_SIZE);
+	return to_read;
   } else {
-    // Failed to map page, null fill the buffer.
-    RtlZeroMemory(buf, to_read);
+    // Failed to map page, return an error.
+	return -1;
   };
-
-  Pmem_KernelExports.MmUnmapIoSpace(mapped_buffer, PAGE_SIZE);
-
-  return to_read;
 };
 
 
@@ -111,10 +117,8 @@ static LONG PTEMmapPartialRead(IN PDEVICE_EXTENSION extension,
 			       ULONG count) {
   ULONG page_offset = offset.QuadPart % PAGE_SIZE;
   ULONG to_read = min(PAGE_SIZE - page_offset, count);
-  PUCHAR mapped_buffer = NULL;
-  SIZE_T ViewSize = PAGE_SIZE;
-  NTSTATUS NtStatus;
   LARGE_INTEGER ViewBase;
+  LONG result = -1;
 
   // Round to page size
   ViewBase.QuadPart = offset.QuadPart - page_offset;
@@ -124,21 +128,19 @@ static LONG PTEMmapPartialRead(IN PDEVICE_EXTENSION extension,
      extension->pte_mmapper->remap_page(extension->pte_mmapper,
 					offset.QuadPart - page_offset) ==
      PTE_SUCCESS) {
-    char *source = extension->pte_mmapper->rogue_page.value + page_offset;
+    char *source = (char *)(extension->pte_mmapper->rogue_page.value + page_offset);
     try {
       // Be extra careful here to not produce a BSOD. We would rather
-      // return a page of zeros than BSOD.
+      // return an error than a BSOD.
       RtlCopyMemory(buf, source, to_read);
-    } except(EXCEPTION_EXECUTE_HANDLER) {
-      WinDbgPrint("Unable to read from %p", source);
-      RtlZeroMemory(buf, to_read);
-    }
-  } else {
-    // Failed to map page, null fill the buffer.
-    RtlZeroMemory(buf, to_read);
-  };
+	  result = to_read;
 
-  return to_read;
+    } except(EXCEPTION_EXECUTE_HANDLER) {
+      WinDbgPrintDebug("Unable to read %d bytes from %p for %p\n", to_read, source, offset.QuadPart - page_offset);
+	}
+  }
+  // Failed to map page, or an exception occured - error out.
+  return result;
 };
 
 
@@ -150,9 +152,7 @@ static NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset,
 
   *total_read = 0;
 
-  // Ensure we only run on a single CPU.
-  KeSetSystemAffinityThread((__int64)1);
-
+  ExAcquireFastMutex(&extension->mu);
   while(*total_read < count) {
     result = handler(extension, offset, buf, count - *total_read);
 
@@ -170,11 +170,11 @@ static NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset,
     *total_read += result;
   };
 
-  KeRevertToUserAffinityThread();
+  ExReleaseFastMutex(&extension->mu);
   return STATUS_SUCCESS;
 
- error:
-  KeRevertToUserAffinityThread();
+error:
+  ExReleaseFastMutex(&extension->mu);
   return STATUS_IO_DEVICE_ERROR;
 };
 
@@ -183,7 +183,6 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
   PVOID Buf;       //Buffer provided by user space.
   ULONG BufLen;    //Buffer length for user provided buffer.
   LARGE_INTEGER BufOffset; // The file offset requested from userspace.
-  ULONG DataLen;  //Buffer length for Driver Data Buffer
   PIO_STACK_LOCATION pIoStackIrp;
   PDEVICE_EXTENSION extension;
   NTSTATUS status = STATUS_SUCCESS;
@@ -220,6 +219,10 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
 
   case ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE:
   case ACQUISITION_MODE_PTE_MMAP:
+	if (extension->pte_mmapper == NULL) {
+	  status = STATUS_NOT_IMPLEMENTED;
+	  goto exit;
+	};
     status = DeviceRead(extension, BufOffset, Buf, BufLen, &total_read,
                         PTEMmapPartialRead);
     break;

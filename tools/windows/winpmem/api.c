@@ -6,7 +6,7 @@ struct Pmem_KernelExports_t Pmem_KernelExports;
 
 
 NTSTATUS PmemGetProcAddresses() {
-  void *image_base = KernelGetModuleBaseByPtr(NtBuildNumber, "NtBuildNumber");
+  void *image_base = KernelGetModuleBaseByPtr(NtBuildNumber);
   char key[sizeof(OBFUSCATION_KEY)] = OBFUSCATION_KEY;
   void *api = NULL;
 

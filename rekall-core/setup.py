@@ -53,7 +53,7 @@ def find_data_files(source):
 # when external packages are upgraded in an incompatible way.
 install_requires = [
     'PyYAML==3.12',
-    'acora==2.0',
+    'acora==2.1',
     'arrow==0.10.0',
     'artifacts==20170909',
     'future',

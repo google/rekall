@@ -1,5 +1,6 @@
 /*
-  Copyright 2014 Michael Cohen <scudette@gmail.com>
+  Copyright 2018 Velocidex Innovations <mike@velocidex.com>
+  Copyright 2014-2017 Google Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,7 +20,7 @@
 #include "api.h"
 #include "read.h"
 #include "kd.h"
-#include "pci.h"
+//#include "pci.h"
 
 
 // The following globals are populated in the kernel context from DriverEntry
@@ -32,7 +33,7 @@ DRIVER_UNLOAD IoUnload;
 VOID IoUnload(IN PDRIVER_OBJECT DriverObject) {
   UNICODE_STRING DeviceLinkUnicodeString;
   PDEVICE_OBJECT pDeviceObject = NULL;
-  PDEVICE_EXTENSION ext= NULL;
+  PDEVICE_EXTENSION ext = NULL;
 
   if (DriverObject == NULL)
     return;
@@ -40,7 +41,7 @@ VOID IoUnload(IN PDRIVER_OBJECT DriverObject) {
   pDeviceObject = DriverObject->DeviceObject;
   ext=(PDEVICE_EXTENSION)pDeviceObject->DeviceExtension;
 
-  RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\" PMEM_DEVICE_NAME);
+  RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\??\\" PMEM_DEVICE_NAME);
   IoDeleteSymbolicLink (&DeviceLinkUnicodeString);
 
   if(ext->pte_mmapper)
@@ -95,9 +96,11 @@ NTSTATUS AddMemoryRanges(struct PmemMemoryInfo *info, int len) {
 __drv_dispatchType(IRP_MJ_CREATE)
 DRIVER_DISPATCH wddCreate;
 static NTSTATUS wddCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
-  PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
-  PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
-
+//  PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
+  //PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
+  if (!DeviceObject || !Irp) {
+	return STATUS_INVALID_PARAMETER;
+  }
   Irp->IoStatus.Status = STATUS_SUCCESS;
   Irp->IoStatus.Information = 0;
 
@@ -110,8 +113,10 @@ __drv_dispatchType(IRP_MJ_CLOSE)
 DRIVER_DISPATCH wddClose;
 static NTSTATUS wddClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
   PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
-  PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
-
+//  PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
+  if (!DeviceObject || !Irp) {
+		return STATUS_INVALID_PARAMETER;
+  }
   if(ext->MemoryHandle != 0) {
     ZwClose(ext->MemoryHandle);
     ext->MemoryHandle = 0;
@@ -130,17 +135,12 @@ DRIVER_DISPATCH wddDispatchDeviceControl;
 NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 				  IN PIRP Irp)
 {
-  UNICODE_STRING DestinationPath;
   PIO_STACK_LOCATION IrpStack;
   NTSTATUS status = STATUS_INVALID_PARAMETER;
   ULONG IoControlCode;
   PVOID IoBuffer;
-  PULONG OutputBuffer;
   PDEVICE_EXTENSION ext;
   ULONG InputLen, OutputLen;
-
-  ULONG Level;
-  ULONG Type;
 
   // We must be running in PASSIVE_LEVEL or we bluescreen here. We
   // theoretically should always be running at PASSIVE_LEVEL here, but
@@ -219,13 +219,16 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     // Ensure we clear the buffer first.
     RtlZeroMemory(IoBuffer, sizeof(struct PmemMemoryInfo));
 
+#if 0
     // Get the memory ranges according to the mode.
     if (ext->mode == ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE) {
       status = PCI_AddMemoryRanges(info, OutputLen);
     } else {
       status = AddMemoryRanges(info, OutputLen);
     }
-
+#else
+	status = AddMemoryRanges(info, OutputLen);
+#endif
     if (status != STATUS_SUCCESS) {
       goto exit;
     };
@@ -239,8 +242,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 
     info->NtBuildNumber.QuadPart = *NtBuildNumber;
     info->NtBuildNumberAddr.QuadPart = (uintptr_t)NtBuildNumber;
-    info->KernBase.QuadPart = (uintptr_t)KernelGetModuleBaseByPtr(
-       NtBuildNumber, "NtBuildNumber");
+    info->KernBase.QuadPart = (uintptr_t)KernelGetModuleBaseByPtr(NtBuildNumber);
 
     // Fill in KPCR.
     GetKPCR(info);
@@ -302,6 +304,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
         };
         break;
 
+#if 0
       case ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE:
         if (!Pmem_KernelExports.MmGetVirtualForPhysical ||
             !ext->pte_mmapper) {
@@ -314,7 +317,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 	  ext->mode = mode;
         };
         break;
-
+#endif
       default:
         WinDbgPrint("Invalid acquisition mode %d.\n", mode);
         status = STATUS_INVALID_PARAMETER;
@@ -354,6 +357,8 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   NTSTATUS NtStatus;
   PDEVICE_OBJECT DeviceObject = NULL;
   PDEVICE_EXTENSION extension;
+  
+  RegistryPath; // Unused
 
   WinDbgPrint("WinPMEM - " PMEM_VERSION " - Physical memory acquisition\n");
 
@@ -361,7 +366,8 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   WinDbgPrint("WinPMEM write support available!");
 #endif
 
-  WinDbgPrint("Copyright (c) 2017, Michael Cohen <scudette@gmail.com>\n");
+  WinDbgPrint("Copyright (c) 2018, Velocidex Innovations <mike@velocidex.com>\n");
+  WinDbgPrint("Copyright (c) 2017, Google Inc.\n");
 
   // Initialize import tables:
   if(PmemGetProcAddresses() != STATUS_SUCCESS) {
@@ -410,13 +416,17 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   ClearFlag(DeviceObject->Flags, DO_DIRECT_IO );
   ClearFlag(DeviceObject->Flags, DO_DEVICE_INITIALIZING);
 
-  RtlInitUnicodeString (&DeviceLink, L"\\DosDevices\\" PMEM_DEVICE_NAME);
+  RtlInitUnicodeString (&DeviceLink, L"\\??\\" PMEM_DEVICE_NAME);
 
   NtStatus = IoCreateSymbolicLink (&DeviceLink, &DeviceName);
-
   if (!NT_SUCCESS(NtStatus)) {
-    WinDbgPrint ("IoCreateSymbolicLink failed. => %08X\n", NtStatus);
-    IoDeleteDevice (DeviceObject);
+	  IoDeleteSymbolicLink(&DeviceLink);
+	  NtStatus = IoCreateSymbolicLink(&DeviceLink, &DeviceName);
+	  if (!NT_SUCCESS(NtStatus)) {
+		  WinDbgPrint("IoCreateSymbolicLink failed. => %08X\n", NtStatus);
+		  IoDeleteDevice(DeviceObject);
+		  goto error;
+	  }
   }
 
   // Populate globals in kernel context.
@@ -430,11 +440,17 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
 #if _WIN64
   // Disable pte mapping for 32 bit systems.
   extension->pte_mmapper = pte_mmap_windows_new();
+  if (extension->pte_mmapper == NULL) {
+	  IoDeleteDevice(DeviceObject);
+	  goto error;
+  }
   extension->pte_mmapper->loglevel = PTE_ERR;
   extension->mode = ACQUISITION_MODE_PTE_MMAP;
 #else
   extension->pte_mmapper = NULL;
 #endif
+
+  ExInitializeFastMutex(&extension->mu);
 
   WinDbgPrint("Driver intialization completed.");
   return NtStatus;

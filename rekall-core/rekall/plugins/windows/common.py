@@ -158,13 +158,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
 
     def VerifyHit(self, dtb):
         """Check the eprocess for sanity."""
-        # In windows the DTB must be page aligned, except for PAE images where
-        # its aligned to a 0x20 size.
-        if not self.profile.metadata("pae") and dtb & 0xFFF != 0:
-            return
-
-        if self.profile.metadata("pae") and dtb & 0xF != 0:
-            return
+        # In the past we used to require the DTB be page aligned but
+        # this is not the case on windows VSM.
 
         # Select simple address space implementations as test address spaces.
         address_space = super(WinFindDTB, self).GetAddressSpaceImplementation()(
