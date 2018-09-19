@@ -99,9 +99,11 @@ class FindKaslr(common.AbstractLinuxCommandPlugin):
         pointer_size = self.profile.get_obj_size("Pointer")
         fmt = 'I' if pointer_size == 4 else 'Q'
 
-        init_task_address = self.profile.get_constant('init_task', is_address=True)
+        init_task_address = self.profile.get_constant('init_task',
+                                                      is_address=True)
         init_task_offset = init_task_address - rekall_shifts[0]
-        init_files_address = self.profile.get_constant('init_files', is_address=True)
+        init_files_address = self.profile.get_constant('init_files',
+                                                       is_address=True)
         init_files_offset = init_files_address - rekall_shifts[0]
         pgt_virt_address = (
             self.profile.get_constant("init_level4_pgt", is_address=True) or
@@ -140,21 +142,23 @@ class FindKaslr(common.AbstractLinuxCommandPlugin):
             self.session.logging.debug("Potential physical shift is: 0x{:x}"
                 .format(potential_physical_shift))
 
-            files_buf  = pas.read(swapper_offset - comm_offset + files_offset, pointer_size)
-            files_addr = struct.unpack(fmt, files_buf)[0]
+            swapper_task_struct = swapper_offset - comm_offset
+            files_address = swapper_task_struct + files_offset
+            files_buf  = pas.read(files_address, pointer_size)
+            files_value = struct.unpack(fmt, files_buf)[0]
             self.session.logging.debug(
                 "Extracted files address from swapper task_struct: 0x{:x}"
-                .format(files_addr))
-            tmp_virtual_shift = files_addr - shifts[0] - init_files_offset
+                .format(files_value))
+            virtual_shift = files_value - shifts[0] - init_files_offset
 
             # now we can calculate page_offset
             physical_shift = potential_physical_shift
-            virtual_shift = tmp_virtual_shift
             kernel_slide = virtual_shift
             page_offset = rekall_shifts[0] + kernel_slide - physical_shift
 
             if physical_shift == virtual_shift == 0:
-                self.session.logging.info("This dump doesn't seem to use KASLR.")
+                self.session.logging.info(
+                    "This dump doesn't seem to use KASLR.")
                 comment = "No KASLR"
 
             else:
@@ -182,7 +186,8 @@ class FindKaslr(common.AbstractLinuxCommandPlugin):
                 if valid_dtb:
                     valid_dtb_value = dtb
                     if not comment:
-                        comment = "Use cmd line options --dtb and --kernel_slide."
+                        comment = \
+                            "Use cmd line options --dtb and --kernel_slide."
 
                 yield dict(physical_shift=physical_shift,
                            virtual_shift=virtual_shift,
