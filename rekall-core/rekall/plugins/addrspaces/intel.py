@@ -89,6 +89,9 @@ from rekall_lib import utils
 config.DeclareOption(
     "dtb", group="Autodetection Overrides",
     type="IntParser", help="The DTB physical address.")
+config.DeclareOption(
+    "kernel_slide", group="Autodetection Overrides",
+    type="IntParser", help="Shift for Linux KASLR (see find_kaslr plugin).")
 
 PAGE_SHIFT = 12
 PAGE_MASK = ~ 0xFFF
