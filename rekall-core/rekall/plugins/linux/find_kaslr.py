@@ -40,6 +40,7 @@ Tested on x86 and x86_64 for NOKASLR and KASLR 1st and 2nd generation.
 __author__ = "Frank Block <fblock@ernw.de>"
 
 from rekall import scan
+from rekall import obj
 from rekall.plugins.linux import common
 import struct
 
@@ -72,14 +73,12 @@ class FindKaslr(common.AbstractLinuxCommandPlugin):
     ]
 
     def collect(self):
-        shifts  = [0xffffffff80000000]
-        rekall_shifts  = [0xffff80000000]
+        shifts  = [0xffff80000000]
         if self.session.profile.metadata("arch") == 'AMD64':
             pass
 
         elif self.session.profile.metadata("arch") == 'I386':
             shifts = [0xc0000000]
-            rekall_shifts = shifts
 
         else:
             self.session.error.logging.error(
@@ -101,10 +100,10 @@ class FindKaslr(common.AbstractLinuxCommandPlugin):
 
         init_task_address = self.profile.get_constant('init_task',
                                                       is_address=True)
-        init_task_offset = init_task_address - rekall_shifts[0]
+        init_task_offset = init_task_address - shifts[0]
         init_files_address = self.profile.get_constant('init_files',
                                                        is_address=True)
-        init_files_offset = init_files_address - rekall_shifts[0]
+        init_files_offset = init_files_address - shifts[0]
         pgt_virt_address = (
             self.profile.get_constant("init_level4_pgt", is_address=True) or
             self.profile.get_constant("init_top_pgt", is_address=True))
@@ -149,12 +148,13 @@ class FindKaslr(common.AbstractLinuxCommandPlugin):
             self.session.logging.debug(
                 "Extracted files address from swapper task_struct: 0x{:x}"
                 .format(files_value))
+            files_value = obj.Pointer.integer_to_address(files_value)
             virtual_shift = files_value - shifts[0] - init_files_offset
 
             # now we can calculate page_offset
             physical_shift = potential_physical_shift
             kernel_slide = virtual_shift
-            page_offset = rekall_shifts[0] + kernel_slide - physical_shift
+            page_offset = shifts[0] + kernel_slide - physical_shift
 
             if physical_shift == virtual_shift == 0:
                 self.session.logging.info(
