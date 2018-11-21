@@ -1310,7 +1310,7 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
         if self.plugin_args.output_filename:
             with renderer.open(filename=self.plugin_args.output_filename,
                                directory=self.plugin_args.dump_dir,
-                               mode="wb") as fd:
+                               mode="w") as fd:
                 fd.write(utils.PPrint(result))
         else:
             renderer.write(utils.PPrint(result))
