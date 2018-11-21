@@ -69,7 +69,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         super(Elf64CoreDump, self).__init__(**kwargs)
         self.as_assert("kcore" not in self.session.GetParameter(
             "filename", ""), "Not kcore")
-        
+
         # Check the file for sanity.
         self.check_file()
 
@@ -199,6 +199,9 @@ class KCoreAddressSpace(Elf64CoreDump):
 
     def __init__(self, **kwargs):
         super(KCoreAddressSpace, self).__init__(**kwargs)
+
+        self.as_assert("kcore" in self.session.GetParameter(
+            "filename", ""), "Not kcore")
 
         # This is a live address space.
         self.volatile = True
