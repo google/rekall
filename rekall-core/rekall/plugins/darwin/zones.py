@@ -32,15 +32,33 @@ class DarwinZoneHook(common.AbstractDarwinParameterHook):
 
     name = "zones"
 
+    def isValidZone(self,t_zone):
+        return (t_zone.elem_size > 0)
+
     def calculate(self):
         first_zone = self.session.profile.get_constant_object(
             "_first_zone",
             target="Pointer",
             target_args=dict(
                 target="zone"))
-
-        return [x.obj_offset for x in first_zone.walk_list("next_zone")]
-
+        if first_zone:
+            return [x.obj_offset for x in first_zone.walk_list("next_zone")]
+        else:
+            #ref : https://github.com/volatilityfoundation/volatility/commit/cd979ae1139031752d2c20a482de79dc4229527f#diff-5634a8b300ff42bb36bde8aacb2a845f
+            #this works in osx images greater than 10.11
+            zones=[]
+            zone_array = self.session.profile.get_constant_object(
+                "_zone_array",
+                target="Array",
+                target_args=dict(
+                    count = 256,
+                    target="zone"
+                )
+                )
+            for zone in zone_array:
+                if self.isValidZone(zone):
+                    zones.append(zone.obj_offset)
+            return zones
 
 class DarwinZoneCollector(common.AbstractDarwinCachedProducer):
     name = "zones"
