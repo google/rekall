@@ -119,9 +119,14 @@ class PFNInfo(common.WindowsCommandPlugin):
 
         # Now describe the PTE and Prototype PTE pointed to by this PFN entry.
         collection = intel.DescriptorCollection(self.session)
+        # We read the controlling PTE from the physical space (via read_pte)
+        # since PteAddress refers to the process' address space, which we
+        # don't have here right now and would be more expensive to gather.
         self.session.kernel_address_space.describe_pte(
             collection, pfn_obj.PteAddress,
-            pfn_obj.PteAddress.Long, 0)
+            self.session.kernel_address_space.read_pte(pte_physical_address),
+            0)
+
 
         yield "Controlling PTE", None, collection
 
