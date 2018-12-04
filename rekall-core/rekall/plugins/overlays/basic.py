@@ -670,7 +670,7 @@ class UnixTimeStamp(obj.NativeType):
         try:
             # Return a data time object in UTC.
             return arrow.Arrow.utcfromtimestamp(self.v())
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError ,OSError) as e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
 
     def as_datetime(self):
