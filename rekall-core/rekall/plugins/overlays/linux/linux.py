@@ -570,6 +570,13 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
             )
         )]],
     }],
+
+    'refcount_struct' : [None, {
+        'refcounter': lambda x: x.multi_m(
+            "counter",
+            "refs.counter",
+            ).v(),
+    }],
 }
 
 
