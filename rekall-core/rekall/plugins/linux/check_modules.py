@@ -77,7 +77,7 @@ class CheckModules(common.LinuxPlugin):
         modules = set(lsmod.get_module_list())
 
         for kobj in self.get_kset_modules():
-            ref_count = kobj.kref.refcount.counter
+            ref_count = kobj.kref.refcount.refcounter
 
             # Real modules have at least 3 references in sysfs.
             if ref_count < 3:
