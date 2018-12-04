@@ -29,6 +29,7 @@ import itertools
 import posixpath
 
 from rekall import testlib
+from rekall import obj
 from rekall.plugins.linux import common
 from rekall_lib import utils
 
@@ -58,7 +59,7 @@ class CheckProcFops(common.LinuxPlugin):
         """Yields struct members and their containing module."""
         for member in members:
             ptr = struct.m(member)
-            if not ptr:
+            if not ptr or not isinstance(ptr, obj.Pointer):
                 continue
 
             # This is really a function pointer.
