@@ -59,15 +59,25 @@ class CpuInfo(common.LinuxPlugin):
         cpus = (self.profile.get_constant("cpu_online_bits") or
                 self.profile.get_constant("cpu_present_map"))
         if not cpus:
-            raise AttributeError("Unable to determine number of online CPUs "
-                                 "for memory capture")
+            # __cpu_online_mask is a cpumask struct
+            # Its member "bits" contains an array of bit masks.
+            # See https://lore.kernel.org/patchwork/patch/940568/
+            # and include/linux/cpumask.h
+            cpus = self.profile.get_constant("__cpu_online_mask")
 
-        bmap = self.profile.Object(
-            "unsigned long", offset=cpus, vm=self.kernel_address_space)
+            if cpus:
+                bmap_list = self.profile.cpumask(offset=cpus).bits
+            else:
+                raise AttributeError("Unable to determine number of online "
+                                 "CPUs for memory capture")
+        else:
+            bmap_list = [self.profile.Object(
+                "unsigned long", offset=cpus, vm=self.kernel_address_space)]
 
-        for i in range(0, bmap.obj_size):
-            if bmap & (1 << i):
-                yield i
+        for bmap in bmap_list:
+            for i in range(0, bmap.obj_size):
+                if bmap & (1 << i):
+                    yield i
 
     def calculate(self):
 
