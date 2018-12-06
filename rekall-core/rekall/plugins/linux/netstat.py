@@ -35,9 +35,9 @@ class Netstat(common.LinuxPlugin):
         lsof = self.session.plugins.lsof(session=self.session)
         for task, file_struct, fd in lsof.lsof():
             if (file_struct.f_op == self.profile.get_constant(
-                "socket_file_ops") or
+                "socket_file_ops", is_address=True) or
                 file_struct.m("d_entry").d_op == self.profile.get_constant(
-                    "sockfs_dentry_operations")):
+                    "sockfs_dentry_operations", is_address=True)):
 
                 iaddr = file_struct.dentry.d_inode
 
@@ -109,7 +109,7 @@ class Netstat(common.LinuxPlugin):
 
             renderer.table_row(
                 "UNIX",
-                unix_sock.addr.refcnt.counter,
+                unix_sock.addr.refcnt.refcounter,
                 sock.sk_type,
                 sk_common.skc_state,
                 iaddr.i_ino,
