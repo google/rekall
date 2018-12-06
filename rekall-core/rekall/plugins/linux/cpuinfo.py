@@ -56,17 +56,22 @@ class CpuInfo(common.LinuxPlugin):
     def online_cpus(self):
         """returns a list of online cpus (the processor numbers)"""
         #later kernels.
-        cpus = (self.profile.get_constant("cpu_online_bits") or
-                self.profile.get_constant("cpu_present_map"))
+        cpus = (self.profile.get_constant("cpu_online_bits", is_address=True) or
+                self.profile.get_constant("cpu_present_map", is_address=True))
+
         if not cpus:
             # __cpu_online_mask is a cpumask struct
             # Its member "bits" contains an array of bit masks.
             # See https://lore.kernel.org/patchwork/patch/940568/
             # and include/linux/cpumask.h
-            cpus = self.profile.get_constant("__cpu_online_mask")
+            cpus = self.profile.get_constant_object(
+                    "__cpu_online_mask",
+                    target="cpumask",
+                    vm=self.kernel_address_space)
 
             if cpus:
-                bmap_list = self.profile.cpumask(offset=cpus).bits
+                #bmap_list = self.profile.cpumask(offset=cpus).bits
+                bmap_list = cpus.bits
             else:
                 raise AttributeError("Unable to determine number of online "
                                  "CPUs for memory capture")
@@ -95,7 +100,7 @@ class CpuInfo(common.LinuxPlugin):
 
     def get_info_single(self):
         cpu = self.profile.cpuinfo_x86(
-            self.profile.get_constant("boot_cpu_data"),
+            self.profile.get_constant("boot_cpu_data", is_address=True),
             vm=self.kernel_address_space)
         yield 0, cpu
 
@@ -109,7 +114,8 @@ class CpuInfo(common.LinuxPlugin):
 
         per_offsets = self.profile.Array(
             target='unsigned long', count=max_cpu,
-            offset=self.profile.get_constant("__per_cpu_offset"),
+            offset=self.profile.get_constant("__per_cpu_offset",
+                                             is_address=True),
             vm=self.kernel_address_space)
 
         i = 0
