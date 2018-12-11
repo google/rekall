@@ -110,8 +110,6 @@ class LinVadDump(core.DirectoryDumperMixin, common.LinProcessFilter):
             name = task.comm
 
             for vma in task.mm.mmap.walk_list("vm_next"):
-                if not vma.vm_file:
-                    continue
 
                 filename = "{0}.{1}.{2:08x}-{3:08x}.dmp".format(
                     name, task.pid, vma.vm_start, vma.vm_end)
