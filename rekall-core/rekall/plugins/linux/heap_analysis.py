@@ -46,6 +46,7 @@ from rekall.plugins.overlays import basic
 from rekall.plugins.linux import common
 from rekall.plugins.linux import cpuinfo
 from rekall.plugins.addrspaces.intel import InvalidAddress
+from rekall.io_manager import IOManagerError
 from rekall.plugins import yarascanner
 from rekall.plugins import core
 from rekall import addrspace
@@ -188,16 +189,46 @@ class HeapAnalysis(common.LinProcessFilter):
                 offset=thread_group.obj_offset - thread_group_offset,
                 vm=self.process_as)
 
-            pt_regs = self.profile.pt_regs(
-                offset=(thread_task.thread.sp0 -
-                        self.profile.get_obj_size("pt_regs")),
-                vm=self.process_as)
-
+            pt_regs = self._get_task_pt_regs(thread_task)
             thread_stack_offsets.append(dict(ebp=pt_regs.bp.v(),
                                              esp=pt_regs.sp.v(),
                                              pid=thread_task.pid.v()))
 
         return thread_stack_offsets
+
+
+    def _get_pt_regs_offset(self):
+        """Used for _get_task_pt_regs"""
+        # taken from arch/x86/include/asm/page_64_types.h
+        TOP_OF_KERNEL_STACK_PADDING = 0
+
+        if self.session.profile.get_kernel_config('CONFIG_X86_32'):
+            if self.session.profile.get_kernel_config('CONFIG_VM86'):
+                TOP_OF_KERNEL_STACK_PADDING = 16
+            else:
+                TOP_OF_KERNEL_STACK_PADDING = 8
+
+        if self.session.profile.get_kernel_config("CONFIG_KASAN"):
+            KASAN_STACK_ORDER = 1
+        else:
+            KASAN_STACK_ORDER = 0
+
+        if self.session.profile.metadata("arch") == 'AMD64':
+            THREAD_SIZE_ORDER = 2 + KASAN_STACK_ORDER
+        else:
+            THREAD_SIZE_ORDER = 1
+
+        THREAD_SIZE = self._min_pagesize << THREAD_SIZE_ORDER
+        return THREAD_SIZE - TOP_OF_KERNEL_STACK_PADDING
+
+
+    def _get_task_pt_regs(self, thread_task):
+        # Since sp0 is not accessible anymore on x86_64, we use this method
+        # See https://lore.kernel.org/patchwork/patch/828764/
+        # and task_pt_regs in arch/x86/include/asm/processor.h
+        pt_regs_offset = thread_task.stack.v() + self._pt_regs_offset
+        pt_regs_offset -= self.profile.get_obj_size("pt_regs")
+        return self.profile.pt_regs(offset=pt_regs_offset, vm=self.process_as)
 
 
     # Basically the code from the proc_maps plugin but with thread specific
@@ -211,6 +242,12 @@ class HeapAnalysis(common.LinProcessFilter):
         result = utils.RangedCollection()
 
         thread_stack_offsets = self._get_saved_stack_frame_pointers(task)
+        if not thread_stack_offsets:
+            thread_stack_offsets = list()
+            thread_stack_offsets.append(dict(ebp=0,
+                                             esp=0,
+                                             pid=task.pid.v()))
+
         # The first pair contains the "main" thread and the mm start_stack
         # value is more reliable for identifying the relevant memory region
         # than the saved frame pointers
@@ -300,10 +337,19 @@ class HeapAnalysis(common.LinProcessFilter):
 
         # TODO: dynamic selection of distribution specific profiles
         dist = 'base'
-        libc_profile = self.session.LoadProfile(
-            "glibc/{:s}/{:s}/{:s}".format(dist,
-                                          self.profile.metadata("arch"),
-                                          libc_version_string))
+        libc_profile = None
+
+        try:
+            libc_profile = self.session.LoadProfile(
+                "glibc/{:s}/{:s}/{:s}".format(dist,
+                                              self.profile.metadata("arch"),
+                                              libc_version_string))
+        except IOManagerError as ex:
+            # gets e.g. thrown when a specified repository folder is not
+            # existent
+            self.session.logging.warn(
+                "Error while trying to load a repository: {:s}"
+                .format(str(ex)))
 
         if not libc_profile:
             # fallback: there seems to be no profile from the repository,
@@ -1257,6 +1303,7 @@ class HeapAnalysis(common.LinProcessFilter):
         self._preserve_chunks = False
 
         self._min_pagesize = 4096
+        self._pt_regs_offset = self._get_pt_regs_offset()
 
         if self.session.profile.metadata("arch") == 'I386':
             self._size_sz = 4
@@ -3355,6 +3402,9 @@ class HeapAnalysis(common.LinProcessFilter):
         # the two bottom chunks if MALLOC_ALIGNMENT has been modified
         vma_sum -= sum(list(self._bottom_chunk_gaps.values()))
 
+        self.session.logging.debug(
+                "_compare_vma_sizes_with_chunks: chunk_sum={:d} vma_sum={:d}"
+                .format(chunk_sum, vma_sum))
         return chunk_sum == vma_sum
 
 
@@ -3458,6 +3508,11 @@ class HeapAnalysis(common.LinProcessFilter):
             main_heap_size -= self._static_bin_first_chunk_dist
             size_all_vmas -= self._static_bin_first_chunk_dist
 
+        self.session.logging.debug(
+                "_compare_and_report_system_mem_sizes main_arena: "
+                "main_arena.system_mem={:d} "
+                "calculated main_heap_size={:d}"
+                .format(self.get_main_arena().system_mem, main_heap_size))
         # we compare the main heap vmas with the main arena's system_mem size
         if self.get_main_arena().system_mem != main_heap_size:
             self.session.logging.warn(
@@ -3475,6 +3530,10 @@ class HeapAnalysis(common.LinProcessFilter):
 
             system_mem_size += sum(list(self._heap_slack_space.values()))
 
+            self.session.logging.debug(
+                    "_compare_and_report_system_mem_sizes all_arenas: "
+                    "size_all_vmas={:d} system_mem_size={:d}"
+                    .format(size_all_vmas, system_mem_size))
             if size_all_vmas != system_mem_size:
                 self.session.logging.warn(
                     "The size of at least one arena (its system_mem value) "
@@ -3808,15 +3867,15 @@ class HeapOverview(HeapAnalysis):
     name = "heapinfo"
 
     table_header = [
-        dict(name="pid", width=6),
-        dict(name="arenas", width=6),
-        dict(name="heap_infos", width=10),
-        dict(name="non_mmapped_chunks", width=20),
-        dict(name="non_mmapped_chunks_size", width=26),
-        dict(name="mmapped_chunks", width=16),
-        dict(name="mmapped_chunks_size", width=22),
-        dict(name="freed_chunks", width=14),
-        dict(name="freed_chunks_size", width=20)
+        dict(name="pid", align="r", width=6),
+        dict(name="arenas", align="r", width=6),
+        dict(name="heap_infos", align="r", width=10),
+        dict(name="non_mmapped_chunks", align="r", width=20),
+        dict(name="non_mmapped_chunks_size", align="r", width=26),
+        dict(name="mmapped_chunks", align="r", width=16),
+        dict(name="mmapped_chunks_size", align="r", width=22),
+        dict(name="freed_chunks", align="r", width=14),
+        dict(name="freed_chunks_size", align="r", width=20)
     ]
 
     def collect(self):
@@ -4015,12 +4074,12 @@ class HeapChunkDumper(core.DirectoryDumperMixin, HeapAnalysis):
                                "_dumped-{:d}_stripped-{:d}.dmp")
 
     table_header = [
-        dict(name="pid", width=6),
-        dict(name="allocated", width=12),
-        dict(name="freed_bin", width=12),
-        dict(name="freed_tcache", width=12),
-        dict(name="freed_fastbin", width=14),
-        dict(name="top_chunks", width=12)
+        dict(name="pid", align="r", width=6),
+        dict(name="allocated", align="r", width=12),
+        dict(name="freed_bin", align="r", width=12),
+        dict(name="freed_tcache", align="r", width=12),
+        dict(name="freed_fastbin", align="r", width=14),
+        dict(name="top_chunks", align="r", width=12)
     ]
 
 
