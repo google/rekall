@@ -449,8 +449,9 @@ mspdb_overlays = {
         "Data2": [4, ["unsigned short", {}]],
         "Data3": [6, ["unsigned short", {}]],
         "Data4": [8, ["String", dict(length=8, term=None)]],
-        "AsString": lambda x: ("%08x%04x%04x%s" % (
-            x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex'))).upper(),
+        "AsString": lambda x: (u"%08x%04x%04x%s" % (
+            x.Data1, x.Data2, x.Data3, utils.SmartUnicode(
+                binascii.hexlify(x.Data4.v())))).upper(),
     }],
 
     "Info": [None, {
@@ -1101,7 +1102,7 @@ class PDBParser(object):
                             field_definition[0] = (
                                 "<unnamed-%s>" % field.value.index)
 
-                        definition[1][str(field.value.name)] = [
+                        definition[1][utils.SmartUnicode(field.value.name)] = [
                             int(field.value.value_), field_definition]
 
                 yield [struct_name, definition]
