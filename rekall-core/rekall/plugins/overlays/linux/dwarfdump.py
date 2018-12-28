@@ -30,11 +30,12 @@ class DWARFParser(object):
 
     # Nasty, but appears to parse the lines we need
     dwarf_header_regex = re.compile(
-        r'<(?P<level>\d+)><(?P<statement_id>[0-9+]+)><(?P<kind>\w+)>')
+        br'<(?P<level>\d+)><(?P<statement_id>[0-9+]+)><(?P<kind>\w+)>')
     dwarf_key_val_regex = re.compile(
-        '\s*(?P<keyname>\w+)<(?P<val>[^>]*)>')
+        b'\s*(?P<keyname>\w+)<(?P<val>[^>]*)>')
 
-    dwarf_header_regex2 = re.compile(r'<(?P<level>\d+)><(?P<statement_id>0x[0-9a-fA-F]+([+]0x[0-9a-fA-F]+)?)><(?P<kind>\w+)>')
+    dwarf_header_regex2 = re.compile(
+        br'<(?P<level>\d+)><(?P<statement_id>0x[0-9a-fA-F]+([+]0x[0-9a-fA-F]+)?)><(?P<kind>\w+)>')
 
     sz2tp = {8: 'long long', 4: 'int', 2: 'short', 1: 'char'}
     tp2vol = {

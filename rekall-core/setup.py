@@ -52,7 +52,7 @@ def find_data_files(source):
 # approach ensures that any Rekall version will always work as tested - even
 # when external packages are upgraded in an incompatible way.
 install_requires = [
-    'PyYAML==4.1',
+    'PyYAML',
     'acora==2.1',
     'arrow==0.10.0',
     'artifacts==20170909',
