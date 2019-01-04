@@ -131,7 +131,8 @@ class VAD(common.WinProcessFilter):
         try:
             file_obj = vad.ControlArea.FilePointer
             if file_obj:
-                filename = file_obj.FileName or "Pagefile-backed section"
+                filename = (file_obj.file_name_with_drive() or 
+                            "Pagefile-backed section")
         except AttributeError:
             pass
 

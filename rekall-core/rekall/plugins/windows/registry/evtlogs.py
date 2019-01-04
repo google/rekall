@@ -268,7 +268,8 @@ class EvtLogs(registry.RegistryPlugin):
 
         for task, vad in self.FindEVTFiles():
             filename = ntpath.basename(
-                utils.SmartUnicode(vad.ControlArea.FilePointer.FileName))
+                utils.SmartUnicode(
+                    vad.ControlArea.FilePointer.file_name_with_drive()))
 
             for event in self.ScanEvents(vad, task.get_process_address_space()):
                 renderer.table_row(
