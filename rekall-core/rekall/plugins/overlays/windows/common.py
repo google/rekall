@@ -778,7 +778,12 @@ class _EPROCESS(obj.Struct):
 
     @utils.safe_property
     def Wow64Process(self):
-        return self.m("Wow64Process").cast(
+        # for Windows 10, the field name is WoW64Process
+        wow_fieldname = "Wow64Process"
+        if hasattr(self, "WoW64Process"):
+            wow_fieldname = "WoW64Process"
+
+        return self.m(wow_fieldname).cast(
             "Pointer", target="_PEB32", vm=self.get_process_address_space())
 
     @utils.safe_property
