@@ -70,6 +70,7 @@ install_requires = [
     'pytz==2017.3',
     'rekall-capstone==3.0.5.post2',
     "rekall-efilter >= 1.6, < 1.7",
+    'pypykatz>=0.0.6;python_version>="3.5"',
 
     # Should match exactly the version of this package.
     'rekall-lib',
