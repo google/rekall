@@ -819,8 +819,18 @@ void pmem_meta_cleanup() {
         pmem_sysctl = 0;
     }
 
-    lck_rw_free(pmem_cached_info_lock, pmem_rwlock_grp);
-    lck_attr_free(pmem_cached_info_lock_attr);
+    if (pmem_cached_info_lock != NULL && pmem_rwlock_grp != NULL) {
+        lck_rw_free(pmem_cached_info_lock, pmem_rwlock_grp);
+    }
+    else {
+        pmem_error("Failed to clean pmem_cached_info_lock and pmem_rwlock_grp.");
+    }
+    if (pmem_cached_info_lock_attr != NULL) {
+        lck_attr_free(pmem_cached_info_lock_attr);
+    }
+    else {
+        pmem_error("Failed to clean pmem_cached_info_lock_attr.");
+    }
 }
 
 
