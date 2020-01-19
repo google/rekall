@@ -173,7 +173,7 @@ class Pas2VasMixin(object):
         for physical_address in self.plugin_args.offsets:
             for virtual_address, task in self.get_virtual_address(
                     physical_address, tasks):
-                if task is 'Kernel':
+                if task == 'Kernel':
                     renderer.table_row(physical_address, virtual_address,
                                        0, 'Kernel')
                 else:
