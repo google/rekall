@@ -90,10 +90,11 @@ from builtins import object
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import glob
-import re
 import ntpath
+import re
 import os
 import platform
+import shutil
 import six
 import subprocess
 import sys
@@ -156,11 +157,11 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
                 "Filename must be provided when GUID is specified.")
 
         # Write the file data to the renderer.
-        pdb_file_data = self.FetchPDBFile()
-        with renderer.open(filename=self.plugin_args.pdb_filename,
-                           directory=self.plugin_args.dump_dir,
-                           mode="wb") as fd:
-            fd.write(pdb_file_data)
+        with self.FetchPDBFile() as fdin:
+            with renderer.open(filename=self.plugin_args.pdb_filename,
+                               directory=self.plugin_args.dump_dir,
+                               mode="wb") as fdout:
+                shutil.copyfileobj(fdin, fdout)
 
     def DownloadCompressedPDBFile(self, url, pdb_filename, guid, basename):
         url += "/%s/%s/%s.pd_" % (pdb_filename, guid, basename)
@@ -213,10 +214,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
             # files in the temp directory.
             output_file = glob.glob("%s/*pdb" % temp_dir)[0]
 
-            # We read the entire file into memory here - it should not be
-            # larger than approximately 10mb.
-            with open(output_file, "rb") as fd:
-                return fd.read(50 * 1024 * 1024)
+            return open(output_file, "rb")
 
     def DownloadUncompressedPDBFile(self, url, pdb_filename, guid, basename):
         url += "/%s/%s/%s.pdb" % (pdb_filename, guid, basename)
@@ -225,10 +223,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
         request = urllib.request.Request(url, None, headers={
             'User-Agent': self.USER_AGENT})
 
-        url_handler = urllib.request.urlopen(request)
-        # We read the entire file into memory here - it should not be
-        # larger than approximately 10mb.
-        return url_handler.read(50 * 1024 * 1024)
+        return urllib.request.urlopen(request)
 
     def FetchPDBFile(self):
         # Ensure the pdb filename has the correct extension.

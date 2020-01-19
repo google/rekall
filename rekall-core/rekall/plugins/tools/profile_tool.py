@@ -91,11 +91,12 @@ __author__ = (
 
 import binascii
 import gzip
+import io
 import itertools
 import json
 import os
 import re
-import io
+import shutil
 
 from rekall import io_manager
 from rekall import obj
@@ -1191,8 +1192,9 @@ class BuildProfileLocally(plugin.Command):
 
             # Store the PDB file somewhere.
             pdb_pathname = os.path.join(dump_dir, pdb_filename)
-            with open(pdb_pathname, "wb") as outfd:
-                outfd.write(fetch_pdb_plugin.FetchPDBFile())
+            with fetch_pdb_plugin.FetchPDBFile() as infd:
+                with open(pdb_pathname, "wb") as outfd:
+                    shutil.copyfileobj(infd, outfd)
 
             parse_pdb = self.session.plugins.parse_pdb(
                 pdb_filename=pdb_pathname,
