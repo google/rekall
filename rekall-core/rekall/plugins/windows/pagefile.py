@@ -536,14 +536,22 @@ class WindowsPagedMemoryMixin(object):
             collection.add(DemandZeroDescriptor)
 
     @Reentrant
-    def _get_subsection_mapped_address(self, subsection_pte_address):
+    def _get_subsection_mapped_address(self, subsection_pte, is_address=True):
         """Map the subsection into the physical address space.
+
+        is_address specifies whether subsection_pte is the address of the pte
+        or its value (true means it is the address)
 
         Returns:
           The offset in the physical AS where this subsection PTE is mapped to.
         """
         if self.base_as_can_map_files:
-            pte = self.session.profile._MMPTE(subsection_pte_address)
+            if is_address:
+                pte = self.session.profile._MMPTE(subsection_pte)
+            else:
+                pte = self.session.profile._MMPTE()
+                pte.u.Long = subsection_pte
+
             subsection = pte.u.Subsect.Subsection
             subsection_base = subsection.SubsectionBase.v()
 
@@ -557,7 +565,7 @@ class WindowsPagedMemoryMixin(object):
                 # the array index of the subsection_pte_address that we were
                 # given.
                 file_offset = (
-                    (subsection_pte_address -
+                    (subsection_pte -
                      subsection_base) * 0x1000 / pte.obj_size +
                     subsection.StartingSector * 512)
 
