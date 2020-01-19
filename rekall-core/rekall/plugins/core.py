@@ -945,26 +945,66 @@ class Grep(plugin.TypedProfileCommand, plugin.ProfileCommand):
         dict(name="address_space", type="AddressSpace",
              help="Name of the address_space to search."),
 
-        dict(name="context", default=20, type="IntParser",
-             help="Context to print around the hit."),
+        dict(name="before", default=16, type="IntParser",
+             help="Number of bytes before the hit to print."),
 
-        dict(name="limit", default=2**64,
+        dict(name="after", default=16, type="IntParser",
+             help="Number of bytes after the hit to print."),
+
+        dict(name="limit", default=2**64, type="IntParser",
              help="The length of data to search."),
+
+        dict(name="count", default=False, type="Boolean",
+             help="Report the number of hits found."),
+
+        dict(name="max", default=0, type="IntParser",
+             help="Stop once this many hits are found.")
     ]
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="count", width=5, align="r", hidden=True)
+    ] + Dump.table_header
+
+    def column_types(self):
+        temp = Dump.column_types()
+        temp["count"] = int
+        return temp
+
+    def __init__(self, *args, **kwargs):
+        address_map = kwargs.pop("address_map", None)
+        super(Grep, self).__init__(*args, **kwargs)
+
+        # default width can be set in the session.
+        self.width = self.session.GetParameter("hexdump_width", 16)
+        self.address_map = address_map or AddressMap()
+
+    def collect(self):
         scanner = scan.MultiStringScanner(
             needles=[utils.SmartStr(x) for x in self.plugin_args.keyword],
             address_space=self.plugin_args.address_space,
             session=self.session)
 
+        count = 0
         for hit, _ in scanner.scan(offset=self.plugin_args.offset,
                                    maxlen=self.plugin_args.limit):
-            hexdumper = self.session.plugins.dump(
-                offset=hit - 16, length=self.plugin_args.context + 16,
-                address_space=self.plugin_args.address_space)
 
-            hexdumper.render(renderer)
+            after = self.plugin_args.after + 16
+
+            count += 1
+            hex_data = utils.HexDumpedString(
+                self.plugin_args.address_space.read(hit, after),
+                hex_width=self.width)
+
+            comment = self.address_map.GetComment(hit, hit + self.width)
+
+            yield dict(offset=hit,
+                       hexdump=hex_data,
+                       comment=comment,
+                       count=count,
+                       nowrap=True, hex_width=self.width)
+
+            if count == self.plugin_args.max:
+                break
 
 
 class SetProcessContextMixin(object):
