@@ -56,12 +56,12 @@ install_requires = [
     'acora==2.1',
     'arrow==0.10.0',
     'artifacts==20170909',
-    'future',
+    'future==0.16.0',
     'intervaltree==2.1.0',
     'ipaddr==2.2.0',
     'parsedatetime==2.4',
     "psutil >= 5.0, < 6.0",
-    'pyaff4 >= 0.26, < 0.30',
+    'pyaff4 ==0.26.post6',
     'pycryptodome==3.4.7',
     'pyelftools==0.24',
     'pyparsing==2.1.5',
@@ -70,7 +70,7 @@ install_requires = [
     'pytz==2017.3',
     'rekall-capstone==3.0.5.post2',
     "rekall-efilter >= 1.6, < 1.7",
-    'pypykatz>=0.0.6;python_version>="3.5"',
+    'pypykatz==0.0.8;python_version>="3.5"',
 
     # Should match exactly the version of this package.
     'rekall-lib',
