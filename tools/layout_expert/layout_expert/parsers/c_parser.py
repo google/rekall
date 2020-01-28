@@ -378,7 +378,7 @@ class Parser(object):
     def _type_reference(self):
         """A reference to a type.
 
-        The type may be already defined in place or just refered by name.
+        The type may be already defined in place or just referred by name.
         """
         identifier = (
             self._typeof_expression()

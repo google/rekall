@@ -276,15 +276,15 @@ static PyObject *_get_memory_map(AMD64PagedMemory *self, uint64_t start,
           }
         };
 
-        // Next time around the loop - start at the begining.
+        // Next time around the loop - start at the beginning.
         lookup.pte_addr = 0;
       }
 
-      // Next time around the loop - start at the begining.
+      // Next time around the loop - start at the beginning.
       lookup.pde_addr = 0;
     }
 
-    // Next time around the loop - start at the begining.
+    // Next time around the loop - start at the beginning.
     lookup.pdpte_addr = 0;
   }
 

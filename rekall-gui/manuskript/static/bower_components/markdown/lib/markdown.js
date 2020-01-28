@@ -1480,7 +1480,7 @@ function extract_attr( jsonml ) {
  *
  *  The options currently understood are:
  *
- *  - root (Boolean): wether or not the root node should be included in the
+ *  - root (Boolean): whether or not the root node should be included in the
  *    output, or just its children. The default `false` is to not include the
  *    root itself.
  */

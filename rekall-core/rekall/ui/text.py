@@ -88,7 +88,7 @@ FORMAT_SPECIFIER_RE = re.compile(r"""
                                           # a format string or it is ambiguous.
 (?P<align>[<>=^])?     # The alignment.
 (?P<sign>[+\- ])?      # Sign extension.
-(?P<hash>\#)?          # Hash means to preceed the whole thing with 0x.
+(?P<hash>\#)?          # Hash means to precede the whole thing with 0x.
 (?P<zerofill>0)?       # Should numbers be zero filled.
 (?P<width>\d+)?        # The minimum width.
 (?P<comma>,)?

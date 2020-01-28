@@ -139,7 +139,7 @@ static LONG PTEMmapPartialRead(IN PDEVICE_EXTENSION extension,
       WinDbgPrintDebug("Unable to read %d bytes from %p for %p\n", to_read, source, offset.QuadPart - page_offset);
 	}
   }
-  // Failed to map page, or an exception occured - error out.
+  // Failed to map page, or an exception occurred - error out.
   return result;
 };
 

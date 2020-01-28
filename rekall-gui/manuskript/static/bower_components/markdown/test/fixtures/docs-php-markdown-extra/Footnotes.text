@@ -51,5 +51,5 @@ footnote test[^reference].
 	should be impossible.[^impossible]
 
 [^impossible]:
-	This footnote should not appear, as it is refered from 
+	This footnote should not appear, as it is referred from 
 	another footnote, which is not allowed.
