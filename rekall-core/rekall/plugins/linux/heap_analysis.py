@@ -1275,7 +1275,7 @@ class HeapAnalysis(common.LinProcessFilter):
         self.mp_offset = self.plugin_args.malloc_par
         self._mmapped_warnings = set()
 
-        # for statically linked binaries: holds the distance from the begining
+        # for statically linked binaries: holds the distance from the beginning
         # of the main arena until the first chunk; it is taken from
         # self.mp_.sbrk_base
         # this marks also the beginning of the arena's memory and hence

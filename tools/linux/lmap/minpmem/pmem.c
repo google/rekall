@@ -141,7 +141,7 @@ error_copy:
 invalid_page:
   DEBUG_LOG("%016llx is invalid, zero padding...", *poff);
   if (_copy_to_user(buf, (const void *)zero_page, to_read)) {
-    DEBUG_LOG("Failed to copy zero page for adress %#016llx to user "
+    DEBUG_LOG("Failed to copy zero page for address %#016llx to user "
             "space.", *poff);
   }
   /* Increment the file offset. */

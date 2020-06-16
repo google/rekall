@@ -78,7 +78,7 @@ class AddressResolverMixin(object):
     address and an end address. Modules can also contain a profile which knows
     about symbols related to that module.
 
-    1. Module reference: The start address of a module can be refered to by its
+    1. Module reference: The start address of a module can be referred to by its
        name. e.g:  "nt", "ntdll", "tcpip".
 
     2. If a module contains a valid profile, the profile may also know about
