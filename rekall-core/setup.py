@@ -62,7 +62,7 @@ install_requires = [
     'parsedatetime==2.4',
     "psutil >= 5.0, < 6.0",
     'pyaff4 ==0.26.post6',
-    'pycryptodome==3.4.7',
+    'pycryptodome==3.6.6',
     'pyelftools==0.24',
     'pyparsing==2.1.5',
     'python-dateutil==2.6.1',
