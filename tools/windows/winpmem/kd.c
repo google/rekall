@@ -1,4 +1,5 @@
 /*
+  Copyright 2020 Velocidex Enterises <mike@velocidex.com>
   Copyright 2012 Michael Cohen <scudette@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,66 +17,57 @@
 
 #include "kd.h"
 
-/*
-  This code inspired and updated from
-  http://alter.org.ua/docs/nt_kernel/procaddr/#KernelGetModuleBaseByPtr
-
-  We try to locate the kernel's base address. We do this by looking for an MZ
-  header a short space before the location of a known exported symbol.
-
-  Unfortunately we might hit unmapped kernel memory which will blue screen so we
-  need to check if the kernel address is at all valid.
-*/
+// This function is defined by winnt.h but it is actually present and
+// exported in the kernel too.
+PVOID
+RtlPcToFileHeader(
+    IN  PVOID PcValue,
+    OUT PVOID* BaseOfImage
+);
 
 IMAGE_DOS_HEADER *KernelGetModuleBaseByPtr(IN void *in_section) {
-  unsigned char *p;
   IMAGE_DOS_HEADER *dos = NULL;
   IMAGE_NT_HEADERS *nt;
-  int count = 0;
 
-  p = (unsigned char *)((uintptr_t)in_section & ~(PAGE_SIZE-1));
+  RtlPcToFileHeader(in_section, &dos);
 
-  for(;p;p -= PAGE_SIZE) {
-    count ++;
-
-    // Dont go back too far.
-    if (count > 0x800) {
-      return NULL;
-    };
-
-    __try {
-      dos = (IMAGE_DOS_HEADER *)p;
-
+  __try {
       // If this address is not mapped in, there will be a BSOD
       // PAGE_FAULT_IN_NONPAGED_AREA so we check first.
-      if(!MmIsAddressValid(dos)) {
-        continue;
+      if (!MmIsAddressValid(dos)) {
+          return NULL;
       }
 
-      if(dos->e_magic != 0x5a4d) // MZ
-        continue;
+      if (dos->e_magic != 0x5a4d) { // MZ
+          return NULL;
+      }
 
-      nt = (IMAGE_NT_HEADERS *)((uintptr_t)dos + dos->e_lfanew);
-      if((uintptr_t)nt >= (uintptr_t)in_section)
-        continue;
+      nt = (IMAGE_NT_HEADERS*)((uintptr_t)dos + dos->e_lfanew);
+      if ((uintptr_t)nt >= (uintptr_t)in_section) {
+          return NULL;
+      }
 
-      if((uintptr_t)nt <= (uintptr_t)dos)
-        continue;
+      if ((uintptr_t)nt <= (uintptr_t)dos) {
+          return NULL;
+      }
 
       if(!MmIsAddressValid(nt)) {
-        continue;
+          return NULL;
       }
-      if(nt->Signature != 0x00004550) // PE
-        continue;
 
-      break;
+      if (nt->Signature != 0x00004550) { // PE
+          return NULL;
+      }
 
-      // Ignore potential errors.
-    } __except(EXCEPTION_CONTINUE_EXECUTION) {}
+      return dos;
+
+    // Ignore potential errors.
+  } __except(EXCEPTION_CONTINUE_EXECUTION) {
+      dos = NULL;
   }
 
   return dos;
-}
+};
 
 /* Resolve a kernel function by name.
  */
