@@ -20,10 +20,10 @@
 #include "winpmem.h"
 #include "ntimage.h"
 
-IMAGE_DOS_HEADER *KernelGetModuleBaseByPtr(IN void *in_section);
+SIZE_T KernelGetModuleBaseByPtr();
 
-void *KernelGetProcAddress(void *image_base, char *func_name);
+PVOID KernelGetProcAddress(void *image_base, char *func_name);
 
-int GetKPCR(struct PmemMemoryInfo *info);
+void GetKPCR(struct PmemMemoryInfo *info);
 
 #endif // _WINPMEM_KD_H

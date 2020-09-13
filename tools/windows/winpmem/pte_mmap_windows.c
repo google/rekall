@@ -29,6 +29,7 @@ static MDL *rogue_mdl = NULL;
 // allocate from pool because pool storage is controlled by large page
 // PTEs. So we just use a static page in the driver executable.
 static void *pte_get_rogue_page(void) {
+	WinDbgPrint("pte_get_rogue_page\n");
 	if (page_aligned_space == NULL) {
 		// We would ideally like to just allocate memory from non paged
 		// pool but on Windows 7, non paged pool is allocated from large
@@ -41,7 +42,9 @@ static void *pte_get_rogue_page(void) {
 		// page_aligned_space is the first page aligned offset within the
 		// buffer.
 		page_aligned_space = &rogue_page[0];
+		WinDbgPrint(" - page_aligned_space: #%p\n", page_aligned_space);
 		page_aligned_space += PAGE_SIZE - ((__int64)&rogue_page[0]) % PAGE_SIZE;
+		WinDbgPrint(" - page_aligned_space: #%p\n", page_aligned_space);
 
 		// MDL is for a single page.
 		rogue_mdl = IoAllocateMdl(page_aligned_space, PAGE_SIZE,
@@ -71,8 +74,11 @@ static void *pte_get_rogue_page(void) {
 
 // Frees a single page allocated with vmalloc(). Rogue page is static
 // we do not free it.
-static void pte_free_rogue_page(void *page) {
-  if (rogue_mdl) {
+static void pte_free_rogue_page(void * page) 
+{
+	UNREFERENCED_PARAMETER(page);
+  if (rogue_mdl) 
+  {
     MmUnlockPages(rogue_mdl);
     IoFreeMdl(rogue_mdl);
     rogue_mdl = NULL;
@@ -82,13 +88,15 @@ static void pte_free_rogue_page(void *page) {
 
 // Makes use of the fact that the page tables are always mapped in the direct
 // Kernel memory map.
-static void *pte_phys_to_virt(PHYS_ADDR address) {
+static void *pte_phys_to_virt(PHYS_ADDR address) 
+{
   PHYSICAL_ADDRESS phys_address;
 
   phys_address.QuadPart = address;
   //return phys_to_virt(address);
   // TODO(scudette): Use PFNDB here.
-  return Pmem_KernelExports.MmGetVirtualForPhysical(phys_address);
+  // Disagree, don't hear on him!
+  return MmGetVirtualForPhysical(phys_address);
 }
 
 // Flushes the tlb entry for a specific page.
@@ -119,12 +127,12 @@ void pte_mmap_windows_delete(PTE_MMAP_OBJ *self) {
 
 // Initializer that fills an operating system specific vtable,
 // allocates memory, etc.
-PTE_MMAP_OBJ *pte_mmap_windows_new(void) {
+PTE_MMAP_OBJ *pte_mmap_windows_new(void) 
+{
   PTE_MMAP_OBJ *self = NULL;
 
   // Allocate the object
-  self = ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(PTE_MMAP_OBJ),
-			       PMEM_POOL_TAG);
+  self = ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(PTE_MMAP_OBJ),PMEM_POOL_TAG);
 
   if (!self) return NULL;
 
@@ -145,14 +153,13 @@ PTE_MMAP_OBJ *pte_mmap_windows_new(void) {
   if (self->rogue_page.pointer == NULL) {
 	  goto error;
   }
-  WinDbgPrintDebug("Looking up PTE for rogue page: %p",
-                   self->rogue_page);
+  WinDbgPrintDebug("Looking up PTE for rogue page: %p\n", self->rogue_page);
   if (self->find_pte_(self, self->rogue_page.pointer, &self->rogue_pte)) {
     WinDbgPrint("Failed to find the PTE for the rogue page, "
-                "might be inside huge page, aborting...");
+                "might be inside huge page, aborting...\n");
     goto error;
   }
-  WinDbgPrintDebug("Found rogue pte at %p", self->rogue_pte);
+  WinDbgPrintDebug("Found rogue pte at %p\n", self->rogue_pte);
 
   // Back up the address this pte points to for cleaning up later.
   self->original_addr = PFN_TO_PAGE(self->rogue_pte->page_frame);

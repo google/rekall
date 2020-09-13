@@ -62,7 +62,8 @@ u32 get_base_register_size(u8 bus, u8 slot, u8 func, u8 offset) {
 #if WINPMEM_PCI_DEBUG
 // Debugging functions for dumping out PCI configuration data.
 
-void dump_interesting_fields(u8 bus, u8 slot, u8 func) {
+void dump_interesting_fields(u8 bus, u8 slot, u8 func) 
+{
   u16 vendor_id = read_pci_config_16(bus, slot, func, PCI_VENDOR_ID);
   u16 device_id = read_pci_config_16(bus, slot, func, PCI_DEVICE_ID);
 
@@ -118,9 +119,10 @@ void DumpRuns(struct PmemMemoryInfo *info) {
 
 #endif
 
-static NTSTATUS InsertMemoryHole(struct PmemMemoryInfo *info, int len,
-				 u64 start, u64 end) {
-  int i;
+static NTSTATUS InsertMemoryHole(struct PmemMemoryInfo *info, int len, u64 start, u64 end) 
+{
+  int i=0;
+  UNREFERENCED_PARAMETER(len);
 
 #if WINPMEM_PCI_DEBUG
   WinDbgPrint("Inserting memory hole at Start %llX end %llx\n", start, end);
@@ -130,7 +132,8 @@ static NTSTATUS InsertMemoryHole(struct PmemMemoryInfo *info, int len,
   start = start & 0xFFFFFFFFFFFFF000;
   end = end | 0xFFF;
 
-  if (start == end){
+  if (start == end)
+  {
     goto exit;
   };
 
@@ -169,8 +172,8 @@ static NTSTATUS InsertMemoryHole(struct PmemMemoryInfo *info, int len,
 };
 
 
-static NTSTATUS DumpBaseAddressRegister32(u8 bus, u8 slot, u8 func, u8 offset,
-					  struct PmemMemoryInfo *info, int len) {
+static NTSTATUS DumpBaseAddressRegister32(u8 bus, u8 slot, u8 func, u8 offset, struct PmemMemoryInfo * info, int len) 
+{
   u32 mask = 0;
   u32 base = read_pci_config(bus, slot, func, offset);
   u16 command = read_pci_config_16(bus, slot, func, PCI_COMMAND);

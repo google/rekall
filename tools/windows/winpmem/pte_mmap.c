@@ -45,12 +45,12 @@ static PTE_STATUS pte_remap_rogue_page(PTE_MMAP_OBJ *self, PHYS_ADDR target) {
   // Can only remap pages, addresses must be page aligned.
   if (((!target) & PAGE_MASK) || self->rogue_page.offset) {
     WinDbgPrint("Failed to map %#016llx, "
-                "only page aligned remapping is supported!",
+                "only page aligned remapping is supported!\n",
                 target);
     return PTE_ERROR;
   }
 
-  WinDbgPrintDebug("Remapping pte at %p to %#016llx",
+  WinDbgPrintDebug("Remapping pte at %p to %#016llx\n",
                    self->rogue_pte,
                    target);
   // Change the pte to point to the new offset.
@@ -62,8 +62,11 @@ static PTE_STATUS pte_remap_rogue_page(PTE_MMAP_OBJ *self, PHYS_ADDR target) {
 }
 
 // Parse a 64 bit page table entry and print it.
-static void print_pte_contents(PTE_MMAP_OBJ *self, PTE_LOGLEVEL loglevel,
-                               PTE *pte) {
+static void print_pte_contents(PTE_MMAP_OBJ *self, PTE_LOGLEVEL loglevel, PTE *pte) 
+{
+	UNREFERENCED_PARAMETER(loglevel);
+	UNREFERENCED_PARAMETER(self);
+	
   WinDbgPrint("Virtual Address:%#016llx\n"
               "\tpresent:      %lld\n"
               "\trw:           %lld\n"
@@ -101,8 +104,8 @@ static void print_pte_contents(PTE_MMAP_OBJ *self, PTE_LOGLEVEL loglevel,
 // Returns:
 //  PTE_SUCCESS or PTE_ERROR
 //
-static PTE_STATUS virt_find_pte(PTE_MMAP_OBJ *self, void *addr,
-                                PTE **pte) {
+static PTE_STATUS virt_find_pte(PTE_MMAP_OBJ *self, void *addr, PTE **pte)
+{
   PTE_CR3 cr3;
   PML4E *pml4;
   PML4E *pml4e;
@@ -116,84 +119,83 @@ static PTE_STATUS virt_find_pte(PTE_MMAP_OBJ *self, void *addr,
 
   vaddr.pointer = addr;
 
-  WinDbgPrint("Resolving PTE for Address:%#016llx", vaddr);
+  WinDbgPrint("Resolving PTE for Address:%p\n", vaddr);
 
   // Get contents of cr3 register to get to the PML4
   cr3 = self->get_cr3_();
 
-  WinDbgPrint("Kernel CR3 is %p", cr3);
-  WinDbgPrint("Kernel PML4 is at %p physical",
-                   PFN_TO_PAGE(cr3.pml4_p));
+  WinDbgPrint("Kernel CR3 is %p\n", cr3);
+  WinDbgPrint("Kernel PML4 is at %p\n physical",PFN_TO_PAGE(cr3.pml4_p));
+  
+  // xxx: may I have a KDBP printout here?
 
   // Resolve the PML4
   pml4 = (PML4E *)self->phys_to_virt_(PFN_TO_PAGE(cr3.pml4_p));
-  WinDbgPrint("kernel PML4 is at %p virtual", pml4);
+  WinDbgPrint("kernel PML4 is at %p\n virtual", pml4);
 
   // Resolve the PDPT
   pml4e = (pml4 + vaddr.pml4_index);
 
-  WinDbgPrint("PML4 entry %d is at %p", vaddr.pml4_index,
-                   pml4e);
+  WinDbgPrint("PML4 entry %d is at %p\n", vaddr.pml4_index, pml4e);
 
   if (!pml4e->present) {
 
-    WinDbgPrint("Error, address %#016llx has no valid mapping in PML4:",
-                vaddr.value);
+    WinDbgPrint("Error, address %#016llx has no valid mapping in PML4:\n", vaddr.value);
     self->print_pte_(self, PTE_ERR, (PTE *)pml4e);
     goto error;
   }
-  WinDbgPrint("PML4[%#010x]: %p)", vaddr.pml4_index, pml4e);
+  WinDbgPrint("PML4[%#010x]: %p)\n", vaddr.pml4_index, pml4e);
 
 
   pdpt = (PDPTE *)self->phys_to_virt_(PFN_TO_PAGE(pml4e->pdpt_p));
-  WinDbgPrintDebug("Points to PDPT:   %p)", pdpt);
+  WinDbgPrintDebug("Points to PDPT:   %p)\n", pdpt);
 
   // Resolve the PDT
   pdpte = (pdpt + vaddr.pdpt_index);
   if (!pdpte->present) {
-    WinDbgPrint("Error, address %#016llx has no valid mapping in PDPT:",
+    WinDbgPrint("Error, address %#016llx has no valid mapping in PDPT:\n",
                 vaddr.value);
     self->print_pte_(self, PTE_ERR, (PTE *)pdpte);
     goto error;
   }
   if (pdpte->page_size) {
-    WinDbgPrint("Error, address %#016llx belongs to a 1GB page:",
+    WinDbgPrint("Error, address %#016llx belongs to a 1GB page:\n",
                 vaddr.value);
     self->print_pte_(self, PTE_ERR, (PTE *)pdpte);
     goto error;
   }
-  WinDbgPrint("PDPT[%#010x]: %p)", vaddr.pdpt_index, pdpte);
+  WinDbgPrint("PDPT[%#010x]: %p)\n", vaddr.pdpt_index, pdpte);
   pd = (PDE *)self->phys_to_virt_(PFN_TO_PAGE(pdpte->pd_p));
-  WinDbgPrint("Points to PD:     %p)", pd);
+  WinDbgPrint("Points to PD:     %p)\n", pd);
 
   // Resolve the PT
   pde = (pd + vaddr.pd_index);
   if (!pde->present) {
-    WinDbgPrint("Error, address %#016llx has no valid mapping in PD:",
+    WinDbgPrint("Error, address %#016llx has no valid mapping in PD:\n",
                 vaddr.value);
     self->print_pte_(self, PTE_ERR, (PTE *)pde);
     goto error;
   }
   if (pde->page_size) {
-    WinDbgPrint("Error, address %#016llx belongs to a 2MB page:",
+    WinDbgPrint("Error, address %#016llx belongs to a 2MB page:\n",
                 vaddr.value);
     self->print_pte_(self, PTE_ERR, (PTE *)pde);
     goto error;
   }
 
-  WinDbgPrint("PD  [%#010x]: %p)", vaddr.pd_index, pde);
+  WinDbgPrint("PD  [%#010x]: %p)\n", vaddr.pd_index, pde);
   pt = (PTE *)self->phys_to_virt_(PFN_TO_PAGE(pde->pt_p));
-  WinDbgPrint("Points to PT:     %p)", pt);
+  WinDbgPrint("Points to PT:     %p)\n", pt);
 
   // Get the PTE and Page Frame
   *pte = (pt + vaddr.pt_index);
   if (! (*pte)->present) {
-    WinDbgPrint("Error, address %#016llx has no valid mapping in PT:",
+    WinDbgPrint("Error, address %#016llx has no valid mapping in PT:\n",
                 vaddr.value);
     self->print_pte_(self, PTE_ERR, (*pte));
     goto error;
   }
-  WinDbgPrint("PT  [%#010x]: %p)", vaddr.pt_index, *pte);
+  WinDbgPrint("PT  [%#010x]: %p)\n", vaddr.pt_index, *pte);
 
   status = PTE_SUCCESS;
 error:

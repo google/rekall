@@ -1,0 +1,32 @@
+== major revision == 
+
+"make winpmem great again" ;-) 
+
+** MAJOR CHANGES**
+
+* Refactored the code. This code is now a universal WDM driver for WinXP - Win10, it fully adheres to the universal WDM standard.
+  * That means: one compiled driver compatible to all OS -- since signing drivers is tedious (and that was an understatement).
+* The 64 bit line was tested quite thouroughly (but one can never test enough). The 32 bit target OS line needs tester (urgently). The current testing results are kept in 'Testing' and show which target OS are safe to use.
+* Microsoft discarded WinXP from WDK10 entirely. You need a WDK7600, if you want to set the lowest target OS to *WinXP* (while maintaining runnability with Win10). Use the SOURCES file.
+* With WDK10, the lowest possible target OS would be Win7. The vcxproj was set to windows7, though you can always specify /p:TargetVersion=Windows10, but that really makes no sense.
+* General advice: setting the minimum target OS to WinXP would be wise if many people still need WinXP support. I'm no expert for this. But all options are available.
+* Threw out the deprecated code which was already disabled by '#ifdef 0' statements. (It looked very dead).
+
+** MINOR CHANGES **
+
+* added multiple safety checks, ASSERTs (for us kernel debugger/developers), and many buffer length checks etc.
+* NEITHER I/O. Changed the transfer mode from kernelspace to the userspace program to be NEITHER I/O, because 2 - 16 Gigabyte data transfer is an extreme amount of data transferred from kernelspace to the usermode program (and a certain person lost his challenge and must accept it ;-p).
+  The redundant double-copying with the former BUFFERED I/O therefore disappeared. Drivers that run on IRQL 0 and have to move around large amounts of data (in Gigabyte range), like filesystem drivers, use NEITHER I/O, and we also should do that, as it is reasonable safe in our case. We are a IRQL PASSIVE_LEVEL only driver, always get called in known context, and we copy Gigabytes of data to userspace programs. That is where NEITHER I/O shines. I did the necessary security checks. Challenge me, if I did a mistake.
+  Now, currently, the usermode is the bottleneck, and the driver can only answer the I/O queries as they come in. The usermode program could be enhanced.
+* Due to 64 bit / 32 bit, the KPCR slots and other things change in size depending on the bitness. For example, the original winpmem did not consider that 64 bit OS allows up to 64 processors and would have ignored half of the KAFFINITY mask. Not tragic, but suboptimal. These changes result in different structs/data (e.g., the info struct).
+  
+  
+** OTHER NOTES **
+
+* There might still be updated or changes needed. That might collide with the signing process. 
+* Tester should test the correctness of dumpfiles using Volatility 2.6 and win7 or older Win10 versions. 
+* For Win10 latest, there is currently no well working solution. Open for ideas here...
+
+That's it.
+
+Viviane, 13. Sept. 2020

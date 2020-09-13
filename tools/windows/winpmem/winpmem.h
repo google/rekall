@@ -27,12 +27,13 @@
 #define VERBOSE_DEBUG 0
 
 #define PMEM_DEVICE_NAME L"pmem"
-#define PMEM_VERSION "v1.6.3"
+#define PMEM_VERSION "v1.7.0"
 #define PMEM_POOL_TAG 0x4d454d50
 
 // In order to enable writing this must be set to 1 and the
 // appropriate IOCTL must be sent to switch the driver to write mode.
-#define PMEM_WRITE_ENABLED 0
+// #define PMEM_WRITE_ENABLED 1
+
 
 #include <ntifs.h>
 #include <wdmsec.h>
@@ -41,7 +42,9 @@
 #include <stdio.h>
 
 #include "pte_mmap.h"
-#include "api.h"
+
+//enum _POOL_TYPE NonPagedPoolNx = (enum _POOL_TYPE)20;
+//enum _POOL_TYPE NonPagedPoolNx = (enum _POOL_TYPE)22;
 
 // Some standard integer sizes.
 typedef unsigned __int64 u64;
@@ -55,33 +58,30 @@ typedef unsigned __int8 u8;
 // IOCTL
 //
 // This is used to query the driver about memory stats.
-#define IOCTL_GET_INFO CTL_CODE(FILE_DEVICE_UNKNOWN, 0x103, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+// #define IOCTL_GET_INFO CTL_CODE(FILE_DEVICE_UNKNOWN, 0x103, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+#define IOCTL_GET_INFO CTL_CODE(FILE_DEVICE_UNKNOWN, 0x103, METHOD_NEITHER, FILE_READ_DATA | FILE_WRITE_DATA)
 
-#define IOCTL_SET_MODE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x101, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+// #define IOCTL_SET_MODE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x101, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+#define IOCTL_SET_MODE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x101, METHOD_NEITHER, FILE_READ_DATA | FILE_WRITE_DATA)
 
-#define IOCTL_WRITE_ENABLE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x102, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+// #define IOCTL_WRITE_ENABLE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x102, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+#define IOCTL_WRITE_ENABLE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x102, METHOD_NEITHER, FILE_READ_DATA | FILE_WRITE_DATA)
 
 // This is the old deprecated interface. Use IOCTL_GET_INFO instead.
-#define IOCTL_GET_INFO_DEPRECATED CTL_CODE(FILE_DEVICE_UNKNOWN, 0x100, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+// #define IOCTL_GET_INFO_DEPRECATED CTL_CODE(FILE_DEVICE_UNKNOWN, 0x100, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+#define IOCTL_GET_INFO_DEPRECATED CTL_CODE(FILE_DEVICE_UNKNOWN, 0x100, METHOD_NEITHER, FILE_READ_DATA | FILE_WRITE_DATA)
 
 // This is the structure which is returned.
 #pragma pack(push, 2)
 
 extern PUSHORT NtBuildNumber;
 
-/* This is the format of the deprecated IOCTL_GET_INFO_DEPRECATED
-   call.
-*/
-struct DeprecatedPmemMemoryInfo {
-  LARGE_INTEGER CR3;
-  LARGE_INTEGER KPCR;
-  ULONG NumberOfRuns;
 
-  // A Null terminated array of ranges.
-  PHYSICAL_MEMORY_RANGE Run[1];
-};
-
-
+//typedef LARGE_INTEGER PHYSICAL_ADDRESS, * PPHYSICAL_ADDRESS;
+//typedef struct _PHYSICAL_MEMORY_RANGE {
+//    PHYSICAL_ADDRESS BaseAddress;
+//    LARGE_INTEGER NumberOfBytes;
+//} PHYSICAL_MEMORY_RANGE, * PPHYSICAL_MEMORY_RANGE;
 
 struct PmemMemoryInfo {
   LARGE_INTEGER CR3;
@@ -92,10 +92,15 @@ struct PmemMemoryInfo {
 
   // The following are deprecated and will not be set by the driver. It is safer
   // to get these during analysis from NtBuildNumberAddr below.
-  LARGE_INTEGER KDBG;  // The address of KDBG
+  LARGE_INTEGER KDBG;  // xxx: I want that. Can I have it?
 
-  // Support up to 32 processors for KPCR.
+  // xxx: Support up to 32/64  processors for KPCR. Depending on OS bitness
+  #if defined(_WIN64)
+  LARGE_INTEGER KPCR[64];
+  #else
   LARGE_INTEGER KPCR[32];
+  #endif
+  // xxx: For what exactly do we need all those KPCRs, anyway? Sure, they look nice.
 
   LARGE_INTEGER PfnDataBase;
   LARGE_INTEGER PsLoadedModuleList;
@@ -109,7 +114,7 @@ struct PmemMemoryInfo {
 
   // As the driver is extended we can add fields here maintaining
   // driver alignment..
-  LARGE_INTEGER Padding[0xfe];
+  LARGE_INTEGER Padding[0xfe]; // xxx: but you are a on-demand driver. You have no persistence.
 
   LARGE_INTEGER NumberOfRuns;
 

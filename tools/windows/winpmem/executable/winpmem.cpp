@@ -24,13 +24,17 @@
 #include "winpmem.h"
 #include <time.h>
 
-
+/**
+ * Pad file in pad range with zeros.
+*/
 __int64 WinPmem::pad(__int64 length) {
   __int64 count = 1;
   __int64 start = 0;
 
   ZeroMemory(buffer_, buffer_size_);
 
+  printf("pad\n");
+  printf(" - length: 0x%llx\n", length);
   while(start < length) {
     DWORD to_write = (DWORD)min(buffer_size_, length - start);
     DWORD bytes_written;
@@ -41,6 +45,9 @@ __int64 WinPmem::pad(__int64 length) {
       LogLastError(TEXT("Failed to write padding"));
       goto error;
     };
+    //printf(" - start: 0x%llx / 0x%llx\n", start, length);
+    //printf(" - to_write: 0x%lx\n", to_write);
+    //printf(" - written: 0x%lx\n", bytes_written);
 
     out_offset += bytes_written;
 
@@ -52,7 +59,6 @@ __int64 WinPmem::pad(__int64 length) {
     }
 
     count ++;
-
   };
 
   return 1;
@@ -73,14 +79,21 @@ __int64 WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
   if (end > max_physical_memory_) {
     end = max_physical_memory_;
   };
+  printf("copy_memory\n");
+  printf(" - start: 0x%llx\n", start);
+  printf(" - end: 0x%llx\n", end);
 
-  while(start < end) {
+  while(start < end) 
+  {
     DWORD to_write = (DWORD)min(buffer_size_, end - start);
     DWORD bytes_read = 0;
     DWORD bytes_written = 0;
 
     large_start.QuadPart = start;
+    //printf(" - to_write: 0x%lx\n", (DWORD)to_write);
+    //printf(" - start: 0x%llx\n", start);
 
+    // Moves the file pointer of the specified file offset.
     if(0xFFFFFFFF == SetFilePointerEx(
        fd_, large_start, NULL, FILE_BEGIN)) {
       LogError(TEXT("Failed to seek in the pmem device.\n"));
@@ -92,6 +105,7 @@ __int64 WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
       LogError(TEXT("Failed to Read memory.\n"));
       goto error;
     };
+    //printf(" - bytes_read: 0x%lx\n", bytes_read);
 
     if(!WriteFile(out_fd_, buffer_, bytes_read,
                   &bytes_written, NULL) ||
@@ -99,19 +113,26 @@ __int64 WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
       LogLastError(TEXT("Failed to write image file"));
       goto error;
     };
+    //printf(" - bytes_written: 0x%lx\n", bytes_written);
 
     out_offset += bytes_written;
-
+	
+	// xxx: takes too much time:
+	// === Progress printing ===
+	
+	/*
     if((count % 50) == 0) {
       Log(TEXT("\n%02lld%% 0x%08llX "), (start * 100) / max_physical_memory_,
           start);
     }
-
-    Log(TEXT("."));
+	
+	Log(TEXT("."));
+	*/
 
     start += to_write;
     count ++;
-  };
+	
+  }
 
   Log(TEXT("\n"));
   return 1;
@@ -126,7 +147,9 @@ __int64 WinPmem::set_write_enabled(void) {
   unsigned _int32 mode;
   DWORD size;
 
-  if(!DeviceIoControl(fd_, PMEM_WRITE_ENABLE, &mode, 4, NULL, 0,
+  if(!DeviceIoControl(fd_, PMEM_WRITE_ENABLE, 
+					  &mode, 4, // in
+					  NULL, 0, // out
                       &size, NULL)) {
     LogError(TEXT("Failed to set write mode. Maybe these drivers do ")
              TEXT("not support this mode?\n"));
@@ -169,21 +192,23 @@ void WinPmem::print_memory_info() {
   DWORD size;
 
   // Get the memory ranges.
-  if(!DeviceIoControl(fd_, PMEM_INFO_IOCTRL, NULL, 0, (char *)&info,
-                      sizeof(info), &size, NULL)) {
+  if(!DeviceIoControl(fd_, PMEM_INFO_IOCTRL, 
+					  NULL, 0, // in
+					  (char *)&info, sizeof(info), // out
+					  &size, NULL))
+  {
     LogError(TEXT("Failed to get memory geometry,"));
     goto error;
   };
 
 
-  Log(TEXT("CR3: 0x%010llX\n %d memory ranges:\n"), info.CR3.QuadPart,
-      info.NumberOfRuns);
+  Log(TEXT("CR3: 0x%010llX\n %d memory ranges:\n"), info.CR3.QuadPart, info.NumberOfRuns);
 
   for(i=0; i < info.NumberOfRuns.QuadPart; i++) {
-    Log(TEXT("Start 0x%08llX - Length 0x%08llX\n"), info.Run[i].start,
-        info.Run[i].length);
+    Log(TEXT("Start 0x%08llX - Length 0x%08llX\n"), info.Run[i].start, info.Run[i].length);
     max_physical_memory_ = info.Run[i].start + info.Run[i].length;
   };
+  Log(TEXT("max_physical_memory_ 0x%llx\n"), max_physical_memory_);
 
   // When using the pci introspection we dont know the maximum physical memory,
   // we therefore make a guess based on the total ram in the system.
@@ -203,8 +228,7 @@ void WinPmem::print_memory_info() {
                max_physical_memory_);
 
     } else {
-      Log(TEXT("Unable to guess max physical memory. Just Ctrl-C when ")
-          TEXT("done.\n"));
+      Log(TEXT("Unable to guess max physical memory. Just Ctrl-C when done.\n"));
     };
   };
   Log(TEXT("\n"));
@@ -221,7 +245,9 @@ __int64 WinPmem::set_acquisition_mode(unsigned __int32 mode) {
   }
 
   // Set the acquisition mode.
-  if(!DeviceIoControl(fd_, PMEM_CTRL_IOCTRL, &mode, 4, NULL, 0,
+  if(!DeviceIoControl(fd_, PMEM_CTRL_IOCTRL, 
+						&mode, 4, // in
+						NULL, 0,  // out
                       &size, NULL)) {
     Log(TEXT("Failed to set acquisition mode %lu "), mode);
     LogLastError(L"");
@@ -279,15 +305,18 @@ __int64 WinPmem::write_coredump() {
   RtlZeroMemory(&info, sizeof(info));
 
   // Get the memory ranges.
-  if(!DeviceIoControl(fd_, PMEM_INFO_IOCTRL, NULL, 0, (char *)&info,
-                      sizeof(info), &size, NULL)) {
+  if(!DeviceIoControl(fd_, PMEM_INFO_IOCTRL, 
+							NULL, 0, //in
+							(char *)&info, sizeof(info), // out
+							&size, NULL)) 
+  {
     LogError(TEXT("Failed to get memory geometry,"));
     status = -1;
     goto exit;
   };
 
   Log(TEXT("Will write an elf coredump.\n"));
-  print_memory_info();
+  print_memory_info(); // xxx: this will double call GET_INFO IOCTL code! It is sufficient to call it one time.
 
   if(!write_coredump_header_(&info)) {
     goto exit;
@@ -415,8 +444,8 @@ void WinPmem::write_page_file() {
     };
 
     count += bytes_read;
-    if (count > 1024 * 1024) {
-      count -= 1024*1024;
+    if (count > buffer_size_) {
+      count -= buffer_size_;
       if (total_mb_read % 50 == 0) {
         Log(L"\n% 5dMb ", total_mb_read);
       };
@@ -484,28 +513,45 @@ __int64 WinPmem::write_raw_image() {
   RtlZeroMemory(&info, sizeof(info));
 
   // Get the memory ranges.
-  if(!DeviceIoControl(fd_, PMEM_INFO_IOCTRL, NULL, 0, (char *)&info,
-                      sizeof(info), &size, NULL)) {
+  if(!DeviceIoControl(fd_, PMEM_INFO_IOCTRL, 
+						NULL, 0, // in
+						(char *)&info, sizeof(info), // out
+						&size, NULL)) {
     LogError(TEXT("Failed to get memory geometry,"));
     status = -1;
     goto exit;
   };
 
   Log(TEXT("Will generate a RAW image\n"));
+  printf(" - buffer_size_: 0x%lx\n", buffer_size_);
   print_memory_info();
 
-  __int64 offset = 0;
-  for(i=0; i < info.NumberOfRuns.QuadPart; i++) {
-    if(info.Run[i].start > offset) {
-      Log(TEXT("Padding from 0x%08llX to 0x%08llX\n"), offset, info.Run[i].start);
-      if(!pad(info.Run[i].start - offset)) {
-        goto exit;
-      }
-    };
 
-    copy_memory(info.Run[i].start, info.Run[i].start + info.Run[i].length);
-    offset = info.Run[i].start + info.Run[i].length;
-  };
+  // write ranges and pass non ranges
+  
+	__int64 current = 0;
+	for(i=0; i < info.NumberOfRuns.QuadPart; i++) 
+	{
+		if(info.Run[i].start > current) 
+		{
+			// pad zeros from current until begin of next RAM memory region.
+		  printf("Padding from 0x%08llX to 0x%08llX\n", current, info.Run[i].start);
+		  
+		  if(!pad(info.Run[i].start - current)) 
+		  {
+			printf("padding went terribly wrong! Cancelling & terminating. \n");
+			goto exit;
+		  }
+		}
+		
+		// write next RAM memory region to file.
+
+		copy_memory(info.Run[i].start, info.Run[i].start + info.Run[i].length);
+		
+		// update current cursor offset.
+		
+		current = info.Run[i].start + info.Run[i].length;
+	}
 
   // All is well.
   status = 1;
@@ -518,7 +564,8 @@ __int64 WinPmem::write_raw_image() {
 
 WinPmem::WinPmem():
   fd_(INVALID_HANDLE_VALUE),
-  buffer_size_(1024*1024),
+  //buffer_size_(1024*1024),
+  buffer_size_(0x1000),
   buffer_(NULL),
   suppress_output(FALSE),
   service_name(PMEM_SERVICE_NAME),
@@ -709,7 +756,9 @@ __int64 WinPmem::install_driver() {
     goto error;
   };
   if (!StartService(service, 0, NULL)) {
-    if (GetLastError() != ERROR_SERVICE_ALREADY_RUNNING) {
+      DWORD le = GetLastError();
+    if (le != ERROR_SERVICE_ALREADY_RUNNING) {
+      printf("Error (0x%lx): StartService(), Cannot start the driver.\n", le);
       LogError(TEXT("Error: StartService(), Cannot start the driver.\n"));
       goto service_error;
     }
@@ -979,12 +1028,15 @@ __int64 WinPmem32::extract_driver() {
     }
 
     GetTempFileName(path, service_name, 0, filename);
+    Log(L"extract_driver\n");
+    Log(L" - service_name: %s\n", service_name);
+    Log(L" - filename: %s\n", filename);
     set_driver_filename(filename);
 
     driver_is_tempfile_ = true;
   };
 
-  Log(L"Extracting driver to %s\n", driver_filename_);
+  Log(L" - Extracting driver to %s\n", driver_filename_);
 
   return extract_file_(WINPMEM_32BIT_DRIVER, driver_filename_);
 

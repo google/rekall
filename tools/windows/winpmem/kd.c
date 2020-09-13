@@ -15,70 +15,81 @@
 */
 
 #include "kd.h"
+#include "SystemModInfoInvocation.h"
 
-/*
-  This code inspired and updated from
-  http://alter.org.ua/docs/nt_kernel/procaddr/#KernelGetModuleBaseByPtr
+// xxx: returns nt module base address as variatic hex number (SIZE_T) 
+// 		(aka a ZwQuerySystemInformation invocation nr. XI)
+//      The perfect routine for PASSIVE_LEVEL drivers; perfectly safe and no heuristic.
+SIZE_T KernelGetModuleBaseByPtr()
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	
+	ULONG ModuleCount = 0;
+	ULONG i = 0, j=0;
+	
+	ULONG NeedSize = 0;
+	ULONG preAllocateSize = 0x1000;
+	PVOID pBuffer = NULL;
+	
+	SIZE_T imagebase_of_nt = 0;
+	
+	PSYSTEM_MODULE_INFORMATION pSystemModuleInformation;
+	
+	PAGED_CODE();
 
-  We try to locate the kernel's base address. We do this by looking for an MZ
-  header a short space before the location of a known exported symbol.
+	// Preallocate 0x1000 bytes and try.
+	pBuffer = ExAllocatePoolWithTag( NonPagedPool, preAllocateSize, PMEM_POOL_TAG );
+	if( pBuffer == NULL )
+	{
+		return 0;
+	}
+   
+	status = ZwQuerySystemInformation( SystemModuleInformation, pBuffer, preAllocateSize, &NeedSize );
+  
+	if (( status == STATUS_INFO_LENGTH_MISMATCH ) || (status == STATUS_BUFFER_OVERFLOW))
+	{
+		ExFreePool( pBuffer );
+		pBuffer = ExAllocatePoolWithTag( NonPagedPool, NeedSize , PMEM_POOL_TAG );
+		status = ZwQuerySystemInformation( SystemModuleInformation, pBuffer, NeedSize, &NeedSize );
+	}
+   
+	if( !NT_SUCCESS(status) )
+	{
+		ExFreePool( pBuffer );
+		DbgPrint("KernelGetModuleBaseByPtr() failed with %08x.\n",status);
+		return 0;    
+	}
 
-  Unfortunately we might hit unmapped kernel memory which will blue screen so we
-  need to check if the kernel address is at all valid.
-*/
+	pSystemModuleInformation = (PSYSTEM_MODULE_INFORMATION)pBuffer;
 
-IMAGE_DOS_HEADER *KernelGetModuleBaseByPtr(IN void *in_section) {
-  unsigned char *p;
-  IMAGE_DOS_HEADER *dos = NULL;
-  IMAGE_NT_HEADERS *nt;
-  int count = 0;
+	ModuleCount = pSystemModuleInformation->Count;
 
-  p = (unsigned char *)((uintptr_t)in_section & ~(PAGE_SIZE-1));
+	for( i = 0; i < ModuleCount; i++ )
+	{
+		if (pSystemModuleInformation->Module[i].ImageName)
+		{
+			for (j=0;j<250;j++)
+			{
+				if (((pSystemModuleInformation->Module[i].ImageName[j+0] | 0x20) == 'n') &&
+					((pSystemModuleInformation->Module[i].ImageName[j+1] | 0x20) == 't') &&
+					((pSystemModuleInformation->Module[i].ImageName[j+2] | 0x20) == 'o') &&
+					((pSystemModuleInformation->Module[i].ImageName[j+3] | 0x20) == 's'))
+					{
+						imagebase_of_nt = (SIZE_T) pSystemModuleInformation->Module[i].Base;
+						return imagebase_of_nt;
+					}
+					
+			}	
+		}
+	}
 
-  for(;p;p -= PAGE_SIZE) {
-    count ++;
-
-    // Dont go back too far.
-    if (count > 0x800) {
-      return NULL;
-    };
-
-    __try {
-      dos = (IMAGE_DOS_HEADER *)p;
-
-      // If this address is not mapped in, there will be a BSOD
-      // PAGE_FAULT_IN_NONPAGED_AREA so we check first.
-      if(!MmIsAddressValid(dos)) {
-        continue;
-      }
-
-      if(dos->e_magic != 0x5a4d) // MZ
-        continue;
-
-      nt = (IMAGE_NT_HEADERS *)((uintptr_t)dos + dos->e_lfanew);
-      if((uintptr_t)nt >= (uintptr_t)in_section)
-        continue;
-
-      if((uintptr_t)nt <= (uintptr_t)dos)
-        continue;
-
-      if(!MmIsAddressValid(nt)) {
-        continue;
-      }
-      if(nt->Signature != 0x00004550) // PE
-        continue;
-
-      break;
-
-      // Ignore potential errors.
-    } __except(EXCEPTION_CONTINUE_EXECUTION) {}
-  }
-
-  return dos;
+	ExFreePool(pBuffer);
+	return 0;
 }
 
-/* Resolve a kernel function by name.
- */
+
+// xxx: get proc address for kernel space
+// could support irql > 0.
 void *KernelGetProcAddress(void *image_base, char *func_name) {
   void *func_address = NULL;
 
@@ -135,8 +146,10 @@ void *KernelGetProcAddress(void *image_base, char *func_name) {
 /* Search for a section by name.
 
    Returns the mapped virtual memory section or NULL if not found.
+   could support irql > 0.
 */
-IMAGE_SECTION_HEADER *GetSection(IMAGE_DOS_HEADER *image_base, char *name) {
+IMAGE_SECTION_HEADER* GetSection(IMAGE_DOS_HEADER *image_base, char *name) 
+{
   IMAGE_NT_HEADERS *nt  = (IMAGE_NT_HEADERS *)
     ((uintptr_t)image_base + image_base->e_lfanew);
   int i;
@@ -158,28 +171,42 @@ IMAGE_SECTION_HEADER *GetSection(IMAGE_DOS_HEADER *image_base, char *name) {
   Enumerate the KPCR blocks from all CPUs.
 */
 
-int GetKPCR(struct PmemMemoryInfo *info) {
-  __int64 active_processors = KeQueryActiveProcessors();
-  int i;
+void GetKPCR(struct PmemMemoryInfo *info) 
+{
+	// a bitmask of the currently active processors
+	unsigned __int64 active_processors = KeQueryActiveProcessors();
+	unsigned __int64 i=0;
+	#if defined(_WIN64)
+	unsigned __int64 maxProcessors=64; // xxx: 64 processors possible on 64 bit os
+	#else
+	unsigned __int64 maxProcessors=32;  // but only 32 on 32 bit, meaning that only half so much KPCR slots.
+	#endif
+	SIZE_T one = 1; // xxx: for correct bitshifting depending on runtime OS bitness.
+  
+	PAGED_CODE();
+	
+	RtlZeroMemory(info->KPCR, sizeof(info->KPCR) );
 
-  for (i=0; i < 32; i++) {
-    info->KPCR[i].QuadPart = 0;
-  };
+	for (i=0; i<maxProcessors; i++) 
+	{
+		if (active_processors & (one << i)) 
+		{
+		  KeSetSystemAffinityThread(one << i);
+		#if _WIN64
+			  //64 bit uses gs and _KPCR.Self is at 0x18:
+			  info->KPCR[i].QuadPart = (uintptr_t)__readgsqword(0x18);
+		#else
+			  //32 bit uses fs and _KPCR.SelfPcr is at 0x1c:
+			  info->KPCR[i].QuadPart = (uintptr_t)__readfsword(0x1c);
+		#endif
+			
+		}
+	}
 
-  for (i=0; i < 32; i++) {
-    if (active_processors & ((__int64)1 << i)) {
-      KeSetSystemAffinityThread((__int64)1 << i);
-#if _WIN64 || __amd64__
-      //64 bit uses gs and _KPCR.Self is at 0x18:
-      info->KPCR[i].QuadPart = (uintptr_t)__readgsqword(0x18);
-#else
-      //32 bit uses fs and _KPCR.SelfPcr is at 0x1c:
-      info->KPCR[i].QuadPart = (uintptr_t)__readfsword(0x1c);
-#endif
-    };
-  };
+	KeRevertToUserAffinityThread(); 
+	// xxx: I don't think this works for reverting to the real original affinity but the alternative requires Vista or higher.
+	// xxx: The WDK10 does not support WinXP anymore! 
+	//      Do we favor the newer Vista+ Ex version? To perfectly restore the old affinity?
 
-  KeRevertToUserAffinityThread();
-
-  return 1;
-};
+	return;
+}
