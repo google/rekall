@@ -2,7 +2,7 @@
 
 This project is no longer maintained.
 
-In December 2011, a new branch within the Volatility project was created to explore how to make the code base more modular, improve performance, and increase usability. This branch was later forked to become Rekall. The modularity allowed physical memory analysis functionality to be used in GRR to enable remote live in-memory analysis.
+In December 2011, a new branch within the Volatility project was created to explore how to make the code base more modular, improve performance, and increase usability. This branch was later forked to become Rekall. The modularity allowed physical memory analysis functionality to be used in [GRR](https://github.com/google/grr) to enable remote live in-memory analysis.
 
 ## Lessons learned:
 
