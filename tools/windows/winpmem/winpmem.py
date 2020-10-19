@@ -92,7 +92,7 @@ class Image(object):
         self.runs = []
 
         result = win32file.DeviceIoControl(
-            self.fd, INFO_IOCTRL, "", 102400, None)
+            self.fd, INFO_IOCTRL, b"", 102400, None)
 
         fmt_string = "Q" * len(self.FIELDS)
         self.memory_parameters = dict(zip(self.FIELDS, struct.unpack_from(
@@ -140,7 +140,7 @@ class Image(object):
     def PadWithNulls(self, outfd, length):
         while length > 0:
             to_write = min(length, self.buffer_size)
-            outfd.write("\x00" * to_write)
+            outfd.write(b"\x00" * to_write)
             length -= to_write
 
     def DumpWithRead(self, output_filename):
